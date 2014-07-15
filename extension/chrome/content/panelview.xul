@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://policeman/locale/">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <panelview id="PanelUI-policeman" flex="1">
+    <label value="&policeman;" class="panel-subview-header"/>
+    <vbox class="panel-subview-body">
+      <toolbarbutton id="policeman-open-sidebar"
+                    class="subviewbutton"
+                    label="&open_sidebar;"
+                    tooltiptext="&open_sidebar.tip;"
+                    oncommand="toggleSidebar('viewPolicemanSidebar', true);"
+                    />
+      <vbox id="policeman-temp-permissions-container">
+        <toolbarseparator/>
+        <checkbox id="policeman-temp-allow-any"
+                  label="&temp_allow_all;"
+                  tooltiptext="&temp_allow_all.tip;"
+                  />
+        <checkbox id="policeman-temp-allow-doc"
+                  label="&temp_allow_doc;"
+                  tooltiptext="&temp_allow_doc.tip;"
+                  />
+        <vbox id="policeman-temp-allow-domain-container"
+              class="policeman-show-on-web">
+          <!--
+          checkboxes for each subdomain of current domain populate here
+          -->
+        </vbox>
+        <vbox id="policeman-revoke-temp-permissions-container">
+          <toolbarseparator/>
+          <toolbarbutton id="policeman-revoke-all-temp"
+                          class="subviewbutton"
+                          label="&temp_revoke_all;"
+                          tooltiptext="&temp_revoke_all.tip;"
+                          />
+        </vbox>
+      </vbox>
+      <vbox id="policeman-pers-permissions-container"
+            class="policeman-show-on-web">
+        <toolbarseparator/>
+        <vbox id="policeman-pers-allow-domain-container">
+          <!--
+          checkboxes for each subdomain of current domain populate here
+          -->
+        </vbox>
+      </vbox>
+      <vbox id="policeman-reload-page-container">
+        <toolbarseparator/>
+        <checkbox id="policeman-reload-page"
+                  label="&reload_page;"
+                  tooltiptext="&reload_page.tip;"
+                  />
+      </vbox>
+    </vbox>
+  </panelview>
+
+</overlay>

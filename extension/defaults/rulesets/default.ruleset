@@ -1,0 +1,24 @@
+
+# this set is hardcoded to be always enabled and to be always last
+
+version: 0.1
+id: "default"
+
+l10n:
+  en-US:
+    name: "Default"
+    description: "Allow internal requests and reject anything else"
+
+rules:
+  # allow requests to firefox internal schemes
+  -> resource: ACCEPT
+  -> about: ACCEPT
+  -> data: ACCEPT
+  -> chrome: ACCEPT
+  -> moz-icon: ACCEPT
+  -> moz-filedata: ACCEPT
+  -> blob: ACCEPT
+  -> wyciwyg: ACCEPT
+  -> javascript: ACCEPT
+
+  -> : REJECT # reject anything else

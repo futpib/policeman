@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css" ?>
+<?xml-stylesheet href="chrome://browser/skin/browser.css" type="text/css" ?>
+<!DOCTYPE page SYSTEM "chrome://policeman/locale/">
+<page id="policeman-sidebar" title="&policeman;"
+      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" >
+
+  <script src="xul-page-common.js"
+          type="application/javascript"/>
+  <script src="sidebar-page.js"
+          type="application/javascript"/>
+
+  <vbox flex="1">
+    
+  </vbox>
+
+</page>

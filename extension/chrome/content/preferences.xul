@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://policeman/skin/preferences.css" type="text/css"?>
+<!DOCTYPE page SYSTEM "chrome://policeman/locale/">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      xmlns:html="http://www.w3.org/1999/xhtml"
+      title="&policeman_preferences;">
+
+<html:link rel="shortcut icon" href="chrome://policeman/skin/toolbar-icon-16.png" style="display: none"/>
+
+  <hbox flex="1">
+    <vbox id="sidebar">
+      <label class="title" value="&policeman_preferences;"/>
+
+      <vbox id="subpref-links-container">
+        <html:a class="text-link"
+                href="chrome://policeman/content/preferences-general.xul"
+                target="subview">
+          &preferences_general;
+        </html:a>
+        <html:a class="text-link"
+                href="chrome://policeman/content/preferences-rulesets-manager.xul"
+                target="subview">
+          &preferences_rulesets_manager;
+        </html:a>
+      </vbox>
+    </vbox>
+
+    <vbox flex="1">
+      <iframe name="subview"
+              src="chrome://policeman/content/preferences-general.xul"
+              flex="1"/>
+    </vbox>
+  </hbox>
+
+</page>

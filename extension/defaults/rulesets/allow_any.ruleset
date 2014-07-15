@@ -1,0 +1,11 @@
+
+version: 0.1
+id: "allow_any"
+
+l10n:
+  en-US:
+    name: "Allow any request"
+    description: "Allow any request"
+
+rules:
+  -> : ACCEPT

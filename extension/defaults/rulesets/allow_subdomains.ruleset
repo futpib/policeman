@@ -1,0 +1,10 @@
+
+version: 0.1
+id: "allow_subdomains"
+name: "Same site"
+description: "Allow requests to subdomains"
+warnOnDisable: "TODO"
+
+rules:
+  (http|https) -> (http|https|ftp):
+    -> *.$&: ACCEPT

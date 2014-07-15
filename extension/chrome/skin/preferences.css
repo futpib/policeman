@@ -1,0 +1,40 @@
+
+#sidebar, #subpref-container {
+  margin: 1.8em 0 0 1.8em;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.8em;
+}
+
+#subpref-links-container {
+  margin-top: 1em;
+}
+
+#subpref-links-container a {
+  margin-top: .5em;
+  font-size: 1.2em;
+  display: block;
+/*   color: -moz-nativehyperlinktext; */
+  color: -moz-DialogText;
+  text-decoration: none;
+}
+
+#subpref-links-container a:hover {
+  text-decoration: underline;
+}
+
+richlistbox {
+  margin: 0;
+}
+
+.ruleset-name, .ruleset-description, .ruleset-version  {
+  font-size: 1.3em;
+}
+.ruleset-description {
+  opacity: .8;
+}
+.ruleset-version {
+  opacity: .6;
+}

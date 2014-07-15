@@ -1,0 +1,37 @@
+<!ENTITY policeman "Policeman">
+
+<!ENTITY this_app "Firefox">
+<!ENTITY this_window "This window">
+<!ENTITY this_tab "This tab">
+
+<!ENTITY web "Web">
+<!ENTITY any "Any">
+
+<!ENTITY policeman_preferences "Policeman">
+<!ENTITY preferences_general "General preferences">
+<!ENTITY preferences_rulesets_manager "Manage rule sets">
+<!ENTITY installed_rulesets "Installed sets">
+<!ENTITY enabled_rulesets "Active sets ordered by priority (first match wins)">
+<!ENTITY first_match_wins "First match wins">
+
+<!ENTITY remove "Remove">
+<!ENTITY disable "Disable">
+
+<!ENTITY open_sidebar "View Policeman sidebar">
+<!ENTITY open_sidebar.tip "Open sidebar for more options">
+
+<!ENTITY temp_allow_all "Temporarily allow all web requests">
+<!ENTITY temp_allow_all.tip "Allow requests from any http:// and https:// pages till next browser restart">
+<!-- for temp_allow_domain see .properties -->
+<!ENTITY temp_allow_doc "Temporarily allow requests from this document">
+<!ENTITY temp_allow_doc.tip "Allow requests from current document till you navigate elsewhere, reload, close tab or browser">
+
+<!ENTITY temp_revoke_all "Revoke all temporary permission">
+<!ENTITY temp_revoke_all.tip "Revoke all previously set temporary permission">
+
+<!ENTITY reload_page "Reload page">
+<!ENTITY reload_page.tip "Reload page after this popup menu is closed to make page load with new permissions">
+
+<!ENTITY emptysidebar.title "EmptySidebar">
+<!ENTITY open_policeman_sidebar.commandkey "P">
+<!ENTITY open_policeman_sidebar.modifierskey "shift accel">
