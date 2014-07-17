@@ -9,6 +9,7 @@
   createElement
   removeChildren
 } = require 'utils'
+{ overlayQueue } = require 'ui/overlay-queue'
 { prefs } = require 'prefs'
 
 { l10n } = require 'l10n'
@@ -165,11 +166,8 @@ exports.panelview = panelview =
         flex: 1
     doc.getElementById("PanelUI-multiView").appendChild(view)
 
-    overlayMerged = new Observer 'xul-overlay-merged', =>
+    overlayQueue.add doc, 'chrome://policeman/content/panelview.xul', =>
       @onAdd.execute doc, view
-      overlayMerged.unregister()
-
-    doc.loadOverlay 'chrome://policeman/content/panelview.xul', overlayMerged
 
   removeUI: (doc) ->
     view = doc.getElementById @id
