@@ -9,8 +9,4 @@
   toolbarpaletteitem[place="palette"] > #policeman-toolbarbutton {
     list-style-image: url("chrome://policeman/skin/toolbar-icon-32.png");
   }
-
-  #policeman-view splitter {
-    display: none;
-  }
 }
