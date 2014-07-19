@@ -54,6 +54,17 @@ exports.removeChildren = removeChildren = (node) ->
 exports.removeNode = removeNode = (node) ->
   node.parentNode.removeChild node
 
+exports.loadSheet = (win, styleURI, type=Ci.nsIDOMWindowUtils.AUTHOR_SHEET) ->
+  win.QueryInterface(Ci.nsIInterfaceRequestor)
+      .getInterface(Ci.nsIDOMWindowUtils)
+      .loadSheet(styleURI, type)
+
+exports.removeSheet = (win, styleURI, type=Ci.nsIDOMWindowUtils.AUTHOR_SHEET) ->
+  win.QueryInterface(Ci.nsIInterfaceRequestor)
+      .getInterface(Ci.nsIDOMWindowUtils)
+      .removeSheet(styleURI, type)
+
+
 exports.tails = tails = (arr) ->
   ts = []
   while arr.length

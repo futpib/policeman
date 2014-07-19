@@ -1,6 +1,10 @@
 
 
-{ Handlers } = require 'utils'
+{
+  loadSheet
+  removeSheet
+  Handlers
+} = require 'utils'
 { windows } = require 'windows'
 
 { CustomizableUI } = Cu.import "resource:///modules/CustomizableUI.jsm"
@@ -36,15 +40,11 @@ exports.toolbarbutton = toolbarbutton =
   addUI: (win) ->
     panelview.addUI win.document
 
-    win.QueryInterface(Ci.nsIInterfaceRequestor)
-       .getInterface(Ci.nsIDOMWindowUtils)
-       .loadSheet(@styleURI, Ci.nsIDOMWindowUtils.USER_SHEET)
+    loadSheet win, @styleURI
 
   removeUI: (win) ->
     panelview.removeUI win.document
 
-    win.QueryInterface(Ci.nsIInterfaceRequestor)
-       .getInterface(Ci.nsIDOMWindowUtils)
-       .removeSheet(@styleURI, Ci.nsIDOMWindowUtils.USER_SHEET)
+    removeSheet win, @styleURI
 
 do toolbarbutton.init
