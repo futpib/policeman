@@ -70,12 +70,11 @@ exports.ContextInfo = class ContextInfo
     return l
 
   constructor: (context, @contentType, @mime) ->
-    # instanceof Ci.nsIDOMWindow
-    @nodeName = '#window'
-    @id = ''
-    @className = ''
+    @nodeName = @id = @className = ''
     @classList = {}
-    if context instanceof Ci.nsIDOMNode
+    if context instanceof Ci.nsIDOMWindow
+      @nodeName = '#window'
+    else if context instanceof Ci.nsIDOMNode
       @nodeName = context.nodeName.toLowerCase()
       @id = context.id
     if context instanceof Ci.nsIDOMElement
