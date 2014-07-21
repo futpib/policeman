@@ -26,7 +26,7 @@ exports.overlayQueue = new class extends Observer
     doc.loadOverlay url, @
 
   observe: (uri) ->
-    url = uri.spec
+    url = uri.QueryInterface(Ci.nsIURI).spec
     do @_urlToCallback[url] if url of @_urlToCallback
     delete @_urlToCallback[url]
     @_pending = false
