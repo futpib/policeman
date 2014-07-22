@@ -14,6 +14,7 @@ class Preferences
 
   constructor: (branch) ->
     @_nameToType = {}
+    @_nameToDefault = {}
     @_nameToGetterHook = {}
     @_nameToSetterHook = {}
 
@@ -31,22 +32,28 @@ class Preferences
 
   define: (name, type, default_, hooks={}) ->
     @_nameToType[name] = type
+    @_nameToDefault[name] = default_
     unless name in @_branch.getChildList '', {}
       @set name, default_
-    if 'get' in hooks
+    if 'get' of hooks
       @_nameToGetterHook[name] = hooks.get
-    if 'set' in hooks
+    if 'set' of hooks
       @_nameToSetterHook[name] = hooks.set
 
   get: (name) ->
     unless name of @_nameToType
       throw Error "prefs.get: undefined pref '#{name}'"
+    unless @_branch.prefHasUserValue name
+      default_ = @_nameToDefault[name]
+      if name of @_nameToGetterHook
+        return @_nameToGetterHook[name] default_
+      return default_
     type = @_nameToType[name]
     getter = @typeGetterMap[type]
     value = @_branch[getter](name)
     if type == @TYPE_JSON
-      return JSON.parse value
-    if name in @_nameToGetterHook
+      value = JSON.parse value
+    if name of @_nameToGetterHook
       value = @_nameToGetterHook[name] value
     return value
 
@@ -55,7 +62,7 @@ class Preferences
       throw Error "prefs.set: undefined pref '#{name}'"
     type = @_nameToType[name]
     setter = @typeSetterMap[type]
-    if name in @_nameToSetterHook
+    if name of @_nameToSetterHook
       value = @_nameToSetterHook[name] value
     if type == @TYPE_JSON
       value = JSON.stringify value
