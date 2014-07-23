@@ -5,54 +5,37 @@
 { OriginInfo, DestInfo, getWindowFromRequestContext } = require 'request-info'
 
 
-update = (o1, o2) -> # recursively copy all (enumerable) properties from o2 to o1
-  for k, v of o2
-    if typeof v == 'object'
-      unless k in o1
-        o1[k] = {}
-      update o1[k], v
-    else
-      o1[k] = v
-
 ###
 Remembers requests attempted by each tab with corresponding decisions
+(for later use by ui/popup).
 ###
 exports.memo = memo =
-  tabToOriginToDestToDecision: {}
+  _tabIdToArray: {} # tabId -> array of 4-arrays [origin, dest, context, decision]
 
   init: ->
     tabs.onClose.add @removeRequestsMadeByTab.bind @
 
   removeRequestsMadeByTab: (tab) ->
     tabId = tabs.getTabId tab
-    delete @tabToOriginToDestToDecision[tabId]
+    delete @_tabIdToArray[tabId]
 
-  add: (origin, dest, context, decision) -> # gets stringified origin, dest and ctx
-    tab = tabs.findTabThatOwnsDomWindow getWindowFromRequestContext context
-    return unless tab
+  add: (origin, dest, context, decision) ->
+    i = context.tabId
+    @_tabIdToArray[i] = [] unless i of @_tabIdToArray
+    @_tabIdToArray[i].push [origin, dest, context, decision]
 
-    tabId = tabs.getTabId tab
-    unless tabId of @tabToOriginToDestToDecision
-      @tabToOriginToDestToDecision[tabId] = {}
-    unless origin of @tabToOriginToDestToDecision[tabId]
-      @tabToOriginToDestToDecision[tabId][origin] = {}
-    @tabToOriginToDestToDecision[tabId][origin][dest] = decision
+  getByTabId: (tabId) ->
+    return @_tabIdToArray[tabId] or []
 
-#     log JSON.stringify @tabToOriginToDestToDecision
+  getByTab: (tab) ->
+    return @getByTabId tabs.getTabId tab
 
-  getRequestsByTab: (tab) ->
-    return @tabToOriginToDestToDecision[tabs.getTabId tab]
+  getByWindow: (win) ->
+    [].concat (@getByTabId tabs.getTabId tab for tab in win.gBrowser.tabs)...
 
-  getRequestsByWindow: (win) ->
-    result = {}
-    for tab in win.gBrowser.tabs
-      update result, @getRequestsByTab(tab)
-    return result
+  getAll: ->
+    [].concat (quads for tab, quads of _tabIdToArray)...
 
-  getAllRequests: ->
-    result = {}
-    for map in @tabToOriginToDestToDecision
-      update result, map
-    return result
+
 
 do memo.init

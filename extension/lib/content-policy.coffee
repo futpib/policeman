@@ -49,8 +49,8 @@ policy =
       return decision
 
     decision = manager.check origin, dest, ctx
+    memo.add origin, dest, ctx, decision
     cache.add os, ds, cs, decision
-    memo.add os, ds, cs, decision
 
     log "shouldLoad:
           origin: '#{ origin.spec }'
