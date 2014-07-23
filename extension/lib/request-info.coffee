@@ -3,6 +3,18 @@
 { tabs } = require 'tabs'
 
 exports.UriInfo = class UriInfo
+  components: [
+    'scheme',
+    'username',
+    'password',
+    'userPass',
+    'host',
+    'port',
+    'hostPort',
+    'prePath',
+    'path',
+    'spec',
+  ]
   constructor: (uri) ->
     if typeof uri == 'string' # assuming it's a stringified uriinfo
       @parse uri
@@ -22,18 +34,7 @@ exports.UriInfo = class UriInfo
           uri[k] # throws if such component is inapplicable to uri
         catch
           ''
-    ) for k in [
-      'scheme',
-      'username',
-      'password',
-      'userPass',
-      'host',
-      'port',
-      'hostPort',
-      'prePath',
-      'path',
-      'spec',
-    ]
+    ) for k in @components
 
   stringify: -> @spec
   parse: (str) ->
@@ -42,6 +43,8 @@ exports.UriInfo = class UriInfo
 
 
 exports.ContextInfo = class ContextInfo
+  components: ['nodeName', 'contentType', 'mime']
+
   # maps integer values of contentType argument to strings according to
   # https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy#Constants
   intToTypeMap = [
@@ -72,26 +75,20 @@ exports.ContextInfo = class ContextInfo
 
   constructor: (context, contentType, @mime) ->
     @contentType = intToTypeMap[contentType]
-    @nodeName = @id = @className = ''
-    @classList = {}
+    @nodeName = ''
     if context instanceof Ci.nsIDOMWindow
       @nodeName = '#window'
     else if context instanceof Ci.nsIDOMNode
       @nodeName = context.nodeName.toLowerCase()
-      @id = context.id
-    if context instanceof Ci.nsIDOMElement
-      @className = context.className
-      @classList = makeClassList @className
     @tabId = '' # intended for internal use. Is not persistent between restarts
     tab = tabs.findTabThatOwnsDomWindow getWindowFromRequestContext context
     if tab
       @tabId = tabs.getTabId tab
 
   delimiter = '|' # hoping there is no way | can get into components
-  stringify: -> [@nodeName, @id, @className, @contentType, @mime].join delimiter
+  stringify: -> [@nodeName, @contentType, @mime].join delimiter
   parse: (str) ->
-    [@nodeName, @id, @className, @contentType, @mime] = str.split delimiter
-    @classList = makeClassList @className
+    [@nodeName, @contentType, @mime] = str.split delimiter
 
 exports.getWindowFromRequestContext = getWindowFromRequestContext = (ctx) ->
   # gets dom window from context argument content policy's shouldLoad gets

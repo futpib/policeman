@@ -4,6 +4,7 @@ var nodes = require('ruleset/nodes');
 for (var name in nodes) {
   this[name] = nodes[name];
 }
+var requestInfo = require('request-info');
 
 var config = {
   'default': {
@@ -64,10 +65,11 @@ var component = {
   ],
   // Components that don't belong to origin or destination uri.
   // Predicate on these components consist of a single test (without any ->)
-  single: ['nodeName', 'id', 'classList', 'contentType', 'mime'],
+  single: requestInfo.ContextInfo.prototype.components,
   // Components that support lookup, bare string on these will be parsed as
   // InTest not EqTest.
-  list: ['classList'],
+  list: [],
+
   stack: [],
   push: function (c) {
     if (c) {
