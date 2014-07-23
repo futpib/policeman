@@ -49,22 +49,22 @@ exports.ContextInfo = class ContextInfo
   # https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy#Constants
   intToTypeMap = [
     undefined,
-    'TYPE_OTHER', # 1
-    'TYPE_SCRIPT', # 2
-    'TYPE_IMAGE', # 3
-    'TYPE_STYLESHEET', # 4
-    'TYPE_OBJECT', # 5
-    'TYPE_DOCUMENT', # 6
-    'TYPE_SUBDOCUMENT', # 7
-    'TYPE_REFRESH', # 8
-    'TYPE_XBL', # 9
-    'TYPE_PING', # 10
-    'TYPE_XMLHTTPREQUEST', # 11
-    'TYPE_OBJECT_SUBREQUEST', # 12
-    'TYPE_DTD', # 13
-    'TYPE_FONT', # 14
-    'TYPE_MEDIA', # 15
-    'TYPE_WEBSOCKET', # 16
+    'OTHER', # 1
+    'SCRIPT', # 2
+    'IMAGE', # 3
+    'STYLESHEET', # 4
+    'OBJECT', # 5
+    'DOCUMENT', # 6
+    'SUBDOCUMENT', # 7
+    'REFRESH', # 8
+    'XBL', # 9
+    'PING', # 10
+    'XMLHTTPREQUEST', # 11
+    'OBJECT_SUBREQUEST', # 12
+    'DTD', # 13
+    'FONT', # 14
+    'MEDIA', # 15
+    'WEBSOCKET', # 16
   ]
 
   makeClassList = (className) ->
