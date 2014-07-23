@@ -1,5 +1,6 @@
 
 { path } = require 'file'
+{ tabs } = require 'tabs'
 
 exports.UriInfo = class UriInfo
   constructor: (uri) ->
@@ -69,7 +70,8 @@ exports.ContextInfo = class ContextInfo
       l[c] = true
     return l
 
-  constructor: (context, @contentType, @mime) ->
+  constructor: (context, contentType, @mime) ->
+    @contentType = intToTypeMap[contentType]
     @nodeName = @id = @className = ''
     @classList = {}
     if context instanceof Ci.nsIDOMWindow
@@ -85,15 +87,11 @@ exports.ContextInfo = class ContextInfo
     if tab
       @tabId = tabs.getTabId tab
 
-
   delimiter = '|' # hoping there is no way | can get into components
   stringify: -> [@nodeName, @id, @className, @contentType, @mime].join delimiter
   parse: (str) ->
     [@nodeName, @id, @className, @contentType, @mime] = str.split delimiter
     @classList = makeClassList @className
-    @contentType = parseInt contentType
-    @mime = mime
-
 
 exports.getWindowFromRequestContext = getWindowFromRequestContext = (ctx) ->
   # gets dom window from context argument content policy's shouldLoad gets
