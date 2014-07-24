@@ -81,7 +81,7 @@ exports.ContextInfo = class ContextInfo
     else if context instanceof Ci.nsIDOMNode
       @nodeName = context.nodeName.toLowerCase()
     @tabId = '' # intended for internal use. Is not persistent between restarts
-    tab = tabs.findTabThatOwnsDomWindow getWindowFromRequestContext context
+    tab = findTabThatOwnsDomWindow getWindowFromRequestContext context
     if tab
       @tabId = tabs.getTabId tab
 
@@ -90,13 +90,27 @@ exports.ContextInfo = class ContextInfo
   parse: (str) ->
     [@nodeName, @contentType, @mime] = str.split delimiter
 
+XUL_NAMESPACE = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'
 exports.getWindowFromRequestContext = getWindowFromRequestContext = (ctx) ->
   # gets dom window from context argument content policy's shouldLoad gets
   # https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy#shouldLoad%28%29
   # reference says it's either nsIDOMNode or nsIDOMWindow
+  if ctx instanceof Ci.nsIDOMWindow
+    return ctx
+  if ctx instanceof Ci.nsIDOMDocument
+    return ctx.defaultView
   if ctx instanceof Ci.nsIDOMNode
-    ctx = ctx.defaultView
-  return ctx
+    if (ctx.localName == 'browser') and (ctx.namespaceURI == XUL_NAMESPACE)
+      return ctx.contentWindow
+    # this will be chrome window in some cases
+    return ctx.ownerDocument.defaultView
+
+exports.findTabThatOwnsDomWindow = findTabThatOwnsDomWindow = (win) ->
+  return null unless win
+  for tab in tabs.list
+    if tab.linkedBrowser.contentWindow == win.top
+      return tab
+  return null
 
 
 

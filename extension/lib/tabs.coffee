@@ -45,11 +45,4 @@ exports.tabs = tabs =
 
   getCurrent: -> windows.getCurrent().gBrowser.tabContainer.tabbox.selectedTab
 
-  findTabThatOwnsDomWindow: (win) ->
-    for tab in tabs.list
-      if tab.linkedBrowser.contentWindow == win
-      # TODO check for nested windows (e.g. iframes)
-        return tab
-    return null
-
 do tabs.init
