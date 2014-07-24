@@ -34,7 +34,7 @@ exports.InTest = class InTest extends Test
   stringify: -> JSON.stringify @str
 
 ###
-|Predicate| below is intented to support backreferences
+|Predicate| below is intended to support backreferences
 in one of it's halfs (called 'tests' here)
 e.g. to enable destination half to refer to some part of origin.
 This implementation resembles String.replace backrefs:
@@ -57,7 +57,7 @@ exports.BackrefTest = class BackrefTest extends Test
   _checkForBackrefs: (str) ->
     backrefRe.test str
   test: (testee, backrefsValues) ->
-    unless @_hasBackref and backrefsValues
+    if @_hasBackref and backrefsValues
       return @testWithBackrefs testee, backrefsValues
     else
       return @testWithoutBackrefs testee
@@ -177,13 +177,13 @@ exports.OrTest = class OrTest extends BackrefTest
     return not ots.length
   _checkForBackrefs: -> @subtests.some (t) -> t._hasBackref
   testWithBackrefs: (testee, backrefsValues) ->
+    return @subtests.some (t) -> t.test testee, backrefsValues
+  testWithoutBackrefs: (testee) ->
     for t in @subtests
       r = t.test testee
       if r
         return r
     return false
-  testWithoutBackrefs: (testee) ->
-    return @subtests.some (t) -> t.test testee, backrefsValues
 
   stringify: -> '(' + (@subtests.map (t) -> t.stringify()).join('|') + ')'
 
