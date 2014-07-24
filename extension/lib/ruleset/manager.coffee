@@ -10,7 +10,6 @@ embeddedRuleSets = [
   'allow_any',
   'allow_same_domain',
   'allow_subdomains',
-  'temp',
   'i2p_sandbox',
   'onion_sandbox',
 ]
@@ -26,7 +25,7 @@ pushDefaultIfNotLast = (list) ->
 
 prefs.define 'enabledRuleSets',
   prefs.TYPE_JSON,
-  ['temp', 'pers', 'allow_subdomains', 'allow_same_domain', 'default'],
+  ['user_temporary', 'user_persistent', 'allow_subdomains', 'allow_same_domain', 'default'],
     get: (l) -> pushDefaultIfNotLast l
 
 prefs.define 'installedRuleSets',
@@ -68,8 +67,8 @@ exports.Manager = class Manager
                      among embedded or installed rulesets"
 
   specialRuleSets =
-    temp: temporaryRuleSet
-    pers: persistentRuleSet
+    'user_temporary': temporaryRuleSet
+    'user_persistent': persistentRuleSet
 
   _newRuleSetById: (id) ->
     if id of specialRuleSets

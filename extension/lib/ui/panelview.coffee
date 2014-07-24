@@ -46,8 +46,8 @@ listeners = [
     wantsPageReload: -> @_initialState != @_finalState
     add: (doc) ->
       doc.getElementById(@id).addEventListener 'command', do (that=@)-> (e) ->
-        return unless manager.isEnabled 'temp'
-        temp = manager.get 'temp'
+        return unless manager.isEnabled 'user_temporary'
+        temp = manager.get 'user_temporary'
         that._finalState = @checked
         reloadPageCheckbox.update doc
         if @checked
@@ -55,8 +55,8 @@ listeners = [
         else
           temp.any.revoke()
     update: (doc) ->
-      return unless manager.isEnabled 'temp'
-      temp = manager.get 'temp'
+      return unless manager.isEnabled 'user_temporary'
+      temp = manager.get 'user_temporary'
       cb = doc.getElementById(@id)
       anyAllowed = temp.any.isAllowed()
       @_initialState = @_finalState = anyAllowed
@@ -80,7 +80,7 @@ listeners = [
       if web
         @_initialState = {}
         @_finalState = {}
-        for pers_temp in ['temp', 'pers']
+        for pers_temp in ['user_temporary', 'user_persistent']
           container = doc.getElementById \
                     "policeman-#{pers_temp}-allow-domain-container"
           removeChildren container
@@ -107,13 +107,13 @@ listeners = [
     id: 'policeman-temp-permissions-container'
     update: (doc) ->
       container = doc.getElementById @id
-      container.setAttribute 'hidden', not manager.isEnabled 'temp'
+      container.setAttribute 'hidden', not manager.isEnabled 'user_temporary'
   }, {
     id: 'policeman-revoke-temp-permissions-container'
     update: (doc) ->
       container = doc.getElementById @id
       container.setAttribute 'hidden',
-          not (manager.isEnabled 'temp') or (manager.get 'temp').isEmpty()
+          not (manager.isEnabled 'user_temporary') or (manager.get 'user_temporary').isEmpty()
   }, {
     class: 'policeman-show-on-web'
     update: (doc, view, uri) ->

@@ -11,7 +11,7 @@ prefs.define 'permissions.domains',
 
 # Holds persistent permissions added by UI (panelview popup).
 exports.persistentRuleSet = new class
-  id: 'pers'
+  id: 'user_persistent'
   version: '0.1'
   name: l10n 'pers_ruleset_name'
   description: l10n 'pers_ruleset_description'

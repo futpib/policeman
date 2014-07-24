@@ -8,7 +8,7 @@
 # Used by popup to temporary allow requests from a certaing domain, tab
 # or all requests
 exports.temporaryRuleSet = new class
-  id: 'temp'
+  id: 'user_temporary'
   version: '0.1'
   name: l10n 'temp_ruleset_name'
   description: l10n 'temp_ruleset_description'
