@@ -65,6 +65,10 @@ exports.removeSheet = (win, styleURI, type=Ci.nsIDOMWindowUtils.AUTHOR_SHEET) ->
       .removeSheet(styleURI, type)
 
 
+exports.zip = zip = (arrs...) ->
+  shortest = arrs.reduce((a,b) -> if a.length < b.length then a else b)
+  return shortest.map((_,i) -> arrs.map((array) -> array[i]))
+
 exports.tails = tails = (arr) ->
   ts = []
   while arr.length
@@ -75,3 +79,8 @@ exports.tails = tails = (arr) ->
 exports.superdomains = superdomains = (domain) ->
   # 'a.b.c' -> ['a.b.c', 'b.c', 'c']
   tails(domain.split('.')).map (x) -> x.join '.'
+
+
+exports.defaults = defaults = (o, k, v) ->
+  unless k of o
+    o[k] = v
