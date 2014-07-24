@@ -21,7 +21,14 @@ exports.memo = memo =
 
   add: (origin, dest, context, decision) ->
     i = context.tabId
-    @_tabIdToArray[i] = [] unless i of @_tabIdToArray
+    return if not i
+    if context.contentType == 'DOCUMENT'
+      # Page reload or navigated to another document
+      @_tabIdToArray[i] = []
+      # Not to record the document request itself seems reasonable
+      return
+    unless i of @_tabIdToArray
+      @_tabIdToArray[i] = []
     @_tabIdToArray[i].push [origin, dest, context, decision]
 
   getByTabId: (tabId) ->
