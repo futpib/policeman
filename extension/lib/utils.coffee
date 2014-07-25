@@ -69,16 +69,19 @@ exports.zip = zip = (arrs...) ->
   shortest = arrs.reduce((a,b) -> if a.length < b.length then a else b)
   return shortest.map((_,i) -> arrs.map((array) -> array[i]))
 
-exports.tails = tails = (arr) ->
+exports.tails = tails = (arr, minLength=1) ->
+  minLength = Math.min arr.length, Math.max 0, minLength
+  arr = arr.slice()
   ts = []
-  while arr.length
+  loop
     ts.push arr.slice()
+    break if arr.length <= minLength
     arr.shift()
   return ts
 
-exports.superdomains = superdomains = (domain) ->
-  # 'a.b.c' -> ['a.b.c', 'b.c', 'c']
-  tails(domain.split('.')).map (x) -> x.join '.'
+split = (str, delim) -> if str.length then str.split delim else []
+exports.superdomains = superdomains = (domain, minLevel=0) ->
+  tails(split(domain, '.'), minLevel).map((x) -> x.join '.')
 
 
 exports.defaults = defaults = (o, k, v) ->
