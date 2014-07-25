@@ -42,9 +42,15 @@ exports.Observer = class Observer
     observerService.removeObserver @, @topic
 
 
+CHILDREN_RESERVED_ATTRIBUTE = '_'
 exports.createElement = createElement = (doc, tag, attrs={}) ->
   el = doc.createElement tag
-  el.setAttribute n, v for n, v of attrs
+  for n, v of attrs
+    continue if n == CHILDREN_RESERVED_ATTRIBUTE
+    el.setAttribute n, v
+  if CHILDREN_RESERVED_ATTRIBUTE of attrs
+    for n, v of attrs[CHILDREN_RESERVED_ATTRIBUTE]
+      el.appendChild createElement doc, n.split('_')[0], v
   return el
 
 exports.removeChildren = removeChildren = (node) ->
