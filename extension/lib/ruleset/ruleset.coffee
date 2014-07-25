@@ -25,7 +25,6 @@ L10n = (raw) ->
 exports.RuleSet = class RuleSet
   constructor: (uri) ->
     @parse file.read uri
-    log @stringify()
 
   _mapConstructor: Map
   parse: (str) ->

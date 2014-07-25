@@ -20,7 +20,6 @@ pushDefaultIfNotLast = (list) ->
   unless list[list.length-1] == d
     list.filter (rs) -> rs isnt d
     list.push d
-    log ''
   return list
 
 prefs.define 'enabledRuleSets',
@@ -111,10 +110,8 @@ exports.Manager = class Manager
     return @_installedRuleSetsMetadataById[id]
 
   check: (origin, dest, ctx) ->
-    log "_enabledRuleSetsIds: #{@_enabledRuleSetsIds}"
     for id in @_enabledRuleSetsIds
       decision = @_enabledRuleSetsById[id].check origin, dest, ctx
-      log "id: #{id} decision: #{decision}"
       if decision != null
         return decision
     return null
