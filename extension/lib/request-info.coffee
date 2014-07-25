@@ -80,10 +80,10 @@ exports.ContextInfo = class ContextInfo
       @nodeName = '#window'
     else if context instanceof Ci.nsIDOMNode
       @nodeName = context.nodeName.toLowerCase()
-    @tabId = '' # intended for internal use. Is not persistent between restarts
+    @_tabId = '' # intended for internal use. Is not persistent between restarts
     tab = findTabThatOwnsDomWindow getWindowFromRequestContext context
     if tab
-      @tabId = tabs.getTabId tab
+      @_tabId = tabs.getTabId tab
 
   delimiter = '|' # hoping there is no way | can get into components
   stringify: -> [@nodeName, @contentType, @mime].join delimiter

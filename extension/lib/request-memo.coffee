@@ -20,7 +20,7 @@ exports.memo = memo =
     delete @_tabIdToArray[tabId]
 
   add: (origin, dest, context, decision) ->
-    i = context.tabId
+    i = context._tabId
     return if not i
     if context.contentType == 'DOCUMENT'
       # Page reload or navigated to another document
