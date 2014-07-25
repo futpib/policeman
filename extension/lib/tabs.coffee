@@ -23,6 +23,7 @@ exports.tabs = tabs =
       tabContainer.removeEventListener e, h for e, h of listeners
 
     addListeners(win.gBrowser.tabContainer) for win in windows.list
+    @list.push t for t in win.gBrowser.tabs for win in windows.list
     onShutdown.add ->
       removeListeners(win.gBrowser.tabContainer) for win in windows.list
 
