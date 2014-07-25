@@ -43,7 +43,7 @@ exports.UriInfo = class UriInfo
 
 
 exports.ContextInfo = class ContextInfo
-  components: ['nodeName', 'contentType', 'mime']
+  components: ['nodeName', 'contentType', 'mime', 'kind']
 
   # maps integer values of contentType argument to strings according to
   # https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy#Constants
@@ -73,13 +73,20 @@ exports.ContextInfo = class ContextInfo
       l[c] = true
     return l
 
-  constructor: (context, contentType, @mime) ->
+  constructor: (originInfo, destInfo, context, contentType, @mime) ->
     @contentType = intToTypeMap[contentType]
+
     @nodeName = ''
     if context instanceof Ci.nsIDOMWindow
       @nodeName = '#window'
     else if context instanceof Ci.nsIDOMNode
       @nodeName = context.nodeName.toLowerCase()
+
+    @kind = ''
+    if (originInfo.scheme in ['http', 'https']) \
+    and (destInfo.scheme in ['http', 'https', 'ftp'])
+      @kind = 'web'
+
     @_tabId = '' # intended for internal use. Is not persistent between restarts
     tab = findTabThatOwnsDomWindow getWindowFromRequestContext context
     if tab

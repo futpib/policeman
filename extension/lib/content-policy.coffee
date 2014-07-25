@@ -41,7 +41,7 @@ policy =
 
     origin = new UriInfo originUri
     dest = new UriInfo destUri
-    ctx = new ContextInfo context, contentType, mime
+    ctx = new ContextInfo origin, dest, context, contentType, mime
 
     [os, ds, cs] = [origin.stringify(), dest.stringify(), ctx.stringify()]
 
