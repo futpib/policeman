@@ -46,4 +46,15 @@ exports.tabs = tabs =
 
   getCurrent: -> windows.getCurrent().gBrowser.tabContainer.tabbox.selectedTab
 
+  reload: (tab) -> tab.linkedBrowser.contentDocument.location.reload()
+
+  open: (url, reuse=on) ->
+    if reuse
+      for t in @list
+        if t.linkedBrowser.contentDocument.location.href == url
+          windows.getCurrent().gBrowser.selectedTab = t
+          return
+    bro = windows.getCurrent().gBrowser
+    bro.selectedTab = bro.addTab url
+
 do tabs.init
