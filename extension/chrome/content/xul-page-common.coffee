@@ -18,3 +18,13 @@ require = do ->
 log = do ->
   { loggerFactory } = require 'log'
   return loggerFactory (window.location.href.split '/').pop()
+
+$ = (s) -> document.querySelector s
+
+onLoad = ->
+
+window.addEventListener 'load', ->
+  try
+    onLoad arguments...
+  catch e
+    log e
