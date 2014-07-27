@@ -75,6 +75,12 @@ exports.zip = zip = (arrs...) ->
   shortest = arrs.reduce((a,b) -> if a.length < b.length then a else b)
   return shortest.map((_,i) -> arrs.map((array) -> array[i]))
 
+exports.remove = remove = (array, value, limit=1) ->
+  while ((limit is off) or (limit > 0)) and ((i = array.indexOf value) != -1)
+    array.splice i, 1
+    limit -= 1 unless limit is off
+  return undefined
+
 exports.tails = tails = (arr, minLength=1) ->
   minLength = Math.min arr.length, Math.max 0, minLength
   arr = arr.slice()
