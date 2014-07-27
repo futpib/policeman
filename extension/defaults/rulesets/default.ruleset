@@ -20,5 +20,21 @@ rules:
   -> blob: ACCEPT
   -> wyciwyg: ACCEPT
   -> javascript: ACCEPT
+  -> view-source: ACCEPT
+
+  ->:
+    [contentType] DOCUMENT:
+      [scheme]
+      # this is what happens when user enters url in urlbar or smth like that
+      # kind of entry point for page load
+      moz-nullprincipal -> (http|https|ftp): ACCEPT
+
+      # and this happens when user reloads page (maybe in some other cases too)
+      chrome -> (http|https|ftp):
+        [host] browser ->: ACCEPT
+
+      # and this is for opening links
+      ->:
+        [kind] web: ACCEPT
 
   -> : REJECT # reject anything else
