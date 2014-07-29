@@ -24,6 +24,7 @@ L10n = (raw) ->
 
 exports.RuleSet = class RuleSet
   constructor: (uri) ->
+    @sourceUrl = uri.spec
     @parse file.read uri
 
   _mapConstructor: Map
@@ -41,6 +42,14 @@ exports.RuleSet = class RuleSet
 
     @name = localize @name, 'name'
     @description = localize @description, 'description'
+
+  getMetadata: -> {
+      id: @id
+      version: @version
+      name: @name
+      description: @description
+      sourceUrl: @sourceUrl
+    }
 
   indent = (s) -> s.split('\n').map((l) -> '  ' + l).join('\n')
 
