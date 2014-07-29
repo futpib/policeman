@@ -1,40 +1,45 @@
 
 { path } = require 'file'
+{ remove } = require 'utils'
+
 { RuleSet } = require 'ruleset/ruleset'
 { temporaryRuleSet } = require 'ruleset/temporary'
 { persistentRuleSet } = require 'ruleset/persistent'
 { prefs } = require 'prefs'
 
+codeBasedRuleSets = [
+  'user_persistent',
+  'user_temporary',
+]
+
 embeddedRuleSets = [
   'default',
   'allow_any',
-  'allow_same_domain',
-  'allow_subdomains',
+  'reject_any',
+  'allow_same_site',
   'i2p_sandbox',
   'onion_sandbox',
-]
+].concat codeBasedRuleSets
 
-# make sure default ruleset is always enabled and is the last one
-pushDefaultIfNotLast = (list) ->
-  d = 'default'
-  unless list[list.length-1] == d
-    list.filter (rs) -> rs isnt d
-    list.push d
+prefs.define 'manager.enabledRuleSets',
+  prefs.TYPE_JSON,
+  ['default', 'user_temporary', 'user_persistent', 'allow_same_site', 'reject_any']
+
+pushEmbedded = (list) ->
+  for id in embeddedRuleSets
+    unless id in list
+      list.push id
   return list
 
-prefs.define 'enabledRuleSets',
-  prefs.TYPE_JSON,
-  ['user_temporary', 'user_persistent', 'allow_subdomains', 'allow_same_domain', 'default'],
-    get: (l) -> pushDefaultIfNotLast l
-
-prefs.define 'installedRuleSets',
+prefs.define 'manager.installedRuleSets',
   prefs.TYPE_JSON,
   embeddedRuleSets,
-    get: (l) -> pushDefaultIfNotLast l
+    get: (l) -> pushEmbedded l
 
 
 exports.Manager = class Manager
   embeddedRuleSets: embeddedRuleSets
+  codeBasedRuleSets: codeBasedRuleSets
 
   constructor: ->
     @_enabledRuleSetsIds = [] # order defines priority
@@ -58,20 +63,19 @@ exports.Manager = class Manager
 
   _uriById: (id) ->
     expectedFilename = id + '.ruleset'
-    if id in @embeddedRuleSets
+    if id in @embeddedRuleSets and not (id in @codeBasedRuleSets)
       return path.join path.defaults, 'rulesets', expectedFilename
     if id in @_installedRuleSetsIds
       return path.join path.profile, 'rulesets', expectedFilename
-    throw new Error "Can't find ruleset '#{id}'
-                     among embedded or installed rulesets"
+    throw new Error "Can't find ruleset file for ruleset '#{id}'"
 
-  specialRuleSets =
+  codeBasedIdToObject =
     'user_temporary': temporaryRuleSet
     'user_persistent': persistentRuleSet
 
   _newRuleSetById: (id) ->
-    if id of specialRuleSets
-      return specialRuleSets[id]
+    if id of codeBasedIdToObject
+      return codeBasedIdToObject[id]
     return new RuleSet @_uriById id
 
   updateInstalled: ->

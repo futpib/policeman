@@ -1,13 +1,11 @@
 
-# this set is hardcoded to be always enabled and to be always last
-
 version: 0.1
 id: "default"
 
 l10n:
   en-US:
     name: "Default"
-    description: "Allow internal requests and reject anything else"
+    description: "Allow internal requests and navigation"
 
 rules:
   # allow requests to firefox internal schemes
@@ -36,5 +34,3 @@ rules:
       # and this is for opening links
       ->:
         [kind] web: ACCEPT
-
-  -> : REJECT # reject anything else

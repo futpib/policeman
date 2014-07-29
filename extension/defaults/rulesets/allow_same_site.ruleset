@@ -6,9 +6,12 @@ warnOnDisable: &warnOnDisable;
 l10n:
   en-US:
     name: "Same site"
-    description: "Allow requests to same domain"
+    description: "Allow requests to same domain and subdomains"
     warnOnDisable: "TODO"
 
 rules:
   (http|https) -> (http|https|ftp):
     -> $&: ACCEPT
+    -> *.$&: ACCEPT
+    www.* -> $1: ACCEPT
+    www.* -> *.$1: ACCEPT

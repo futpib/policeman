@@ -1,0 +1,11 @@
+
+version: 0.1
+id: "reject_any"
+
+l10n:
+  en-US:
+    name: "Reject any request"
+    description: "Reject any request"
+
+rules:
+  -> : REJECT
