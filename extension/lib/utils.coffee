@@ -105,6 +105,9 @@ split = (str, delim) -> if str.length then str.split delim else []
 exports.superdomains = superdomains = (domain, minLevel=0) ->
   tails(split(domain, '.'), minLevel).map((x) -> x.join '.')
 
+exports.isSuperdomain = isSuperdomain = (super_, sub) ->
+  (not super_) or (sub == super_) or sub.endsWith('.' + super_)
+
 
 exports.defaults = defaults = (o, k, v) ->
   unless k of o
