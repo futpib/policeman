@@ -81,6 +81,16 @@ exports.remove = remove = (array, value, limit=1) ->
     limit -= 1 unless limit is off
   return undefined
 
+exports.move = move = (array, value, newIx=Infinity) ->
+  currentIx = array.indexOf value
+  return if (currentIx < 0) or (newIx == currentIx)
+  array.splice currentIx, 1
+  if newIx < currentIx
+    array.splice newIx, 0, value
+  else if newIx > currentIx
+    array.splice newIx - 1, 0, value
+  return undefined
+
 exports.tails = tails = (arr, minLength=1) ->
   minLength = Math.min arr.length, Math.max 0, minLength
   arr = arr.slice()
