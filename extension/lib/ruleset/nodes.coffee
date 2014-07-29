@@ -125,8 +125,8 @@ exports.StartsEndsTest = class StartsEndsTest extends BackrefTest
       testee,
       # part of matched string between @start and @end
       testee.slice(
-        if startMatches then @start.length else 0,
-        if endMatches then -@end.length
+        @start.length,
+        testee.length - @end.length
       )
     ]
 
