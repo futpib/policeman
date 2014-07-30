@@ -3,7 +3,17 @@
 prefService = Cc["@mozilla.org/preferences-service;1"].getService Ci.nsIPrefService
 policemanBranch = "extensions.policeman"
 
+
+exports.PreferencesError = class PreferencesError extends Error
+exports.UndefinedPreferenceError = class UndefinedPreferenceError extends PreferencesError
+exports.InvalidValueError = class InvalidValueError extends PreferencesError
+
+
 class Preferences
+  PreferencesError: PreferencesError
+  UndefinedPreferenceError: UndefinedPreferenceError
+  InvalidValueError: InvalidValueError
+
   TYPE_BOOLEAN: 0
   TYPE_INTEGER: 1
   TYPE_STRING:  2
@@ -33,20 +43,30 @@ class Preferences
   define: (name, type, default_, hooks={}) ->
     @_nameToType[name] = type
     @_nameToDefault[name] = default_
-    unless name in @_branch.getChildList '', {}
-      @set name, default_
     if 'get' of hooks
       @_nameToGetterHook[name] = hooks.get
     if 'set' of hooks
       @_nameToSetterHook[name] = hooks.set
 
-  get: (name) ->
+  _assertDefined: (name) ->
     unless name of @_nameToType
-      throw Error "prefs.get: undefined pref '#{name}'"
+      throw new UndefinedPreferenceError "Undefined preference '#{name}'"
+
+  get: (name) ->
+    @_assertDefined name
     unless @_branch.prefHasUserValue name
       default_ = @_nameToDefault[name]
       if name of @_nameToGetterHook
-        return @_nameToGetterHook[name] default_
+        getterHook = @_nameToGetterHook[name]
+        try
+          value = getterHook default_
+        catch e
+          if e instanceof InvalidValueError
+            throw new PreferencesError "
+              Getter for preference '#{name}' considers
+              default value to be invalid."
+          throw e
+        return value
       return default_
     type = @_nameToType[name]
     getter = @typeGetterMap[type]
@@ -54,12 +74,18 @@ class Preferences
     if type == @TYPE_JSON
       value = JSON.parse value
     if name of @_nameToGetterHook
-      value = @_nameToGetterHook[name] value
+      getterHook = @_nameToGetterHook[name]
+      try
+        value = getterHook value
+      catch e
+        if e instanceof InvalidValueError
+          value = @_nameToDefault[name]
+        else
+          throw e
     return value
 
   set: (name, value) ->
-    unless name of @_nameToType
-      throw Error "prefs.set: undefined pref '#{name}'"
+    @_assertDefined name
     type = @_nameToType[name]
     setter = @typeSetterMap[type]
     if name of @_nameToSetterHook
