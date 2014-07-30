@@ -15,11 +15,15 @@
 { tabs } = require 'tabs'
 { memo } = require 'request-memo'
 { manager } = require 'ruleset/manager'
+{ DomainDomainTypeRS } = require 'ruleset/code-based'
 
 { Color } = require 'color'
 { prefs } = require 'prefs'
 
 { l10n } = require 'l10n'
+
+
+WILDCARD_TYPE = DomainDomainTypeRS::WILDCARD_TYPE
 
 
 POSITIVE_COLOR_PREF = 'ui.popup.positiveBackgroundColor'
@@ -487,6 +491,12 @@ rejectedList = new (class extends FilteredRequestList
     super().filter ([o,d,c,decision]) -> decision is false
 ) 'policeman-popup-rejected-requests-container', rejectedFilter
 
+localizeTypeLookup =
+  IMAGE: l10n 'popup_type_image'
+  STYLESHEET: l10n 'popup_type_stylesheet'
+  SCRIPT: l10n 'popup_type_script'
+localizeTypeLookup[WILDCARD_TYPE] = l10n 'popup_type_wildcard'
+localizeType = (t) -> localizeTypeLookup[t]
 
 class RulesetEditButtons extends ContainerPopulation
   constructor: (containerId, @_rulesetId) ->
@@ -499,6 +509,7 @@ class RulesetEditButtons extends ContainerPopulation
       origin
       destination
       decision
+      type
     } = description
     classList = classList or []
 
@@ -517,7 +528,7 @@ class RulesetEditButtons extends ContainerPopulation
 
     lbl = createElement doc, 'label',
       class: 'policeman-popup-rule-label'
-      value: l10n "popup_#{if decision then 'allow' else 'reject'}_rule", origin, destination
+      value: l10n "popup_#{if decision then 'allow' else 'reject'}_rule", origin, destination, localizeType type
 
     subbox.appendChild lbl
     box.appendChild subbox
@@ -572,7 +583,7 @@ class RulesetEditButtons extends ContainerPopulation
       tooltiptext: l10n 'popup_domain_rotation_button.tip'
 
     customRuleBox.appendChild createElement doc, 'label',
-      value: l10n 'popup_custom_rule.2'
+      value: l10n 'popup_custom_rule.4'
       class: 'policeman-popup-label-aligned-like-button'
 
     customRuleBox.appendChild destinationBtn = DataRotationButton::create doc,
@@ -581,7 +592,7 @@ class RulesetEditButtons extends ContainerPopulation
       tooltiptext: l10n 'popup_domain_rotation_button.tip'
 
     customRuleBox.appendChild createElement doc, 'label',
-      value: l10n 'popup_custom_rule.3'
+      value: l10n 'popup_custom_rule.5'
       class: 'policeman-popup-label-aligned-like-button'
 
     customRuleBox.appendChild createElement doc, 'spacer',
@@ -601,13 +612,14 @@ class RulesetEditButtons extends ContainerPopulation
 
     return customRuleBox
 
-  _createRuleWidgetWithRemoveBtn: (doc, container, rs, o, d) =>
+  _createRuleWidgetWithRemoveBtn: (doc, container, rs, o, d, t) =>
       hbox = createElement doc, 'hbox'
-      decision = rs.checkWithoutSuperdomains o, d
+      decision = rs.checkWithoutSuperdomains o, d, t
       return if decision is null
       hbox.appendChild @_createRuleWidget doc,
         origin: o
         destination: d
+        type: t
         decision: decision
       hbox.appendChild createElement doc, 'spacer',
         flex: 1
@@ -615,7 +627,7 @@ class RulesetEditButtons extends ContainerPopulation
       hbox.appendChild @_createDeleteButton doc,
         click: =>
           popup.requestPageReload(doc)
-          rs.revoke o, d
+          rs.revoke o, d, t
           @update doc
       container.appendChild hbox
 
@@ -632,22 +644,30 @@ class RulesetEditButtons extends ContainerPopulation
     rules = createElement doc, 'vbox',
       class: 'policeman-existing-rules'
 
+    supportedTypes = ['IMAGE', 'STYLESHEET', 'SCRIPT', WILDCARD_TYPE]
+
     if selectedOrigin and selectedDestination
-      rs.checkOrder selectedOrigin, selectedDestination, (o, d) =>
-        @_createRuleWidgetWithRemoveBtn doc, rules, rs, o, d
+      for type in supportedTypes
+        rs.checkOrder selectedOrigin, selectedDestination, type, (o, d, t) =>
+          @_createRuleWidgetWithRemoveBtn doc, rules, rs, o, d, t
+          return undefined
     else
-      checkThem = {} # origin -> dest -> true
+      checkThem = {} # origin -> dest -> type -> true
       for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
         continue if c.kind != 'web'
         continue if selectedOrigin and not (isSuperdomain selectedOrigin, o.host)
         continue if selectedDestination and not (isSuperdomain selectedDestination, d.host)
-        for odom in superdomains o.host
-          defaults checkThem, odom, {}
-          for ddom in superdomains d.host
-            defaults checkThem[odom], ddom, true
+        for type in supportedTypes
+          rs.checkOrder o.host, d.host, type, (o, d, t) =>
+            defaults checkThem, o, {}
+            defaults checkThem[o], d, {}
+            defaults checkThem[o][d], t, true
+            return undefined
       for odom, dests of checkThem
-        for ddom, _ of dests
-          @_createRuleWidgetWithRemoveBtn doc, rules, rs, odom, ddom
+        for ddom, types of dests
+          for type in supportedTypes
+            if types[type]
+              @_createRuleWidgetWithRemoveBtn doc, rules, rs, odom, ddom, type
 
     fragment.appendChild rules
 
