@@ -1,0 +1,64 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+@-moz-document url("chrome://browser/content/browser.xul") {
+  .policeman-popup-button {
+    margin: 1px;
+  }
+  .policeman-popup-button, .policeman-popup-button-box {
+    border-radius: 4px;
+  }
+  .policeman-popup-button[disabled="false"][selected="true"]
+  .policeman-popup-button-box,
+  .policeman-popup-button[disabled="false"][checked="true"]
+  .policeman-popup-button-box {
+    background: rgba(255, 255, 255, 0.25);
+  }
+  .policeman-popup-button[disabled="false"]
+  .policeman-popup-button-box:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .policeman-popup-button[disabled="false"]
+  .policeman-popup-button-box:active {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .policeman-popup-button[disabled="false"]
+  .policeman-popup-button-box {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .policeman-popup-button[disabled="true"]
+  .policeman-popup-button-box {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  #policeman-popup label.policeman-popup-label-aligned-like-button {
+    margin-top: 2px; /* keep it aligned with button labels */
+  }
+
+  #policeman-popup-temporary-edit-container .policeman-existing-rules,
+  #policeman-popup-persistent-edit-container .policeman-existing-rules {
+    margin-left: 1em;
+  }
+  #policeman-popup-temporary-ruleset-container {
+    font-style: italic;
+  }
+
+  .policeman-popup-rule {
+    margin: 1px;
+    border-radius: 4px;
+  }
+  .policeman-popup-rule-reject {
+    background: rgba(255, 0, 0, 0.1);
+  }
+  .policeman-popup-rule-allow {
+    background: rgba(0, 255, 0, 0.1);
+  }
+
+  #policeman-popup-rejected-requests-filters-container
+  .policeman-popup-button {
+    background: rgba(255, 0, 0, 0.1);
+  }
+  #policeman-popup-allowed-requests-filters-container
+  .policeman-popup-button {
+    background: rgba(0, 255, 0, 0.1);
+  }
+}
