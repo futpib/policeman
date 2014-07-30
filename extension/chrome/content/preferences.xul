@@ -4,9 +4,16 @@
 <!DOCTYPE page SYSTEM "chrome://policeman/locale/">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       xmlns:html="http://www.w3.org/1999/xhtml"
-      title="&policeman_preferences;">
+      title="&policeman_preferences_page;">
 
-<html:link rel="shortcut icon" href="chrome://policeman/skin/toolbar-icon-16.png" style="display: none"/>
+  <script src="xul-page-common.js"
+          type="application/javascript"/>
+  <script src="preferences.js"
+          type="application/javascript"/>
+
+  <html:head>
+    <html:link rel="icon" href="chrome://policeman/skin/toolbar-icon-16.png"/>
+  </html:head>
 
   <hbox flex="1">
     <vbox id="sidebar">
@@ -14,12 +21,16 @@
 
       <vbox id="subpref-links-container">
         <html:a class="text-link"
+                hash="general"
                 href="chrome://policeman/content/preferences-general.xul"
+                style="display: block;"
                 target="subview">
           &preferences_general;
         </html:a>
         <html:a class="text-link"
+                hash="rulesets-manager"
                 href="chrome://policeman/content/preferences-rulesets-manager.xul"
+                style="display: block;"
                 target="subview">
           &preferences_rulesets_manager;
         </html:a>
@@ -28,7 +39,7 @@
 
     <vbox flex="1">
       <iframe name="subview"
-              src="chrome://policeman/content/preferences-general.xul"
+              id="subview"
               flex="1"/>
     </vbox>
   </hbox>
