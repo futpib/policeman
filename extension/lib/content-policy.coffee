@@ -36,12 +36,10 @@ policy =
   # nsIContentPolicy interface implementation
   shouldLoad: (contentType, destUri, originUri, \
                context, mime, extra, principal) ->
-    # TODO is there any useful data in nsIPrincipal?
-    # if there is, should pass it to decision-makers (manager, cache)
 
     origin = new UriInfo originUri
     dest = new UriInfo destUri
-    ctx = new ContextInfo origin, dest, context, contentType, mime
+    ctx = new ContextInfo originUri, destUri, context, contentType, mime, principal
 
     [os, ds, cs] = [origin.stringify(), dest.stringify(), ctx.stringify()]
 

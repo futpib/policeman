@@ -73,7 +73,9 @@ exports.ContextInfo = class ContextInfo
       l[c] = true
     return l
 
-  constructor: (originInfo, destInfo, context, contentType, @mime) ->
+  constructor: (originUri, destUri, context, contentType, @mime, principal) ->
+    # TODO is there any useful data we can get from nsIPrincipal?
+
     @contentType = intToTypeMap[contentType]
 
     @nodeName = ''
@@ -83,8 +85,8 @@ exports.ContextInfo = class ContextInfo
       @nodeName = context.nodeName.toLowerCase()
 
     @kind = ''
-    if (originInfo.scheme in ['http', 'https']) \
-    and (destInfo.scheme in ['http', 'https', 'ftp'])
+    if (originUri.scheme in ['http', 'https']) \
+    and (destUri.scheme in ['http', 'https', 'ftp'])
       @kind = 'web'
 
     @_tabId = '' # intended for internal use. Is not persistent between restarts
