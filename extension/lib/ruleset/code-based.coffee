@@ -165,7 +165,7 @@ exports.DomainPairRS = class DomainPairRS extends Lookup2RS
     return @checkOrder oh, dh, @checkWithoutSuperdomains
 
   check: (o, d, c) ->
-    return null if c.kind != 'web'
+    return null unless (o.schemeType == d.schemeType == 'web')
     return @checkWithSuperdomains o.host, d.host, c
 
 exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
@@ -196,7 +196,7 @@ exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
     return @checkOrder oh, dh, t, @checkWithoutSuperdomains
 
   check: (o, d, c) ->
-    return null if c.kind != 'web'
+    return null unless (o.schemeType == d.schemeType == 'web')
     decision = @checkWithSuperdomains o.host, d.host, c.contentType
     return decision if decision isnt null
     return @checkWithSuperdomains o.host, d.host, @WILDCARD_TYPE

@@ -48,8 +48,9 @@ var indentation = {
 };
 
 var component = {
-  defaults: ['scheme', 'host', 'path'],
+  defaults: ['schemeType', 'host', 'path'],
   precedence: [
+    'schemeType',
     'scheme',
     'username',
     'password',

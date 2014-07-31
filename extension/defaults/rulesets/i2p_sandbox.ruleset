@@ -6,6 +6,6 @@ name: "I2P isolation"
 description: "Reject .i2p -> web and web -> .i2p"
 
 rules:
-  (http|https) -> (http|https|ftp):
+  web -> web:
     *.i2p -> ! *.i2p: REJECT
     ! *.i2p -> *.i2p: REJECT

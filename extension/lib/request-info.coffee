@@ -2,9 +2,10 @@
 { path } = require 'file'
 { tabs } = require 'tabs'
 
-exports.UriInfo = class UriInfo
+class UriInfo
   components: [
     'scheme',
+    'schemeType',
     'username',
     'password',
     'userPass',
@@ -15,6 +16,22 @@ exports.UriInfo = class UriInfo
     'path',
     'spec',
   ]
+  schemeInternal: {
+    '': true
+    'resource': true
+    'about': true
+    'chrome': true
+    'moz-icon': true
+    'moz-filedata': true
+    'view-source': true
+    'wyciwyg': true
+    'moz-nullprincipal': true
+  }
+  schemeInline: {
+    'data': true
+    'blob': true
+    'javascript': true
+  }
   constructor: (uri) ->
     if typeof uri == 'string' # assuming it's a stringified uriinfo
       @parse uri
@@ -31,10 +48,14 @@ exports.UriInfo = class UriInfo
     (
       @[k] = \
         try
-          uri[k] # throws if such component is inapplicable to uri
+          uri[k] or '' # may throw if such component is inapplicable to uri
         catch
           ''
     ) for k in @components
+    if @schemeInternal[@scheme]
+      @schemeType = 'internal'
+    else if @schemeInline[@scheme]
+      @schemeType = 'inline'
 
   stringify: -> @spec
   parse: (str) ->
@@ -42,8 +63,31 @@ exports.UriInfo = class UriInfo
     @copyComponents uri
 
 
+exports.OriginInfo = class OriginInfo extends UriInfo
+  schemeWebOrigin: {
+    https: true
+    http: true
+  }
+  copyComponents: (uri) ->
+    super uri
+    if not @schemeType and @schemeWebOrigin[@scheme]
+      @schemeType = 'web'
+
+
+exports.DestinationInfo = class DestinationInfo extends UriInfo
+  schemeWebDestination: {
+    https: true
+    http: true
+    ftp: true
+  }
+  copyComponents: (uri) ->
+    super uri
+    if not @schemeType and @schemeWebDestination[@scheme]
+      @schemeType = 'web'
+
+
 exports.ContextInfo = class ContextInfo
-  components: ['nodeName', 'contentType', 'mime', 'kind']
+  components: ['nodeName', 'contentType', 'mime']
 
   # maps integer values of contentType argument to strings according to
   # https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy#Constants
@@ -83,11 +127,6 @@ exports.ContextInfo = class ContextInfo
       @nodeName = '#window'
     else if context instanceof Ci.nsIDOMNode
       @nodeName = context.nodeName.toLowerCase()
-
-    @kind = ''
-    if (originUri.scheme in ['http', 'https']) \
-    and (destUri.scheme in ['http', 'https', 'ftp'])
-      @kind = 'web'
 
     @_tabId = '' # intended for internal use. Is not persistent between restarts
     tab = findTabThatOwnsDomWindow getWindowFromRequestContext context

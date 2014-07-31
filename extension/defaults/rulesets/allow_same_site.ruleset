@@ -10,7 +10,7 @@ l10n:
     warnOnDisable: "TODO"
 
 rules:
-  (http|https) -> (http|https|ftp):
+  web -> web:
     -> $&: ACCEPT
     -> *.$&: ACCEPT
     www.* -> $1: ACCEPT

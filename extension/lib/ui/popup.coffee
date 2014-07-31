@@ -334,7 +334,7 @@ class DomainSelectionButtons extends RadioButtons
 
 originSelection = new (class extends DomainSelectionButtons
   _chooseDomain: (o, d, c, decision) ->
-    if c.kind == 'web'
+    if (o.schemeType == d.schemeType == 'web')
       return o.host
     else
       return false
@@ -348,7 +348,7 @@ originSelection = new (class extends DomainSelectionButtons
 
 destinationSelection = new (class extends DomainSelectionButtons
   _chooseDomain: (o, d, c, decision) ->
-    if (c.kind == 'web') \
+    if (o.schemeType == d.schemeType == 'web') \
     and (isSuperdomain originSelection.selectedData, o.host)
       return d.host
     else
@@ -368,7 +368,7 @@ class FilterButtons extends RadioButtons
     stats = { ALL:0, IMAGE:0, STYLESHEET:0, SCRIPT:0, OTHER:0 }
     for [o, d, c, decision_] in memo.getByTab tabs.getCurrent()
       if  (decision_ == decision) \
-      and (c.kind == 'web') \
+      and (o.schemeType == d.schemeType == 'web') \
       and (isSuperdomain originSelection.selectedData, o.host) \
       and (isSuperdomain destinationSelection.selectedData, d.host)
         stats[categorizeRequest o, d, c] += 1
@@ -474,7 +474,7 @@ class FilteredRequestList extends RequestList
     super containerId
   requests: ->
     requests = memo.getByTab(tabs.getCurrent()).filter ([o, d, c]) ->
-      (c.kind == 'web') \
+      (o.schemeType == d.schemeType == 'web') \
       and (isSuperdomain originSelection.selectedData, o.host) \
       and (isSuperdomain destinationSelection.selectedData, d.host)
     return requests if @filterButtons.selectedData == 'ALL'
@@ -654,7 +654,7 @@ class RulesetEditButtons extends ContainerPopulation
     else
       checkThem = {} # origin -> dest -> type -> true
       for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
-        continue if c.kind != 'web'
+        continue unless (o.schemeType == d.schemeType == 'web')
         continue if selectedOrigin and not (isSuperdomain selectedOrigin, o.host)
         continue if selectedDestination and not (isSuperdomain selectedDestination, d.host)
         for type in supportedTypes

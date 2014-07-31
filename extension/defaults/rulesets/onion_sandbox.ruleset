@@ -5,6 +5,6 @@ name: "Tor isolation"
 description: "Reject .onion -> web and web -> .onion"
 
 rules:
-  (http|https) -> (http|https|ftp):
+  web -> web:
     *.onion -> ! *.onion : REJECT
     ! *.onion -> *.onion : REJECT

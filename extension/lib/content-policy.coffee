@@ -2,7 +2,7 @@
 catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
 
 { manager } = require 'ruleset/manager'
-{ UriInfo, ContextInfo } = require 'request-info'
+{ OriginInfo, DestinationInfo, ContextInfo } = require 'request-info'
 { memo } = require 'request-memo'
 { cache } = require 'request-cache'
 
@@ -37,8 +37,8 @@ policy =
   shouldLoad: (contentType, destUri, originUri, \
                context, mime, extra, principal) ->
 
-    origin = new UriInfo originUri
-    dest = new UriInfo destUri
+    origin = new OriginInfo originUri
+    dest = new DestinationInfo destUri
     ctx = new ContextInfo originUri, destUri, context, contentType, mime, principal
 
     [os, ds, cs] = [origin.stringify(), dest.stringify(), ctx.stringify()]
@@ -56,7 +56,10 @@ policy =
           context: '#{ cs }'
           decision: #{ decision }"
 
-    return Ci.nsIContentPolicy.ACCEPT
+    if decision
+      return Ci.nsIContentPolicy.ACCEPT
+    else
+      return Ci.nsIContentPolicy.REJECT_OTHER
 
   # nsIFactory interface implementation
   createInstance: (outer, iid) ->
