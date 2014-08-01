@@ -5,8 +5,22 @@
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       xmlns:html="http://www.w3.org/1999/xhtml">
 
+  <script src="xul-page-common.js"
+          type="application/javascript"/>
+  <script src="preferences-general.js"
+          type="application/javascript"/>
+
   <vbox id="subpref-container">
     <label class="title" value="&preferences_general;"/>
+
+    <checkbox id="suspended"
+              label="&preferences_suspend_operation;"
+              tooltiptext="&preferences_suspend_operation.tip;"
+              />
+
+    <checkbox id="autoreload"
+              label="&preferences_reload_automaticaly;"
+              />
   </vbox>
 
 </page>
