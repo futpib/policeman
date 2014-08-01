@@ -53,9 +53,10 @@ exports.createElement = createElement = (doc, tag, attrs={}) ->
       el.appendChild createElement doc, n.split('_')[0], v
   return el
 
-exports.removeChildren = removeChildren = (node) ->
-  while node.firstChild
-    node.removeChild node.firstChild
+exports.removeChildren = removeChildren = (node, selector='*') ->
+  for descendant in node.querySelectorAll selector
+    if descendant.parentNode == node
+      node.removeChild descendant
 
 exports.removeNode = removeNode = (node) ->
   node.parentNode.removeChild node
