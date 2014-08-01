@@ -144,6 +144,17 @@ exports.DeepLookupRS = class DeepLookupRS extends LookupRS
   isAllowed: loopLookup_ true
   isRejected: loopLookup_ false
 
+  toTableRec = (lookup) ->
+    return [lookup] if typeof lookup isnt 'object'
+    rows = []
+    for k, v of lookup
+      subrows = toTableRec v
+      for r in subrows
+        rows.push [k].concat r
+    return rows
+  toTable: -> toTableRec @_lookup
+
+
 exports.DomainPairRS = class DomainPairRS extends Lookup2RS
   checkOrder: (oh, dh, f) ->
     # order has to be defined separately and publicly for ui to be able to
