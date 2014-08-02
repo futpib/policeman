@@ -34,7 +34,7 @@ startup = tryer (data, reason) ->
 
   requireScope = {}
   Services.scriptloader.loadSubScript \
-        "#{ data.resourceURI.spec }lib/require.jsm",
+        "#{ data.resourceURI.spec }lib/require.js",
         requireScope
 
   requireScope.setAddonData data

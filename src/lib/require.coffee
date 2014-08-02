@@ -53,7 +53,7 @@ require = (module) ->
 
       exports: {}
 
-    expectedLocation = "#{ addonData.resourceURI.spec }lib/#{ module }.jsm"
+    expectedLocation = "#{ addonData.resourceURI.spec }lib/#{ module }.js"
     Services.scriptloader.loadSubScript expectedLocation, scopes[module]
 
   return scopes[module].exports
