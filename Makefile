@@ -1,10 +1,12 @@
 
-coffee_modules = $(shell find extension/lib    -type f -name '*.coffee')
-coffee_scripts = $(shell find extension -type f -not -path '*/lib/*' -not -path '*/macros/*' -name '*.coffee')
-jison_files = $(shell find extension -type f -name '*.jison')
+source_root = "src"
 
-svg_files = $(shell find extension/chrome/skin -type f -name '*.svg')
-icon = "extension/icon.svg"
+coffee_modules = $(shell find $(source_root)/lib    -type f -name '*.coffee')
+coffee_scripts = $(shell find $(source_root) -type f -not -path '*/lib/*' -not -path '*/macros/*' -name '*.coffee')
+jison_files = $(shell find $(source_root) -type f -name '*.jison')
+
+svg_files = $(shell find $(source_root)/chrome/skin -type f -name '*.svg')
+icon = "$(source_root)/icon.svg"
 
 js_files = $(coffee_modules:.coffee=.jsm)
 js_files += $(coffee_scripts:.coffee=.js)
