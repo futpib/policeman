@@ -1,6 +1,16 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 @-moz-document url("chrome://browser/content/browser.xul") {
+  #policeman-popup-status-indicator-container {
+    background-image: url(chrome://global/skin/icons/tabprompts-bgtexture.png);
+    background-color: hsla(0,0%,10%,.5);
+  }
+  .policeman-popup-status-indicator-content {
+    color: -moz-fieldText;
+    background-color: -moz-field;
+    border: 1px solid threeDDarkShadow;
+  }
+
   .policeman-popup-button {
     margin: 1px;
   }

@@ -7,89 +7,106 @@
   <popupset id="mainPopupSet">
     <menupopup id="policeman-popup">
       <vbox>
-        <hbox>
-          <vbox>
+        <stack>
+          <hbox>
             <vbox>
-              <label value="&origin;"/>
-              <vbox id="policeman-popup-origins-container">
-                <!--
-                button for each origin populate here
-                -->
-              </vbox>
-            </vbox>
-            <separator class="thin"/>
-            <vbox>
-              <label value="&destination;"/>
-              <vbox id="policeman-popup-destinations-container">
-                <!--
-                buttons for each destination selected origin tryied to accessed
-                populate here
-                -->
-              </vbox>
-            </vbox>
-          </vbox>
-          <separator orient="vertical"/>
-          <vbox>
-            <vbox id="policeman-popup-ruleset-edit-container">
-              <vbox id="policeman-popup-temporary-ruleset-container">
-                <hbox>
-                  <label class="policeman-popup-label-aligned-like-button"
-                         value="&popup_temporary_rules;"
-                         tooltiptext="&popup_temporary_rules.tip;"/>
-                  <spacer flex="1" orient="vertical"/>
-                  <hbox id="policeman-popup-temporary-ruleset-purge-container">
-                    <!--
-                    "Remove all temporary rules" button may be inserted here
-                    -->
-                  </hbox>
-                </hbox>
-                <vbox id="policeman-popup-temporary-edit-container">
+              <vbox>
+                <label value="&origin;"/>
+                <vbox id="policeman-popup-origins-container">
                   <!--
-                  existing user_temporary rules and buttons for editing them
-                  populate here
+                  button for each origin populate here
                   -->
                 </vbox>
-              </vbox>
-              <separator/>
-              <vbox id="policeman-popup-persistent-ruleset-container">
-                <label class="policeman-popup-label-aligned-like-button"
-                       value="&popup_persistent_rules;"
-                       tooltiptext="&popup_persistent_rules.tip;"/>
-                <vbox id="policeman-popup-persistent-edit-container">
-                  <!--
-                  existing user_persistent rules and buttons for editing them
-                  populate here
-                  -->
-                </vbox>
-              </vbox>
-            </vbox>
-            <spacer flex="1"/>
-            <separator/>
-            <vbox>
-              <hbox id="policeman-popup-rejected-requests-filters-container">
-                <!--
-                filter buttons for requests below populate here
-                -->
-              </hbox>
-              <vbox id="policeman-popup-rejected-requests-container">
-                <!--
-                rejected requests populate here
-                -->
               </vbox>
               <separator class="thin"/>
-              <hbox id="policeman-popup-allowed-requests-filters-container">
-                <!--
-                filter buttons for requests below populate here
-                -->
-              </hbox>
-              <vbox id="policeman-popup-allowed-requests-container">
-                <!--
-                allowed requests summary populate here
-                -->
+              <vbox>
+                <label value="&destination;"/>
+                <vbox id="policeman-popup-destinations-container">
+                  <!--
+                  buttons for each destination selected origin tryied to accessed
+                  populate here
+                  -->
+                </vbox>
               </vbox>
             </vbox>
+            <separator orient="vertical"/>
+            <vbox>
+              <vbox id="policeman-popup-ruleset-edit-container">
+                <vbox id="policeman-popup-temporary-ruleset-container">
+                  <hbox>
+                    <label class="policeman-popup-label-aligned-like-button"
+                          value="&popup_temporary_rules;"
+                          tooltiptext="&popup_temporary_rules.tip;"/>
+                    <spacer flex="1" orient="vertical"/>
+                    <hbox id="policeman-popup-temporary-ruleset-purge-container">
+                      <!--
+                      "Remove all temporary rules" button may be inserted here
+                      -->
+                    </hbox>
+                  </hbox>
+                  <vbox id="policeman-popup-temporary-edit-container">
+                    <!--
+                    existing user_temporary rules and buttons for editing them
+                    populate here
+                    -->
+                  </vbox>
+                </vbox>
+                <separator/>
+                <vbox id="policeman-popup-persistent-ruleset-container">
+                  <label class="policeman-popup-label-aligned-like-button"
+                        value="&popup_persistent_rules;"
+                        tooltiptext="&popup_persistent_rules.tip;"/>
+                  <vbox id="policeman-popup-persistent-edit-container">
+                    <!--
+                    existing user_persistent rules and buttons for editing them
+                    populate here
+                    -->
+                  </vbox>
+                </vbox>
+              </vbox>
+              <spacer flex="1"/>
+              <separator/>
+              <vbox>
+                <hbox id="policeman-popup-rejected-requests-filters-container">
+                  <!--
+                  filter buttons for requests below populate here
+                  -->
+                </hbox>
+                <vbox id="policeman-popup-rejected-requests-container">
+                  <!--
+                  rejected requests populate here
+                  -->
+                </vbox>
+                <separator class="thin"/>
+                <hbox id="policeman-popup-allowed-requests-filters-container">
+                  <!--
+                  filter buttons for requests below populate here
+                  -->
+                </hbox>
+                <vbox id="policeman-popup-allowed-requests-container">
+                  <!--
+                  allowed requests summary populate here
+                  -->
+                </vbox>
+              </vbox>
+            </vbox>
+          </hbox>
+          <vbox id="policeman-popup-status-indicator-container">
+            <spacer flex="1" orient="vertical"/>
+            <hbox pack="center">
+              <vbox id="policeman-popup-progress-indicator-container"
+                    class="policeman-popup-status-indicator-content">
+                <label value="&popup_progress;"/>
+                <progressmeter mode="undetermined"/>
+              </vbox>
+              <vbox id="policeman-popup-no-web-requests-container"
+                    class="policeman-popup-status-indicator-content">
+                <label value="&popup_no_web_requests_recorded;"/>
+              </vbox>
+            </hbox>
+            <spacer flex="1" orient="vertical"/>
           </vbox>
-        </hbox>
+        </stack>
         <separator/>
         <hbox id="policeman-popup-footer">
           <hbox id="policeman-popup-footer-left">

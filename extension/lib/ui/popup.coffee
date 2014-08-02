@@ -761,6 +761,25 @@ footerLinkButtons = new (class extends ContainerPopulation
 ) 'policeman-popup-footer-right'
 
 
+statusIndicator =
+  id: 'policeman-popup-status-indicator-container'
+  nothingToShowId: 'policeman-popup-no-web-requests-container'
+  progressIndicatorId: 'policeman-popup-progress-indicator-container'
+
+  updateStarted: (doc) ->
+    doc.getElementById(@id).hidden = false
+    doc.getElementById(@nothingToShowId).hidden = true
+    doc.getElementById(@progressIndicatorId).hidden = false
+
+  updateFinished: (doc) ->
+    webRequests = memo.getByTab(tabs.getCurrent()).filter ([o,d,c]) ->
+      (o.schemeType == d.schemeType == 'web')
+    noWebRequestsRecorded = not webRequests.length
+    doc.getElementById(@id).hidden = not noWebRequestsRecorded
+    doc.getElementById(@nothingToShowId).hidden = not noWebRequestsRecorded
+    doc.getElementById(@progressIndicatorId).hidden = noWebRequestsRecorded
+
+
 prefs.define AUTORELOAD_PREF = 'ui.popup.autoReloadPageOnHiding',
   prefs.TYPE_BOOLEAN, false
 
@@ -803,12 +822,14 @@ exports.popup = popup =
     panel.hidePopup()
 
   onShowing: (e) ->
+    doc = e.target.ownerDocument
     @_reloadRequired = false
-    @updateUI e.target.ownerDocument
+    @updateUI doc
     @_visible = true
 
   onHiding: (e) ->
-    @cleanupUI e.target.ownerDocument
+    doc = e.target.ownerDocument
+    @cleanupUI doc
     if @_reloadRequired and prefs.get 'ui.popup.autoReloadPageOnHiding'
       tabs.reload tabs.getCurrent()
     @_visible = false
@@ -834,6 +855,8 @@ exports.popup = popup =
     footerCheckButtons.update doc
     footerLinkButtons.update doc
 
+    statusIndicator.updateFinished doc
+
   cleanupUI: (doc) ->
     destinationSelection.purge doc
     rejectedFilter.purge doc
@@ -842,6 +865,8 @@ exports.popup = popup =
     persistentRulesetEdit.purge doc
     rejectedList.purge doc
     allowedList.purge doc
+
+    statusIndicator.updateStarted doc
 
   autoreload:
     enabled: -> prefs.get AUTORELOAD_PREF
