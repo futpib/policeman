@@ -7,30 +7,74 @@
 <!ENTITY web "Web">
 <!ENTITY any "Any">
 
+<!ENTITY origin "Origin">
+<!ENTITY destination "Destination">
+
+<!ENTITY policeman_preferences_page "Policeman preferences">
 <!ENTITY policeman_preferences "Policeman">
+
 <!ENTITY preferences_general "General preferences">
+
+<!ENTITY preferences_suspend_operation "Suspend operation">
+<!ENTITY preferences_suspend_operation.tip "Do not apply any rules">
+<!ENTITY preferences_reload_automaticaly "Reload page automatically when popup is hidden">
+
 <!ENTITY preferences_rulesets_manager "Manage rule sets">
-<!ENTITY installed_rulesets "Installed sets">
-<!ENTITY enabled_rulesets "Active sets ordered by priority (first match wins)">
-<!ENTITY first_match_wins "First match wins">
 
-<!ENTITY remove "Remove">
-<!ENTITY disable "Disable">
+<!ENTITY preferences_view_source "View Source">
+<!ENTITY preferences_uninstall "Uninstall">
+<!ENTITY preferences_install "Install">
+<!ENTITY preferences_enable "Enable">
+<!ENTITY preferences_disable "Disable">
 
-<!ENTITY open_sidebar "View Policeman sidebar">
-<!ENTITY open_sidebar.tip "Open sidebar for more options">
+<!ENTITY preferences_installed_rulesets "Installed sets">
+<!ENTITY preferences_enabled_rulesets "Active sets ordered by priority (first match wins)">
+
+<!ENTITY preferences_temporary_rules "Temporary rules">
+<!ENTITY preferences_persistent_rules "Persistent rules">
+
+<!ENTITY preferences_check_and_save "Check and save">
+
+<!ENTITY preferences_user_rulesets "Edit custom rules">
+
+<!ENTITY decision "Decision">
+<!ENTITY content_type "Content type">
+<!ENTITY origin_domain "Origin domain">
+<!ENTITY destination_domain "Destination domain">
+
+<!ENTITY preferences_remove_rule "Remove">
+<!ENTITY preferences_promote_rule_to_rersistent "Make persistent">
+
+<!ENTITY preferences_custom_rule.allow "Allow">
+<!ENTITY preferences_custom_rule.reject "Reject">
+<!ENTITY preferences_custom_rule.type.wildcard "Anything">
+<!ENTITY preferences_custom_rule.type.image "Images">
+<!ENTITY preferences_custom_rule.type.stylesheet "Styles">
+<!ENTITY preferences_custom_rule.type.script "Scripts">
+<!ENTITY preferences_custom_rule.add "Add rule">
+
+<!ENTITY panelview_open_preferences "Open preferences page">
+<!ENTITY panelview_open_preferences.tip "Open sidebar for more options">
+
+<!ENTITY panelview_reload_page "Reload page when done">
+<!ENTITY panelview_reload_page.tip "Reload page after this popup menu is closed to make page load with new permissions">
+
+<!ENTITY popup_temporary_rules "Related temporary rules:">
+<!ENTITY popup_temporary_rules.tip "Purged on every browser restart">
+<!ENTITY popup_persistent_rules "Related persistent rules:">
+<!ENTITY popup_persistent_rules.tip "Saved between browser restarts">
+
+<!ENTITY popup_progress "Please wait while Policeman summarizes requests data...">
+<!ENTITY popup_no_web_requests_recorded "No web requests were made by this tab or Policeman was disabled while this tab was loading.">
 
 <!ENTITY temp_allow_all "Temporarily allow all web requests">
 <!ENTITY temp_allow_all.tip "Allow requests from any http:// and https:// pages till next browser restart">
 <!-- for temp_allow_domain see .properties -->
-<!ENTITY temp_allow_doc "Temporarily allow requests from this document">
-<!ENTITY temp_allow_doc.tip "Allow requests from current document till you navigate elsewhere, reload, close tab or browser">
+<!ENTITY temp_allow_tab "Temporarily allow requests from this tab">
+<!ENTITY temp_allow_tab.tip "Allow requests from current tab untill you close it">
 
 <!ENTITY temp_revoke_all "Revoke all temporary permission">
 <!ENTITY temp_revoke_all.tip "Revoke all previously set temporary permission">
-
-<!ENTITY reload_page "Reload page">
-<!ENTITY reload_page.tip "Reload page after this popup menu is closed to make page load with new permissions">
 
 <!ENTITY emptysidebar.title "EmptySidebar">
 <!ENTITY open_policeman_sidebar.commandkey "P">
