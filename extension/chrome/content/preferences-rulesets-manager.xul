@@ -10,17 +10,42 @@
   <script src="preferences-rulesets-manager.js"
           type="application/javascript"/>
 
+  <popupset>
+    <menupopup id="installed-ruleset-menu">
+      <menuitem class="menu-enable" label="&preferences_enable;"/>
+      <menuitem class="menu-view-source" label="&preferences_view_source;"/>
+      <menuseparator/>
+      <menuitem class="menu-uninstall" label="&preferences_uninstall;"/>
+    </menupopup>
+    <menupopup id="enabled-ruleset-menu">
+      <menuitem class="menu-disable" label="&preferences_disable;"/>
+      <menuitem class="menu-view-source" label="&preferences_view_source;"/>
+    </menupopup>
+  </popupset>
+
   <hbox id="subpref-container" flex="1">
     <vbox flex="1">
-      <label class="title" value="&installed_rulesets;" crop="end"/>
-      <richlistbox flex="1" id="installed-rulesets-list"/>
-    </vbox>
+      <hbox flex="1">
+        <vbox flex="1">
+          <label class="title" value="&preferences_installed_rulesets;" crop="end"/>
+          <richlistbox flex="1" id="installed-rulesets-list"/>
+        </vbox>
 
-    <splitter />
+        <splitter />
 
-    <vbox flex="1">
-      <label class="title" value="&enabled_rulesets;" crop="end"/>
-      <richlistbox flex="1" id="installed-rulesets-list"/>
+        <vbox flex="1">
+          <label class="title" value="&preferences_enabled_rulesets;" crop="end"/>
+          <richlistbox flex="1" id="enabled-rulesets-list"/>
+        </vbox>
+      </hbox>
+      <hbox id="save-buttons-container">
+        <spacer flex="1"/>
+        <button id="check-and-save"
+                label="&preferences_check_and_save;"
+                icon="save"
+                disabled="true"
+                />
+      </hbox>
     </vbox>
   </hbox>
 
