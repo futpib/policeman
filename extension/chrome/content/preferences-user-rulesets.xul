@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://policeman/skin/preferences.css" type="text/css"?>
+<!DOCTYPE page SYSTEM "chrome://policeman/locale/">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      xmlns:html="http://www.w3.org/1999/xhtml">
+
+  <script src="xul-page-common.js"
+          type="application/javascript"/>
+  <script src="preferences-user-rulesets.js"
+          type="application/javascript"/>
+
+  <popupset>
+    <menupopup id="temporary-rule-menu">
+      <menuitem class="menu-promote" label="&preferences_promote_rule_to_rersistent;"/>
+      <menuitem class="menu-remove" label="&preferences_remove_rule;"/>
+    </menupopup>
+    <menupopup id="persistent-rule-menu">
+      <menuitem class="menu-remove" label="&preferences_remove_rule;"/>
+    </menupopup>
+  </popupset>
+
+  <hbox id="subpref-container" flex="1">
+    <vbox flex="1">
+      <label class="title" value="&preferences_temporary_rules;" crop="end"/>
+      <hbox align="center">
+        <label value="Search:"/>
+        <textbox id="temporary-rules-search-box"
+                 class="compact"
+                 type="search"
+                 flex="1"/>
+      </hbox>
+      <hbox align="center">
+        <menulist id="add-temporary-rule-decision">
+          <menupopup>
+            <menuitem label="&preferences_custom_rule.allow;" value="allow"/>
+            <menuitem label="&preferences_custom_rule.reject;" value="reject"/>
+          </menupopup>
+        </menulist>
+        <menulist id="add-temporary-rule-type">
+          <menupopup>
+            <menuitem label="&preferences_custom_rule.type.wildcard;" value="_ANY_"/>
+            <menuitem label="&preferences_custom_rule.type.image;" value="IMAGE"/>
+            <menuitem label="&preferences_custom_rule.type.stylesheet;" value="STYLESHEET"/>
+            <menuitem label="&preferences_custom_rule.type.script;" value="SCRIPT"/>
+          </menupopup>
+        </menulist>
+        <textbox id="add-temporary-rule-origin-domain"
+                 placeholder="&origin_domain;"
+                 class="compact"
+                 flex="1"/>
+        <textbox id="add-temporary-rule-destination-domain"
+                 placeholder="&destination_domain;"
+                 class="compact"
+                 flex="1"/>
+        <button id="add-temporary-rule-button"
+                label="&preferences_custom_rule.add;"
+                icon="add"/>
+      </hbox>
+      <listbox flex="1" id="temporary-rules">
+        <listhead>
+          <listheader label="&decision;" flex="1"/>
+          <listheader label="&content_type;" flex="1"/>
+          <listheader label="&origin_domain;" flex="1"/>
+          <listheader label="&destination_domain;" flex="1"/>
+        </listhead>
+        <listcols>
+          <listcol flex="1"/>
+          <listcol flex="1"/>
+          <listcol flex="1"/>
+          <listcol flex="1"/>
+        </listcols>
+      </listbox>
+    </vbox>
+
+    <splitter collapse="both"/>
+
+    <vbox flex="1">
+      <label class="title" value="&preferences_persistent_rules;" crop="end"/>
+      <hbox align="center">
+        <label value="Search:"/>
+        <textbox id="persistent-rules-search-box"
+                 class="compact"
+                 type="search"
+                 flex="1"/>
+      </hbox>
+      <hbox align="center">
+        <menulist id="add-persistent-rule-decision">
+          <menupopup>
+            <menuitem label="&preferences_custom_rule.allow;" value="allow"/>
+            <menuitem label="&preferences_custom_rule.reject;" value="reject"/>
+          </menupopup>
+        </menulist>
+        <menulist id="add-persistent-rule-type">
+          <menupopup>
+            <menuitem label="&preferences_custom_rule.type.wildcard;" value="_ANY_"/>
+            <menuitem label="&preferences_custom_rule.type.image;" value="IMAGE"/>
+            <menuitem label="&preferences_custom_rule.type.stylesheet;" value="STYLESHEET"/>
+            <menuitem label="&preferences_custom_rule.type.script;" value="SCRIPT"/>
+          </menupopup>
+        </menulist>
+        <textbox id="add-persistent-rule-origin-domain"
+                 placeholder="&origin_domain;"
+                 class="compact"
+                 flex="1"/>
+        <textbox id="add-persistent-rule-destination-domain"
+                 placeholder="&destination_domain;"
+                 class="compact"
+                 flex="1"/>
+        <button id="add-persistent-rule-button"
+                label="&preferences_custom_rule.add;"
+                icon="add"/>
+      </hbox>
+      <listbox flex="1" id="persistent-rules">
+        <listhead>
+          <listheader label="&decision;" flex="1"/>
+          <listheader label="&content_type;" flex="1"/>
+          <listheader label="&origin_domain;" flex="1"/>
+          <listheader label="&destination_domain;" flex="1"/>
+        </listhead>
+        <listcols>
+          <listcol flex="1"/>
+          <listcol flex="1"/>
+          <listcol flex="1"/>
+          <listcol flex="1"/>
+        </listcols>
+      </listbox>
+    </vbox>
+  </hbox>
+
+</page>

@@ -4,7 +4,6 @@
 }
 
 .title {
-  margin: 0;
   font-size: 1.8em;
 }
 
@@ -29,6 +28,12 @@ richlistbox {
   margin: 0;
 }
 
+#enabled-rulesets-list .ruleset.dragover {
+  box-shadow: inset 0 3px Highlight;
+}
+.ruleset-draggable-part * {
+  pointer-events: none;
+}
 .ruleset-name, .ruleset-description, .ruleset-version  {
   font-size: 1.3em;
 }

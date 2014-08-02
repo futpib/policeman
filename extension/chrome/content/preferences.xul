@@ -34,6 +34,13 @@
                 target="subview">
           &preferences_rulesets_manager;
         </html:a>
+        <html:a class="text-link"
+                hash="user-rulesets"
+                href="chrome://policeman/content/preferences-user-rulesets.xul"
+                style="display: block;"
+                target="subview">
+          &preferences_user_rulesets;
+        </html:a>
       </vbox>
     </vbox>
 
