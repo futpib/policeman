@@ -130,7 +130,7 @@ exports.StartsEndsTest = class StartsEndsTest extends BackrefTest
       )
     ]
 
-  stringify: -> "#{if @start then JSON.stringify start else ''}
+  stringify: -> "#{if @start then JSON.stringify @start else ''}
               *
               #{if @end then JSON.stringify @end else ''}"
 
