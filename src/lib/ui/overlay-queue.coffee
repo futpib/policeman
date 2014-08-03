@@ -27,7 +27,15 @@ exports.overlayQueue = new class extends Observer
 
   observe: (uri) ->
     url = uri.QueryInterface(Ci.nsIURI).spec
-    do @_urlToCallback[url] if url of @_urlToCallback
+    if url of @_urlToCallback
+      try
+        do @_urlToCallback[url]
+      catch e
+        log "xul-overlay-merged callback for '#{url}':
+              error: #{ e } \n
+              file: '#{ e.fileName }' \n
+              line: #{ e.lineNumber } \n
+              stack: #{ e.stack }"
     delete @_urlToCallback[url]
     @_pending = false
     do @merge
