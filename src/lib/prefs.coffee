@@ -30,7 +30,7 @@ class Preferences
 
     @_changeHandlers = {}
 
-    branch = branch + '.' unless branch.endsWith('.')
+    branch = branch + '.' if branch and not branch.endsWith('.')
     @_branch = prefService.getBranch branch
     @_branchName = branch
     @_branch.addObserver '', this, false
@@ -107,10 +107,20 @@ class Preferences
     name = name + '.' unless name.endsWith('.')
     return new Preferences @_branchName + name
 
+
+exports.ReadOnlyError = class ReadOnlyError extends PreferencesError
+
+class ReadOnlyPreferences extends Preferences
+  ReadOnlyError: ReadOnlyError
+  set: (name) -> throw new ReadOnlyError "Trying to set read-only preference '#{name}'"
+
+
 exports.prefs = prefs = new Preferences policemanBranch
 
 prefs.define 'version',
   prefs.TYPE_STRING,
   '0.1'
+
+exports.foreign = foreign = new ReadOnlyPreferences ''
 
 
