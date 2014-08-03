@@ -436,6 +436,12 @@ class RequestList extends ContainerPopulation
     if context.mime
       contextSummary += \
         "#{ l10n 'request_context_mime_type' } #{ context.mime }\n"
+    if context.id
+      contextSummary += \
+        "#{ l10n 'request_context_id' } #{ context.id }\n"
+    if context.className
+      contextSummary += \
+        "#{ l10n 'request_context_class_name' } #{ context.className }\n"
     arrowLbl = createElement doc, 'label',
       class: 'policeman-popup-request-label policeman-popup-request-arrow-label'
       value: l10n if decision then 'popup_arrow' else 'popup_arrow_with_stroke'

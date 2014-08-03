@@ -69,7 +69,7 @@ var component = {
   single: requestInfo.ContextInfo.prototype.components,
   // Components that support lookup, bare string on these will be parsed as
   // InTest not EqTest.
-  list: [],
+  list: ['classList'],
 
   stack: [],
   push: function (c) {

@@ -123,10 +123,20 @@ exports.ContextInfo = class ContextInfo
     @contentType = intToTypeMap[contentType]
 
     @nodeName = ''
-    if context instanceof Ci.nsIDOMWindow
-      @nodeName = '#window'
-    else if context instanceof Ci.nsIDOMNode
-      @nodeName = context.nodeName.toLowerCase()
+    if context
+      if context instanceof Ci.nsIDOMWindow
+        @nodeName = '#window'
+      else if context instanceof Ci.nsIDOMNode
+        @nodeName = context.nodeName.toLowerCase()
+      try
+        element = context.QueryInterface Ci.nsIDOMElement
+        @className = element.className
+        @classList = makeClassList @className
+        @id = element.id
+      catch e
+        unless e instanceof Ci.nsIException \
+        and    e.result == Cr.NS_ERROR_NO_INTERFACE
+          throw e
 
     @_tabId = '' # intended for internal use. Is not persistent between restarts
     tab = findTabThatOwnsDomWindow getWindowFromRequestContext context
@@ -134,9 +144,10 @@ exports.ContextInfo = class ContextInfo
       @_tabId = tabs.getTabId tab
 
   delimiter = '|' # hoping there is no way | can get into components
-  stringify: -> [@nodeName, @contentType, @mime].join delimiter
+  stringify: -> [@nodeName, @className, @id, @contentType, @mime].join delimiter
   parse: (str) ->
-    [@nodeName, @contentType, @mime] = str.split delimiter
+    [@nodeName, @className, @id, @contentType, @mime] = str.split delimiter
+    @classList = makeClassList @className
 
 XUL_NAMESPACE = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'
 exports.getWindowFromRequestContext = getWindowFromRequestContext = (ctx) ->
