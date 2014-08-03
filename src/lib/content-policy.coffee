@@ -43,18 +43,10 @@ policy =
 
     [os, ds, cs] = [origin.stringify(), dest.stringify(), ctx.stringify()]
 
-    if null != (decision = cache.lookup os, ds, cs)
-      return decision
-
-    decision = manager.check origin, dest, ctx
+    if null == (decision = cache.lookup os, ds, cs)
+      decision = manager.check origin, dest, ctx
+      cache.add os, ds, cs, decision
     memo.add origin, dest, ctx, decision
-    cache.add os, ds, cs, decision
-
-    log "shouldLoad:
-          origin: '#{ origin.spec }'
-          dest: '#{ dest.spec }'
-          context: '#{ cs }'
-          decision: #{ decision }"
 
     if decision
       return Ci.nsIContentPolicy.ACCEPT
