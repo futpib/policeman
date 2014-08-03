@@ -1,6 +1,7 @@
 
 { DomainDomainTypeRS } = require 'ruleset/code-based'
 
+{ prefs, foreign } = require 'prefs'
 { l10n } = require 'l10n'
 
 
@@ -13,3 +14,35 @@ exports.persistentRuleSet = persistentRuleSet = new (class extends DomainDomainT
 ) 'ruleset.persistent.domainDomainType'
 
 onShutdown.add persistentRuleSet.save.bind persistentRuleSet
+
+
+prefs.define rpImportPref = 'ruleset.persistent.requestpolicy.triedImport',
+  prefs.TYPE_BOOLEAN,
+  false
+
+if not prefs.get rpImportPref
+  foreign.define rpOriginsPref = 'extensions.requestpolicy.allowedOrigins',
+    prefs.TYPE_STRING,
+    ''
+  foreign.define rpDestsPref = 'extensions.requestpolicy.allowedDestinations',
+    prefs.TYPE_STRING,
+    ''
+  foreign.define rpODPref = 'extensions.requestpolicy.allowedOriginsToDestinations',
+    prefs.TYPE_STRING,
+    ''
+  try
+    origins = foreign.get(rpOriginsPref).split(' ')
+    for o in origins
+      continue unless o
+      persistentRuleSet.allow o, '', persistentRuleSet.WILDCARD_TYPE
+    dests = foreign.get(rpDestsPref).split(' ')
+    for d in dests
+      continue unless d
+      persistentRuleSet.allow '', d, persistentRuleSet.WILDCARD_TYPE
+    originsDests = foreign.get(rpODPref).split(' ').map((s) -> s.split('|'))
+    for [o, d] in originsDests
+      continue unless o or d
+      persistentRuleSet.allow o, d, persistentRuleSet.WILDCARD_TYPE
+  catch e
+    log "Error trying to import PequestPolicy rules: #{e}\n #{e.stack}."
+  prefs.set rpImportPref, true
