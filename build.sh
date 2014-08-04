@@ -12,6 +12,7 @@ gen () {
   copy && \
   make_coffee && \
   make_jison && \
+  properties && \
   svg
 }
 
@@ -24,7 +25,8 @@ make_coffee () {
   coffee_files="$(find $build_root -type f -name '*.coffee')"
   for f in $coffee_files
   do
-    coffee -cbp $f | tee ${f/%.coffee/.js} >/dev/null || exit 1
+    coffee -cbp $f | tee ${f/%.coffee/.js} >/dev/null
+    [ 0 -ne ${PIPESTATUS[0]} ] && exit ${PIPESTATUS[0]}
     rm $f
   done
 }
@@ -51,6 +53,18 @@ svg () {
   for f in "$build_root/icon.svg"
   do
     inkscape -z -e ${f/%.svg/.png} -w 64 -h 64 ${f} >/dev/null
+  done
+}
+
+properties () {
+  echo "Cloning properties to dtd..."
+  props="$(find $build_root/chrome/locale -type f -name '*.properties')"
+  for f in $props
+  do
+    cat $f | grep -vE '(^#|^$)' \
+      | grep -vE '(^|[^\%])(%%)*(%[0-9]+)' \
+      | perl -pe 's/^"?(.+)"?\s*=\s*"?(.*)"?\n$/<!ENTITY \1 "\2">\n/' \
+      | tee ${f/%.properties/.dtd} >/dev/null
   done
 }
 
