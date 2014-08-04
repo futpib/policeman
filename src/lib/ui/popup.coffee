@@ -209,7 +209,7 @@ class DomainSelectionButtons extends RadioButtons
   class DomainTree
     constructor: ->
       # noname root domain
-      @t = [{label: '', hit: no, descendantHits: 0, children: []}]
+      @t = [{label: '', hits: 0, directHits: 0, descendantDirectHits: 0, children: []}]
     hit: (domain) ->
       tree = @t
       labels = domain.split('.').concat ''
@@ -217,18 +217,22 @@ class DomainSelectionButtons extends RadioButtons
       while (label = labels.pop()) != undefined
         target = tree.find (n) -> n.label == label # find node for label
         if not target # or create it
-          target = {label: label, hit: no, descendantHits: 0, children: []}
+          target = {label: label, hits: 0, directHits: 0, descendantDirectHits: 0, children: []}
           tree.push target
+        target.hits += 1
         if labels.length
           track.push target
           tree = target.children
         else
-          if not target.hit
-            target.hit = yes
+          if not target.directHits
             while (ancestor = track.pop()) != undefined
-              ancestor.descendantHits += 1
+              ancestor.descendantDirectHits += 1
+          target.directHits += 1
       return
     noop = ->
+    walkIn: (in_, tree=@t) ->
+      for n in tree
+        in_ n, @walkIn(in_, n.children)
     walk: (pre, post=noop, tree=@t) ->
       for n in tree
         skip = pre n
@@ -238,9 +242,10 @@ class DomainSelectionButtons extends RadioButtons
     OMIT_DESCENDANTS_THRESHOLD = 2
     OMIT_DESCENDANTS_DEPTH = 2 # do not omit second and higher level domains
     shouldOmitDescendants = (node, depth) ->
-      (node.descendantHits > OMIT_DESCENDANTS_THRESHOLD) \
+      (node.descendantDirectHits > OMIT_DESCENDANTS_THRESHOLD) \
       and (depth > OMIT_DESCENDANTS_DEPTH)
-    getHittedDomains: ->
+    getHitDomains: ->
+      @walkIn (n) -> n.children.sort (a, b) -> b.hits - a.hits
       result = []
       depth = 0
       indentation = 0
@@ -249,7 +254,7 @@ class DomainSelectionButtons extends RadioButtons
         depth += 1
         labels.unshift node.label
         omit = shouldOmitDescendants node, depth
-        if node.hit or omit
+        if node.directHits or omit
           indentation += 1
           result.push [
             indentation,
@@ -260,7 +265,7 @@ class DomainSelectionButtons extends RadioButtons
         return false
       ), ((node) ->
         labels.shift()
-        if node.hit or (shouldOmitDescendants node, depth)
+        if node.directHits or (shouldOmitDescendants node, depth)
           indentation -= 1
         depth -= 1
       )
@@ -314,7 +319,7 @@ class DomainSelectionButtons extends RadioButtons
       allowHits: domainToStats[''].allow
       rejectHits: domainToStats[''].reject
 
-    for [indentation, domain] in tree.getHittedDomains()
+    for [indentation, domain] in tree.getHitDomains()
       fragment.appendChild btn = @_createButton doc,
         domain: domain
         allowHits: domainToStats[domain].allow
@@ -565,11 +570,12 @@ class RulesetEditButtons extends ContainerPopulation
       value: l10n 'popup_custom_rule.0'
       class: 'policeman-popup-label-aligned-like-button'
 
+    allow = ['allow', l10n 'popup_custom_rule.allow']
+    reject = ['reject', l10n 'popup_custom_rule.reject']
     customRuleBox.appendChild allowRejectBtn = DataRotationButton::create doc,
-      valuesLabels: [
-        ['allow', l10n 'popup_custom_rule.allow'],
-        ['reject', l10n 'popup_custom_rule.reject'],
-      ]
+      valuesLabels: if manager.enabled('reject_any') \
+          then [allow, reject] \ # whitelist mode
+          else [reject, allow]   # blacklist mode
 
     customRuleBox.appendChild createElement doc, 'label',
       value: l10n 'popup_custom_rule.1'

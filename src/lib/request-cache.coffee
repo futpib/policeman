@@ -1,11 +1,11 @@
 
 ###
-
+Requests and decisions cache.
+Operates on stringified request info objects.
 ###
-
 exports.cache = cache =
-  init: -> null
-  lookup: (origin, dest) -> null
-  add: (origin, dest, decision) -> null
+  init: ->
+  lookup: (origin, dest, context) -> null
+  add: (origin, dest, context, decision) -> null
 
 do cache.init
