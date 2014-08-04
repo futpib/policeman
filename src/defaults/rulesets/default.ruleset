@@ -21,3 +21,7 @@ rules:
     # allows opening links on web pages
     [contentType] DOCUMENT: ACCEPT
 
+  web -> internal:
+    # top level video, sound or image need this
+    [contentType] STYLESHEET: ACCEPT
+
