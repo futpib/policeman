@@ -1,11 +1,22 @@
 
-{ superdomains, defaults } = require 'utils'
+{ superdomains, defaults, remove } = require 'utils'
 { prefs } = require 'prefs'
 
 
 # Rulesets for easy modification by ui.
 # Called code-based as opposite to nodes-based.
 
+
+exports.ClosuresRS = class ClosuresRS
+  constructor: ->
+    @_closures = []
+  add: (f) -> @_closures.push f
+  revoke: (f) -> remove @_closures, f
+  check: (o, d, c) ->
+    for f in @_closures.slice()
+      decision = f.call f, o, d, c
+      return decision if typeof decision is 'boolean'
+    return null
 
 exports.CodeBasedRS = class CodeBasedRS
   constructor: ->
