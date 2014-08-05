@@ -5,6 +5,7 @@ catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
 { OriginInfo, DestinationInfo, ContextInfo } = require 'request-info'
 { memo } = require 'request-memo'
 { cache } = require 'request-cache'
+{ blockedImage } = require 'blocked-image'
 
 registrar = Cm.QueryInterface Ci.nsIComponentRegistrar
 
@@ -47,6 +48,7 @@ policy =
       decision = manager.check origin, dest, ctx
       cache.add os, ds, cs, decision
     memo.add origin, dest, ctx, decision
+    blockedImage.process origin, dest, ctx, decision
 
     if decision
       return Ci.nsIContentPolicy.ACCEPT

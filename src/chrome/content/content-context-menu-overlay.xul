@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://policeman/locale/">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <menupopup id="contentAreaContextMenu">
+    <menu id="context-policeman-blocked-image"
+          class="menu-iconic"
+          image="chrome://policeman/skin/toolbar-icon-16.png"
+          label="&context_blocked_image;"
+          hidden="true">
+      <menupopup id="context-policeman-blocked-image-menupopup"/>
+    </menu>
+  </menupopup>
+
+</overlay>
