@@ -700,6 +700,8 @@ temporaryRulesetEdit = new (class extends RulesetEditButtons
     super doc
 
     rs = manager.get @_rulesetId
+    doc.getElementById('policeman-popup-temporary-ruleset-container') \
+            .hidden = not rs
     return if not rs
 
     container = doc.getElementById('policeman-popup-temporary-ruleset-purge-container')
@@ -720,6 +722,10 @@ temporaryRulesetEdit = new (class extends RulesetEditButtons
 ) 'policeman-popup-temporary-edit-container', 'user_temporary'
 
 persistentRulesetEdit = new (class extends RulesetEditButtons
+  populate: (doc) ->
+    super doc
+    doc.getElementById('policeman-popup-persistent-ruleset-container') \
+            .hidden = not manager.enabled @_rulesetId
 ) 'policeman-popup-persistent-edit-container', 'user_persistent'
 
 
