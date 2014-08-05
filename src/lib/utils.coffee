@@ -61,6 +61,14 @@ exports.removeChildren = removeChildren = (node, selector='*') ->
 exports.removeNode = removeNode = (node) ->
   node.parentNode.removeChild node
 
+exports.isDead = isDead = (node) ->
+  try
+    node.nodeName
+  catch e
+    if e instanceof TypeError
+      return true
+  return false
+
 exports.loadSheet = (win, styleURI, type=Ci.nsIDOMWindowUtils.AUTHOR_SHEET) ->
   win.QueryInterface(Ci.nsIInterfaceRequestor)
       .getInterface(Ci.nsIDOMWindowUtils)
