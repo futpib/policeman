@@ -40,6 +40,7 @@ exports.tabs = tabs =
     @onClose.add (t) => @list = @list.filter (t_) -> t_ isnt t
 
   getTabId: (tab) ->
+    return tab if typeof tab is 'string'
     # not a DOM id or smth, just a unique string
     # copypasted from addon-sdk/lib/tabs/utils.js#getTabId
     String.split(tab.linkedPanel, 'panel').pop()
