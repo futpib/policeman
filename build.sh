@@ -5,7 +5,7 @@ build_root="build"
 
 
 all () {
-  clean && gen && echo "Done all"
+  clean && gen && echo "Done all" || exit 1
 }
 
 gen () {
@@ -13,7 +13,8 @@ gen () {
   make_coffee && \
   make_jison && \
   properties && \
-  svg
+  svg || \
+  exit 1
 }
 
 copy () {
@@ -26,7 +27,8 @@ make_coffee () {
   for f in $coffee_files
   do
     coffee -cbp $f | tee ${f/%.coffee/.js} >/dev/null
-    [ 0 -ne ${PIPESTATUS[0]} ] && exit ${PIPESTATUS[0]}
+    coffee_status=${PIPESTATUS[0]}
+    [ 0 -ne $coffee_status ] && exit $coffee_status
     rm $f
   done
 }
@@ -72,7 +74,7 @@ pack () {
   all
   echo "Packaging..."
   pushd $build_root >/dev/null
-  zip -qr Policeman.xpi *
+  zip -qr Policeman.xpi * || exit 1
   popd >/dev/null
 }
 
@@ -83,14 +85,12 @@ clean () {
 
 case "$1" in
 "clean")
-    clean
+    clean || exit 1
     ;;
 "pack")
-    pack
+    pack || exit 1
     ;;
 *)
-    all
+    all || exit 1
     ;;
 esac
-
-
