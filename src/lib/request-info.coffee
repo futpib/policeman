@@ -139,7 +139,7 @@ exports.ContextInfo = class ContextInfo
           throw e
 
     @_tabId = '' # intended for internal use. Is not persistent between restarts
-    tab = findTabThatOwnsDomWindow getWindowFromRequestContext context
+    tab = tabs.getWindowOwner getWindowFromRequestContext context
     if tab
       @_tabId = tabs.getTabId tab
 
@@ -163,13 +163,6 @@ exports.getWindowFromRequestContext = getWindowFromRequestContext = (ctx) ->
       return ctx.contentWindow
     # this will be chrome window in some cases
     return ctx.ownerDocument.defaultView
-
-exports.findTabThatOwnsDomWindow = findTabThatOwnsDomWindow = (win) ->
-  return null unless win
-  for tab in tabs.list
-    if tab.linkedBrowser.contentWindow == win.top
-      return tab
-  return null
 
 
 

@@ -46,6 +46,15 @@ exports.tabs = tabs =
 
   getCurrent: -> windows.getCurrent().gBrowser.tabContainer.tabbox.selectedTab
 
+  getWindowOwner: (win) ->
+    return null unless win
+    for tab in @list
+      if tab.linkedBrowser.contentWindow == win.top
+        return tab
+    return null
+
+  getNodeOwner: (node) -> @getWindowOwner node.ownerDocument.defaultView.top
+
   reload: (tab) -> tab.linkedBrowser.contentDocument.location.reload()
 
   open: (url, reuse=on) ->
