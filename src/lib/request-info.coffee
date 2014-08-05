@@ -130,6 +130,7 @@ exports.ContextInfo = class ContextInfo
         @nodeName = context.nodeName.toLowerCase()
       try
         element = context.QueryInterface Ci.nsIDOMElement
+        @_element = element
         @className = element.className
         @classList = makeClassList @className
         @id = element.id
