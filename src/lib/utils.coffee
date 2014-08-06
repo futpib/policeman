@@ -43,11 +43,15 @@ exports.Observer = class Observer
 
 
 CHILDREN_RESERVED_ATTRIBUTE = '_'
+EVENT_PREFIX = 'event_'
 exports.createElement = createElement = (doc, tag, attrs={}) ->
   el = doc.createElement tag
   for n, v of attrs
     continue if n == CHILDREN_RESERVED_ATTRIBUTE
-    el.setAttribute n, v
+    if n.startsWith EVENT_PREFIX
+      el.addEventListener n.slice(EVENT_PREFIX.length), v
+    else
+      el.setAttribute n, v
   if CHILDREN_RESERVED_ATTRIBUTE of attrs
     for n, v of attrs[CHILDREN_RESERVED_ATTRIBUTE]
       el.appendChild createElement doc, n.split('_')[0], v
