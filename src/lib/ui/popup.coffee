@@ -126,9 +126,13 @@ class DataRotationButton extends Button
     defaults description, 'label', valuesLabels[i][1]
     btn = Button::create doc, description
     @setData btn, valuesLabels[i][0]
-    btn.addEventListener 'click', do (that=@) -> ->
-      i += 1
-      i = 0 if i >= valuesLabels.length
+    btn.addEventListener 'click', do (that=@) -> (e) ->
+      if e.button == 0 # left
+        i += 1
+        i = 0 if i >= valuesLabels.length
+      else if e.button == 2 # right
+        i -= 1
+        i = valuesLabels.length-1 if i < 0
       that.setData @, valuesLabels[i][0]
       that.setLabel @, valuesLabels[i][1]
     return btn
