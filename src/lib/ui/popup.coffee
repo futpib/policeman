@@ -365,8 +365,17 @@ destinationSelection = new (class extends DomainSelectionButtons
 ) 'policeman-popup-destinations-container'
 
 
+SUPPORTED_TYPES = [
+  'IMAGE',
+  'STYLESHEET',
+  'SCRIPT',
+  'OBJECT',
+  'SUBDOCUMENT',
+]
+
+
 categorizeRequest = (o, d, c) ->
-  if c.contentType in ['IMAGE', 'STYLESHEET', 'SCRIPT']
+  if c.contentType in SUPPORTED_TYPES
     return c.contentType
   return 'OTHER'
 
@@ -374,28 +383,26 @@ class FilterButtons extends RadioButtons
   constructor: (containerId) ->
     super containerId, 'NONE'
   populate: (doc, decision) ->
-    stats = { ALL:0, IMAGE:0, STYLESHEET:0, SCRIPT:0, OTHER:0 }
+    stats = { ALL:0, OTHER:0 }
+    stats[t] = 0 for t in SUPPORTED_TYPES
     for [o, d, c, decision_] in memo.getByTab tabs.getCurrent()
       if  (decision_ == decision) \
       and (o.schemeType == d.schemeType == 'web') \
       and (isSuperdomain originSelection.selectedData, o.host) \
       and (isSuperdomain destinationSelection.selectedData, d.host)
-        stats[categorizeRequest o, d, c] += 1
+        category = categorizeRequest o, d, c
+        stats[category] += 1
         stats.ALL += 1
 
     filters = doc.createDocumentFragment()
-    for [label, value] in [
-      ['popup_filter_all', 'ALL'],
-      ['popup_filter_image', 'IMAGE'],
-      ['popup_filter_stylesheet', 'STYLESHEET'],
-      ['popup_filter_script', 'SCRIPT'],
-      ['popup_filter_other', 'OTHER'],
-    ]
+    for value in ['ALL'].concat(SUPPORTED_TYPES).concat(['OTHER'])
+      label = "popup_filter_#{value.toLowerCase()}"
       filters.appendChild btn = @_createButton doc,
         label: l10n label, stats[value]
         data: value
         disabled: not stats[value]
       @_select btn if @selectedData == value
+
     doc.getElementById(@_containerId).appendChild filters
 
 rejectedFilter = new (class extends FilterButtons
@@ -510,6 +517,8 @@ localizeTypeLookup =
   IMAGE: l10n 'popup_type_image'
   STYLESHEET: l10n 'popup_type_stylesheet'
   SCRIPT: l10n 'popup_type_script'
+  SUBDOCUMENT: l10n 'popup_type_subdocument'
+  OBJECT: l10n 'popup_type_object'
 localizeTypeLookup[WILDCARD_TYPE] = l10n 'popup_type_wildcard'
 localizeType = (t) -> localizeTypeLookup[t]
 
@@ -587,7 +596,7 @@ class RulesetEditButtons extends ContainerPopulation
 
     customRuleBox.appendChild typeBtn = DataRotationButton::create doc,
       valuesLabels: ([t, l10n('popup_custom_rule.2') + ' ' + localizeType(t)] \
-              for t in [WILDCARD_TYPE, 'IMAGE', 'STYLESHEET', 'SCRIPT'])
+              for t in [WILDCARD_TYPE].concat(SUPPORTED_TYPES))
 
     customRuleBox.appendChild createElement doc, 'label',
       value: l10n 'popup_custom_rule.3'
@@ -660,7 +669,7 @@ class RulesetEditButtons extends ContainerPopulation
     rules = createElement doc, 'vbox',
       class: 'policeman-existing-rules'
 
-    supportedTypes = ['IMAGE', 'STYLESHEET', 'SCRIPT', WILDCARD_TYPE]
+    supportedTypes = SUPPORTED_TYPES.concat [WILDCARD_TYPE]
 
     if selectedOrigin and selectedDestination
       for type in supportedTypes

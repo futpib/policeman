@@ -43,6 +43,8 @@
             <menuitem label="&preferences_custom_rule.type.image;" value="IMAGE"/>
             <menuitem label="&preferences_custom_rule.type.stylesheet;" value="STYLESHEET"/>
             <menuitem label="&preferences_custom_rule.type.script;" value="SCRIPT"/>
+            <menuitem label="&preferences_custom_rule.type.object;" value="OBJECT"/>
+            <menuitem label="&preferences_custom_rule.type.subdocument;" value="SUBDOCUMENT"/>
           </menupopup>
         </menulist>
         <textbox id="add-temporary-rule-origin-domain"
@@ -97,6 +99,8 @@
             <menuitem label="&preferences_custom_rule.type.image;" value="IMAGE"/>
             <menuitem label="&preferences_custom_rule.type.stylesheet;" value="STYLESHEET"/>
             <menuitem label="&preferences_custom_rule.type.script;" value="SCRIPT"/>
+            <menuitem label="&preferences_custom_rule.type.object;" value="OBJECT"/>
+            <menuitem label="&preferences_custom_rule.type.subdocument;" value="SUBDOCUMENT"/>
           </menupopup>
         </menulist>
         <textbox id="add-persistent-rule-origin-domain"

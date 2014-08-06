@@ -17,6 +17,8 @@ localizeTypeLookup =
   IMAGE: l10n 'preferences_type_image'
   STYLESHEET: l10n 'preferences_type_stylesheet'
   SCRIPT: l10n 'preferences_type_script'
+  SUBDOCUMENT: l10n 'preferences_type_subdocument'
+  OBJECT: l10n 'preferences_type_object'
 localizeTypeLookup[WILDCARD_TYPE] = l10n 'preferences_type_wildcard'
 localizeType = (t) -> localizeTypeLookup[t]
 
