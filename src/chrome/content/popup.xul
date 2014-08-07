@@ -100,6 +100,7 @@
                 <progressmeter mode="undetermined"/>
               </vbox>
               <vbox id="policeman-popup-no-web-requests-container"
+                    hidden="true"
                     class="policeman-popup-status-indicator-content">
                 <label value="&popup_no_web_requests_recorded;"/>
               </vbox>
