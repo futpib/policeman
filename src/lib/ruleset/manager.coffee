@@ -48,12 +48,12 @@ exports.Manager = class Manager
     @_installedRuleSetsIds = []
     @_installedMetadataById = {} # id -> {version:..., name:..., ...}
 
-    @_install id for id in installed
+    @install id for id in installed
 
     @_enabledRuleSetsIds = [] # order defines priority
     @_enabledRuleSetsById = {}
 
-    @_enable id for id in enabled
+    @enable id for id in enabled
 
   _uriById: (id) ->
     expectedFilename = id + '.ruleset'
@@ -75,14 +75,12 @@ exports.Manager = class Manager
   getMetadata: (id) -> @_installedMetadataById[id]
 
   installed: (id) -> id of @_installedMetadataById
-  install: -> @_install.apply @, arguments
-  _install: (id) ->
+  install: (id) ->
     return if @installed id
     @_installedRuleSetsIds.push id
     rs = @_newRuleSetById id
     @_installedMetadataById[id] = rs.getMetadata()
-  uninstall: -> @_uninstall.apply @, arguments
-  _uninstall: (id) ->
+  uninstall: (id) ->
     return unless @installed id
     if id in embeddedRuleSets
       throw new Error "Can't uninstall embedded ruleset '#{id}'"
@@ -94,8 +92,7 @@ exports.Manager = class Manager
   getInstalledMetadata: -> (@getMetadata id for id in @getInstalledIds())
 
   enabled: (id) -> id of @_enabledRuleSetsById
-  enable: (id, ix) -> @_enable.apply @, arguments
-  _enable: (id, ix=Infinity) ->
+  enable: (id, ix=Infinity) ->
     if @enabled id
       move @_enabledRuleSetsIds, id, ix
       return
@@ -103,8 +100,7 @@ exports.Manager = class Manager
       throw new Error "Can't enable ruleset '#{id}' because it's not installed"
     @_enabledRuleSetsIds.splice ix, 0, id
     @_enabledRuleSetsById[id] = @_newRuleSetById id
-  disable: -> @_disable.apply @, arguments
-  _disable: (id) ->
+  disable: (id) ->
     return unless @enabled id
     remove @_enabledRuleSetsIds, id
     delete @_enabledRuleSetsById[id]
@@ -139,6 +135,32 @@ class Snapshot extends Manager
       and (currentInstalledIds.every((i) -> i in modelInstalledIds))
     )
 
+
+class SanityCheckedSnapshot extends Snapshot
+  canDisable: (id) -> id != 'default'
+  disable: (id) ->
+    return unless @canDisable id
+    super id
+    if id in ['allow_any', 'reject_any']
+      opposite = if id == 'allow_any' then 'reject_any' else 'allow_any'
+      Snapshot::enable.call @, opposite
+
+  enable: (id, ix) ->
+    if id == 'default'
+      ix = 0
+    super id, ix
+    if id in ['allow_any', 'reject_any']
+      opposite = if id == 'allow_any' then 'reject_any' else 'allow_any'
+      Snapshot::disable.call @, opposite
+    move @_enabledRuleSetsIds, 'allow_any', Infinity
+    move @_enabledRuleSetsIds, 'reject_any', Infinity
+
+  canUninstall: (id) -> not (id in embeddedRuleSets)
+  uninstall: (id) ->
+    return unless @canUninstall
+    super id
+
+
 exports.manager = new class ManagerSingleton extends Manager
   constructor: ->
     @_suspended = false
@@ -151,31 +173,30 @@ exports.manager = new class ManagerSingleton extends Manager
     prefs.onChange 'manager.installedRuleSets', @_onInstalledPrefChange.bind @
     prefs.onChange 'manager.enabledRuleSets', @_onEnabledPrefChange.bind @
 
-  _onInstalledPrefChange: ->
-    newInstalledIds = prefs.get 'manager.installedRuleSets'
+  _loadInstalledIds: (newInstalledIds) ->
     for id in newInstalledIds
       unless @installed id
-        @_install id
+        @install id
     for id in @getInstalledIds()
       unless id in newInstalledIds
-        @_uninstall id
+        @uninstall id
 
-  _onEnabledPrefChange: ->
-    newEnabledIds = prefs.get 'manager.enabledRuleSets'
+  _loadEnabledIds: (newEnabledIds) ->
     for id, i in newEnabledIds
-      @_enable id, i
+      @enable id, i
     for id in @getEnabledIds()
       unless id in newEnabledIds
-        @_disable id
+        @disable id
 
-  _syncToPrefs: ->
+  _onInstalledPrefChange: ->
+    @_loadInstalledIds prefs.get 'manager.installedRuleSets'
+
+  _onEnabledPrefChange: ->
+    @_loadEnabledIds prefs.get 'manager.enabledRuleSets'
+
+  save: ->
     prefs.set 'manager.enabledRuleSets', @_enabledRuleSetsIds
     prefs.set 'manager.installedRuleSets', @_installedRuleSetsIds
-
-  enable: (id, ix) -> super id, ix; @_syncToPrefs()
-  disable: (id) -> super id; @_syncToPrefs()
-  install: (id) -> super id; @_syncToPrefs()
-  uninstall: (id) -> super id; @_syncToPrefs()
 
   suspended: -> @_suspended
   toggleSuspended: -> prefs.set 'manager.suspended', not @_suspended
@@ -183,8 +204,8 @@ exports.manager = new class ManagerSingleton extends Manager
   unsuspend: -> prefs.set 'manager.suspended', false
 
   # this is for ui to play with and then load when user hits "Save" or smth
-  snapshot: -> new Snapshot @
+  snapshot: -> new SanityCheckedSnapshot @
   loadSnapshot: (shot) ->
-    @_installedRuleSetsIds = shot.getInstalledIds()
-    @_enabledRuleSetsIds = shot.getEnabledIds()
-    @_syncToPrefs()
+    @_loadInstalledIds shot.getInstalledIds()
+    @_loadEnabledIds shot.getEnabledIds()
+    @save()
