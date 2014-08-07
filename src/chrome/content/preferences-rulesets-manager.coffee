@@ -13,9 +13,6 @@
 window.top.location.hash = "#rulesets-manager"
 
 
-snapshot = manager.snapshot()
-
-
 RULESET_CONTENT_TYPE = 'application/x-policeman-ruleset'
 
 installedMenu =
@@ -34,14 +31,12 @@ installedMenu =
   _enableCommand: ->
     id = InstalledRulesetRichListItem::getData installedList.$.selectedItem
     snapshot.enable id
-    installedList.update()
-    enabledList.update()
+    updateUi()
 
   _removeCommand: ->
     id = InstalledRulesetRichListItem::getData installedList.$.selectedItem
     snapshot.uninstall id
-    installedList.update()
-    enabledList.update()
+    updateUi()
 
   _viewSourceCommand: ->
     id = InstalledRulesetRichListItem::getData installedList.$.selectedItem
@@ -76,8 +71,7 @@ enabledMenu =
   _disableCommand: ->
     id = InstalledRulesetRichListItem::getData enabledList.$.selectedItem
     snapshot.disable id
-    installedList.update()
-    enabledList.update()
+    updateUi()
 
   _viewSourceCommand: ->
     id = InstalledRulesetRichListItem::getData enabledList.$.selectedItem
@@ -173,23 +167,21 @@ class InstalledRulesetRichListItem extends RulesetRichListItem
     if not enabled
       enableBtn.addEventListener 'command', ->
         snapshot.enable id
-        installedList.update()
-        enabledList.update()
+        updateUi()
 
-    embedded = id in snapshot.embeddedRuleSets
+    canUninstall = snapshot.canUninstall id
 
     item.appendChild removeBtn = createElement document, 'button',
       class: 'ruleset-uninstall'
       label: l10n 'preferences_uninstall'
       icon: 'remove'
-      disabled: embedded # disabled for embedded
-    if embedded
+      disabled: not canUninstall
+    if not canUninstall
       removeBtn.setAttribute 'tooltiptext', l10n 'preferences_uninstall.embedded.tip'
     else
       removeBtn.addEventListener 'command', ->
         snapshot.uninstall id
-        installedList.update()
-        enabledList.update()
+        updateUi()
 
     item.addEventListener 'contextmenu', (e) ->
       installedMenu.open e.screenX, e.screenY
@@ -215,10 +207,10 @@ class EnabledRulesetRichListItem extends RulesetRichListItem
       class: 'ruleset-disable'
       label: l10n 'preferences_disable'
       icon: 'remove'
+      disabled: not snapshot.canDisable id
     disableBtn.addEventListener 'command', disableCommand = ->
       snapshot.disable id
-      installedList.update()
-      enabledList.update()
+      updateUi()
 
     item.addEventListener 'contextmenu', (e) ->
       enabledMenu.open e.screenX, e.screenY
@@ -239,8 +231,7 @@ installedList =
       if snapshot.enabled id
         snapshot.disable id
 
-      installedList.update()
-      enabledList.update()
+      updateUi()
 
     @update()
 
@@ -273,8 +264,7 @@ enabledList =
 
       snapshot.enable id, newIndex
 
-      installedList.update()
-      enabledList.update()
+      updateUi()
 
     @update()
 
@@ -285,12 +275,46 @@ enabledList =
       @$.appendChild EnabledRulesetRichListItem::create document, rs
 
 
+updateUi = ->
+  installedList.update()
+  enabledList.update()
+  buttons.update()
+
+
+snapshot = null
+
+man =
+  restore: ->
+    snapshot = manager.snapshot()
+  save: ->
+    manager.loadSnapshot snapshot
+
+do man.restore
+
+
+buttons =
+  init: ->
+    @restoreBtn = $ '#restore'
+    @saveBtn = $ '#save'
+    @restoreBtn.addEventListener 'command', ->
+      man.restore()
+      updateUi()
+    @saveBtn.addEventListener 'command', ->
+      man.save()
+      updateUi()
+  update: ->
+    @restoreBtn.disabled = not snapshot.somethingChanged()
+    @saveBtn.disabled = not snapshot.somethingChanged()
+
+
 onLoad = ->
+  buttons.init()
   installedMenu.init()
   enabledMenu.init()
   installedList.init()
   enabledList.init()
 
+
 window.addEventListener 'beforeunload', (e) ->
   if snapshot.somethingChanged()
-    e.preventDefault()
+    man.save()

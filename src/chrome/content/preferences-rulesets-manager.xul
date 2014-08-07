@@ -40,8 +40,14 @@
       </hbox>
       <hbox id="save-buttons-container">
         <spacer flex="1"/>
-        <button id="check-and-save"
-                label="&preferences_check_and_save;"
+        <button id="restore"
+                label="&preferences_rulesets_manager_restore;"
+                icon="go-back"
+                disabled="true"
+                />
+        <button id="save"
+                label="&preferences_rulesets_manager_save;"
+                tooltiptext="&preferences_rulesets_manager_save.tip;"
                 icon="save"
                 disabled="true"
                 />
