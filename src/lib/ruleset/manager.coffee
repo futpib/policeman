@@ -1,6 +1,6 @@
 
 { path } = require 'file'
-{ remove, move, zip } = require 'utils'
+{ remove, move, zip, cache } = require 'utils'
 
 { RuleSet } = require 'ruleset/ruleset'
 { temporaryRuleSet } = require 'ruleset/temporary'
@@ -40,6 +40,14 @@ prefs.define 'manager.installedRuleSets',
 prefs.define 'manager.suspended',
   prefs.TYPE_BOOLEAN, false
 
+
+cachedRulesetConstructor = cache ((uri) -> uri.spec), ((uri) ->
+  path.toFile(uri).lastModifiedTime
+), ((uri) ->
+  new RuleSet uri
+)
+
+
 exports.Manager = class Manager
   embeddedRuleSets: embeddedRuleSets
   codeBasedRuleSets: codeBasedRuleSets
@@ -70,7 +78,7 @@ exports.Manager = class Manager
   _newRuleSetById: (id) ->
     if codeBasedIdToObject.hasOwnProperty id
       return codeBasedIdToObject[id]
-    return new RuleSet @_uriById id
+    return cachedRulesetConstructor @_uriById id
 
   getMetadata: (id) -> @_installedMetadataById[id]
 

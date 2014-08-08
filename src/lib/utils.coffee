@@ -42,6 +42,21 @@ exports.Observer = class Observer
     observerService.removeObserver @, @topic
 
 
+exports.cache = cache = (hash, version, f) ->
+  versions = Object.create null
+  cache_ = Object.create null
+  return (args...) ->
+    k = hash args...
+    v = version args...
+    if k of cache_ and versions[k] == v
+      return cache_[k]
+    else
+      value = f args...
+      versions[k] = v
+      cache_[k] = value
+      return value
+
+
 CHILDREN_RESERVED_ATTRIBUTE = '_'
 EVENT_PREFIX = 'event_'
 exports.createElement = createElement = (doc, tag, attrs={}) ->
