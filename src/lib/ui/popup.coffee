@@ -299,7 +299,7 @@ class DomainSelectionButtons extends RadioButtons
     return btn
 
   populate: (doc) ->
-    domainToStats = {}
+    domainToStats = Object.create null
     tree = new DomainTree
     for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
       continue if decision is null
@@ -677,15 +677,15 @@ class RulesetEditButtons extends ContainerPopulation
           @_createRuleWidgetWithRemoveBtn doc, rules, rs, o, d, t
           return undefined
     else
-      checkThem = {} # origin -> dest -> type -> true
+      checkThem = Object.create null # origin -> dest -> type -> true
       for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
         continue unless (o.schemeType == d.schemeType == 'web')
         continue if selectedOrigin and not (isSuperdomain selectedOrigin, o.host)
         continue if selectedDestination and not (isSuperdomain selectedDestination, d.host)
         for type in supportedTypes
           rs.checkOrder o.host, d.host, type, (o, d, t) =>
-            defaults checkThem, o, {}
-            defaults checkThem[o], d, {}
+            defaults checkThem, o, Object.create null
+            defaults checkThem[o], d, Object.create null
             defaults checkThem[o][d], t, true
             return undefined
       for odom, dests of checkThem

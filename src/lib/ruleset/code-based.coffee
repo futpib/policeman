@@ -75,7 +75,7 @@ exports.LookupRS = class LookupRS extends SavableRS
     super pref
   _marshal: -> @_lookup
   _unmarshal: (o) -> @_lookup = o
-  revokeAll: -> @_lookup = {}
+  revokeAll: -> @_lookup = Object.create null
   isEmpty: -> not Object.keys(@_lookup).length
   allow: (x) -> @_lookup[x] = true
   isAllowed: (x) -> !! @_lookup[x]
@@ -91,16 +91,16 @@ exports.Lookup2RS = class Lookup2RS extends LookupRS
         return true
     return false
   allow: (a, b) ->
-    defaults @_lookup, a, {}
-    defaults @_lookup[a], b, {}
+    defaults @_lookup, a, Object.create null
+    defaults @_lookup[a], b, Object.create null
     @_lookup[a][b] = true
   isAllowed: (a, b) ->
     if @has a, b
       return @_lookup[a][b]
     return false
   reject: (a, b) ->
-    defaults @_lookup, a, {}
-    defaults @_lookup[a], b, {}
+    defaults @_lookup, a, Object.create null
+    defaults @_lookup[a], b, Object.create null
     @_lookup[a][b] = false
   isRejected: (a, b) ->
     if @has a, b
@@ -143,7 +143,8 @@ exports.DeepLookupRS = class DeepLookupRS extends LookupRS
   revoke: (keys) -> revoke_ keys.slice(), @_lookup
 
   loopSet_ = (val) -> depthLoop_ (l, k, eta) ->
-    (if eta then defaults l, k, {} else defaults l, k, val); depthLoop_.continue
+    defaults l, k, if eta then Object.create(null) else val
+    depthLoop_.continue
 
   allow: loopSet_ true
   reject: loopSet_ false

@@ -23,12 +23,12 @@ class Preferences
   typeSetterMap: ['setBoolPref', 'setIntPref', 'setCharPref', 'setCharPref']
 
   constructor: (branch) ->
-    @_nameToType = {}
-    @_nameToDefault = {}
-    @_nameToGetterHook = {}
-    @_nameToSetterHook = {}
+    @_nameToType = Object.create null
+    @_nameToDefault = Object.create null
+    @_nameToGetterHook = Object.create null
+    @_nameToSetterHook = Object.create null
 
-    @_changeHandlers = {}
+    @_changeHandlers = Object.create null
 
     branch = branch + '.' if branch and not branch.endsWith('.')
     @_branch = prefService.getBranch branch

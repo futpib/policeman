@@ -31,7 +31,7 @@ exports.findTabThatOwnsImage = findTabThatOwnsImage = (img) ->
 
 class BlockedElements
   constructor: ->
-    @_tabIdToBlockedElements = {}
+    @_tabIdToBlockedElements = Object.create null
     tabs.onClose.add (t) => @_removeAllByTabId tabs.getTabId t
 
   _addElemByTabId: (tabId, elem) ->

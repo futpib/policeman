@@ -46,12 +46,12 @@ exports.Manager = class Manager
 
   constructor: (installed, enabled) ->
     @_installedRuleSetsIds = []
-    @_installedMetadataById = {} # id -> {version:..., name:..., ...}
+    @_installedMetadataById = Object.create null
 
     @install id for id in installed
 
     @_enabledRuleSetsIds = [] # order defines priority
-    @_enabledRuleSetsById = {}
+    @_enabledRuleSetsById = Object.create null
 
     @enable id for id in enabled
 
@@ -68,7 +68,7 @@ exports.Manager = class Manager
     'user_persistent': persistentRuleSet
 
   _newRuleSetById: (id) ->
-    if id of codeBasedIdToObject
+    if codeBasedIdToObject.hasOwnProperty id
       return codeBasedIdToObject[id]
     return new RuleSet @_uriById id
 

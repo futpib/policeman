@@ -112,7 +112,7 @@ exports.ContextInfo = class ContextInfo
   ]
 
   makeClassList = (className) ->
-    l = {}
+    l = Object.create null
     for c in className.split(' ')
       l[c] = true
     return l

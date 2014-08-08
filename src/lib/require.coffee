@@ -31,7 +31,7 @@ setShutdownHandlers = (hs) ->
   onShutdown = hs
   requireComponent.init()
 
-scopes = {__proto__: null}
+scopes = Object.create null
 require = (module) ->
   log module
 
@@ -51,7 +51,7 @@ require = (module) ->
       onShutdown: onShutdown
       log: loggerFactory module
 
-      exports: {}
+      exports: Object.create null
 
     expectedLocation = "#{ addonData.resourceURI.spec }lib/#{ module }.js"
     Services.scriptloader.loadSubScript expectedLocation, scopes[module]

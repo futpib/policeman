@@ -10,7 +10,8 @@ Remembers requests attempted by each tab with corresponding decisions
 (for later use by ui/popup).
 ###
 exports.memo = memo =
-  _tabIdToArray: {} # tabId -> array of 4-arrays [origin, dest, context, decision]
+  # tabId -> array of 4-arrays [origin, dest, context, decision]
+  _tabIdToArray: Object.create null
 
   init: ->
     tabs.onClose.add @removeRequestsMadeByTab.bind @

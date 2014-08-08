@@ -6,7 +6,7 @@
 
 exports.overlayQueue = new class extends Observer
   _queue: []
-  _urlToCallback: {}
+  _urlToCallback: Object.create null
   _pending: false
 
   constructor: ->
