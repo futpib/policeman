@@ -1,0 +1,13 @@
+
+version: 0.1
+id: "allow_same_second_level_domain"
+
+l10n:
+  en-US:
+    name: "Same second-level domain"
+    description: "Allow requests to same second-level domain"
+
+rules:
+  web -> web:
+    /.+\.(.+\..+)/ -> $1: ACCEPT
+    /.+\.(.+\..+)/ -> *.$1: ACCEPT

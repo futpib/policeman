@@ -18,6 +18,7 @@ embeddedRuleSets = [
   'allow_any',
   'reject_any',
   'allow_same_site',
+  'allow_same_second_level_domain',
   'i2p_sandbox',
   'onion_sandbox',
 ].concat codeBasedRuleSets
