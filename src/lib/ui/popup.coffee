@@ -119,14 +119,11 @@ class DataRotationButton extends Button
   create: (doc, description) ->
     {
       valuesLabels
+      click: inferiorClick
     } = description
-    defaults description, 'classList', []
-    description.classList.push 'policeman-popup-value-rotation-button'
     i = 0
     defaults description, 'label', valuesLabels[i][1]
-    btn = Button::create doc, description
-    @setData btn, valuesLabels[i][0]
-    btn.addEventListener 'click', do (that=@) -> (e) ->
+    description.click = do (that=@) -> (e) ->
       if e.button == 0 # left
         i += 1
         i = 0 if i >= valuesLabels.length
@@ -135,6 +132,11 @@ class DataRotationButton extends Button
         i = valuesLabels.length-1 if i < 0
       that.setData @, valuesLabels[i][0]
       that.setLabel @, valuesLabels[i][1]
+      inferiorClick.apply @, arguments
+    defaults description, 'classList', []
+    description.classList.push 'policeman-popup-value-rotation-button'
+    btn = Button::create doc, description
+    @setData btn, valuesLabels[i][0]
     return btn
 
 
@@ -589,6 +591,14 @@ class RulesetEditButtons extends ContainerPopulation
       valuesLabels: if manager.enabled('reject_any') \
           then [allow, reject] \ # whitelist mode
           else [reject, allow]   # blacklist mode
+      style: 'background: ' + if manager.enabled('reject_any') \
+          then positiveBackgroundColor.toCssString()
+          else negativeBackgroundColor.toCssString()
+      click: ->
+        if 'reject' == Button::getData @
+          @style.background = negativeBackgroundColor.toCssString()
+        else
+          @style.background = positiveBackgroundColor.toCssString()
 
     customRuleBox.appendChild createElement doc, 'label',
       value: l10n 'popup_custom_rule.1'
