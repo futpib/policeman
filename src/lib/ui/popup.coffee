@@ -790,7 +790,7 @@ footerLinkButtons = new (class extends ContainerPopulation
     fragment.appendChild LinkButton::create doc,
       label: l10n 'popup_open_help'
       reuse: true
-      url: 'chrome://policeman/content/TODO_help' # TODO
+      url: 'https://github.com/futpib/policeman/wiki/Help'
 
     fragment.appendChild LinkButton::create doc,
       label: l10n 'popup_open_preferences'
