@@ -1,5 +1,5 @@
 
-{ DomainDomainTypeRS, ClosuresRS } = require 'ruleset/code-based'
+{ DomainDomainTypeRS, ClosuresRS } = require 'ruleset/code-ruleset'
 
 { l10n } = require 'l10n'
 

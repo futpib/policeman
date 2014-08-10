@@ -15,7 +15,7 @@
 { tabs } = require 'tabs'
 { memo } = require 'request-memo'
 { manager } = require 'ruleset/manager'
-{ DomainDomainTypeRS } = require 'ruleset/code-based'
+{ DomainDomainTypeRS } = require 'ruleset/code-ruleset'
 
 { Color } = require 'color'
 { prefs } = require 'prefs'

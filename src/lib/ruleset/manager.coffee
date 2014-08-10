@@ -2,7 +2,7 @@
 { path } = require 'file'
 { remove, move, zip, cache } = require 'utils'
 
-{ RuleSet } = require 'ruleset/ruleset'
+{ loadUri } = require 'ruleset/ruleset'
 { temporaryRuleSet } = require 'ruleset/temporary'
 { persistentRuleSet } = require 'ruleset/persistent'
 
@@ -45,7 +45,7 @@ prefs.define 'manager.suspended',
 cachedRulesetConstructor = cache ((uri) -> uri.spec), ((uri) ->
   path.toFile(uri).lastModifiedTime
 ), ((uri) ->
-  new RuleSet uri
+  loadUri uri
 )
 
 

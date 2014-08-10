@@ -1,6 +1,6 @@
 
 %{
-var nodes = require('ruleset/nodes');
+var nodes = require('ruleset/tree-nodes');
 for (var name in nodes) {
   this[name] = nodes[name];
 }

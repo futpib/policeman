@@ -1,5 +1,5 @@
 
-{ DomainDomainTypeRS } = require 'ruleset/code-based'
+{ DomainDomainTypeRS } = require 'ruleset/code-ruleset'
 
 { prefs, foreign } = require 'prefs'
 { l10n } = require 'l10n'

@@ -2,12 +2,13 @@
 { superdomains, defaults, remove } = require 'utils'
 { prefs } = require 'prefs'
 
+{ RuleSet } = require 'ruleset/base'
+
 
 # Rulesets for easy modification by ui.
-# Called code-based as opposite to nodes-based.
 
 
-exports.ClosuresRS = class ClosuresRS
+exports.ClosuresRS = class ClosuresRS extends RuleSet
   constructor: ->
     @_closures = []
   add: (f) -> @_closures.push f
@@ -18,7 +19,7 @@ exports.ClosuresRS = class ClosuresRS
       return decision if typeof decision is 'boolean'
     return null
 
-exports.CodeBasedRS = class CodeBasedRS
+exports.ModifiableRS = class ModifiableRS extends RuleSet
   constructor: ->
   isEmpty: -> true
   allow: ->
@@ -35,15 +36,8 @@ exports.CodeBasedRS = class CodeBasedRS
       return false
     return null
   stringify: -> throw new Error "Can't stringify code-based ruleset '#{ @id }'"
-  getMetadata: -> {
-      id: @id
-      version: @version
-      name: @name
-      description: @description
-      sourceUrl: undefined
-    }
 
-exports.SavableRS = class SavableRS extends CodeBasedRS
+exports.SavableRS = class SavableRS extends ModifiableRS
   constructor: (@_pref=null) ->
     if @_pref
       prefs.define @_pref, prefs.TYPE_JSON, @_marshal()

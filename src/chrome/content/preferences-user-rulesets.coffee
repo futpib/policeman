@@ -1,7 +1,7 @@
 
 { prefs } = require 'prefs'
 { manager } = require 'ruleset/manager'
-{ DomainDomainTypeRS } = require 'ruleset/code-based'
+{ DomainDomainTypeRS } = require 'ruleset/code-ruleset'
 { tabs } = require 'tabs'
 {
   createElement
