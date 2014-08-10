@@ -41,6 +41,7 @@ exports.TreeRS = class TreeRS extends RuleSet
       name: @name
       description: @description
       rules: @rules
+      permissiveness: @permissiveness
     } = parsed
     localize = L10n parsed.l10n or {}
 

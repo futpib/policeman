@@ -92,6 +92,21 @@ var component = {
   isSingle: function () { return this.single.indexOf(this.get()) != -1; },
   isList: function () { return this.list.indexOf(this.get()) != -1; },
 };
+
+var stats = {
+  reset: function () { this.acceptCount = this.rejectCount = 0; },
+  getPermissiveness: function () {
+    if (this.acceptCount && this.rejectCount) {
+      return 'mixed';
+    } else if (this.rejectCount) {
+      return 'restrictive';
+    } else {
+      return 'permissive';
+    }
+  },
+}
+stats.reset();
+
 %}
 
 %lex
@@ -176,8 +191,10 @@ var component = {
 start
   : dict_body EOF
     {
-      return $1;
       config.reset(); // reset after each parse
+      $1.permissiveness = stats.getPermissiveness();
+      stats.reset();
+      return $1;
     }
 ;
 
@@ -373,9 +390,15 @@ string
 
 decision
   : ACCEPT
-    { $$ = true; }
+    {
+      stats.acceptCount += 1;
+      $$ = true;
+    }
   | REJECT
-    { $$ = false; }
+    {
+      stats.rejectCount += 1;
+      $$ = false;
+    }
   | RETURN
     { $$ = null; }
 ;

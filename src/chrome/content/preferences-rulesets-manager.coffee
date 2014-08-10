@@ -99,6 +99,8 @@ class RulesetRichListItem
       description
       version
       sourceUrl
+      permissiveness
+
       draggable
     } = widgetDescription
 
@@ -123,6 +125,9 @@ class RulesetRichListItem
       draggableBox.addEventListener 'dragstart', (e) ->
         e.dataTransfer.setData RULESET_CONTENT_TYPE, id
 
+    draggableBox.appendChild createElement doc, 'image',
+      class: 'ruleset-icon'
+      src: "chrome://policeman/skin/ruleset-#{permissiveness}-icon-16.png"
     draggableBox.appendChild createElement doc, 'label',
       class: 'ruleset-name'
       value: name

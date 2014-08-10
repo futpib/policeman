@@ -9,6 +9,9 @@ exports.RuleSet = class RuleSet # Base class for rulesets
       # Localized strings for ui
       name: @name
       description: @description
+
+      # Possible values: 'mixed', 'permissive', 'restrictive'. A tip for user.
+      permissiveness: @permissiveness or 'mixed'
     }
 
   # returns true for accept, false for reject and null for undecided

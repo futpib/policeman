@@ -11,6 +11,7 @@ exports.persistentRuleSet = persistentRuleSet = new (class extends DomainDomainT
   version: '0.1'
   name: l10n 'pers_ruleset_name'
   description: l10n 'pers_ruleset_description'
+  permissiveness: 'mixed'
 ) 'ruleset.persistent.domainDomainType'
 
 onShutdown.add persistentRuleSet.save.bind persistentRuleSet

@@ -12,6 +12,7 @@ exports.temporaryRuleSet = new (class extends DomainDomainTypeRS
   version: '0.1'
   name: l10n 'temp_ruleset_name'
   description: l10n 'temp_ruleset_description'
+  permissiveness: 'mixed'
 
   constructor: ->
     @_closures = new ClosuresRS
