@@ -44,6 +44,15 @@ exports.path = path =
       return fileProtocol.getFileFromURLSpec x
     throw new Error "path.toFile: Can't make File from #{base} (type: #{typeof base})"
 
+  toString: (x) ->
+    if x instanceof Ci.nsIURI
+      return x.spec
+    if x instanceof Ci.nsIFile
+      return @.toURI(x).spec
+    if typeof x == 'string'
+      return x
+    throw new Error "path.toString: Can't get url string from #{base} (type: #{typeof base})"
+
   # 'defaults' folder of extension
   defaults: ioService.newURI(addonData.resourceURI.spec + 'defaults/', null, null)
 
