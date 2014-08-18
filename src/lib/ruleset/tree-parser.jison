@@ -5,6 +5,7 @@ for (var name in nodes) {
   this[name] = nodes[name];
 }
 var requestInfo = require('request-info');
+var errors = require('ruleset/errors');
 
 var config = {
   'default': {
@@ -189,12 +190,23 @@ stats.reset();
 %%
 
 start
-  : dict_body EOF
+  : magic dict_body EOF
     {
       config.reset(); // reset after each parse
-      $1.permissiveness = stats.getPermissiveness();
+      $2.permissiveness = stats.getPermissiveness();
       stats.reset();
-      return $1;
+      return $2;
+    }
+;
+
+magic
+  : string COLON string
+    {
+      if (($1 !== 'magic') || ($3 !== 'policeman_ruleset')) {
+        throw new errors.WrongMagicError(
+          'Expected "magic: policeman_ruleset" got "'
+          + JSON.stringify($1) + ': ' + JSON.stringify($3) + '".');
+      }
     }
 ;
 
