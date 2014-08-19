@@ -80,13 +80,14 @@ exports.TreeRS = class TreeRS extends RuleSet
       s += "#{ k }: #{ stringifyHelper v }\n"
     return s
 
+  RETURN = {}
   checkHelper = (origin, dest, ctx, map) ->
     iterator = map.entries()
     while not (next = iterator.next()).done
       [predicate, consequent] = next.value
       if predicate.test origin, dest, ctx
         return consequent if typeof consequent is 'boolean'
-        throw 'RETURN' if consequent is null
+        throw RETURN if consequent is null
         decision = checkHelper origin, dest, ctx, consequent
         if decision != null
           return decision
@@ -97,7 +98,7 @@ exports.TreeRS = class TreeRS extends RuleSet
     try
       return checkHelper origin, dest, context, @rules
     catch e
-      return null if e == 'RETURN'
+      return null if e is RETURN
       throw e
 
 

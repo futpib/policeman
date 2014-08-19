@@ -61,8 +61,8 @@ exports.path = path =
     localDir = directoryService.get "ProfD", Ci.nsIFile
     localDir.append 'policeman'
     unless localDir.exists() and localDir.isDirectory()
-      localDir.create Ci.nsIFile.DIRECTORY_TYPE, 0b111111100
-                                                 # rwxrwxr-- permissions
+      localDir.create Ci.nsIFile.DIRECTORY_TYPE, 0b111100100
+                                                 # rwxr--r-- permissions
     return ioService.newFileURI localDir
 
   content: 'chrome://policeman/content'

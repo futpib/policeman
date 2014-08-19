@@ -132,7 +132,7 @@ exports.ContextInfo = class ContextInfo
         element = context.QueryInterface Ci.nsIDOMElement
         @_element = element
         @className = element.className
-        @classList = makeClassList @className
+        @classList = makeClassList @className or ''
         @id = element.id
       catch e
         unless e instanceof Ci.nsIException \

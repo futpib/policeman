@@ -57,7 +57,7 @@ exports.cache = cache = (hash, version, f) ->
       return value
 
 
-CHILDREN_RESERVED_ATTRIBUTE = '_'
+CHILDREN_RESERVED_ATTRIBUTE = '_children_'
 EVENT_PREFIX = 'event_'
 exports.createElement = createElement = (doc, tag, attrs={}) ->
   el = doc.createElement tag

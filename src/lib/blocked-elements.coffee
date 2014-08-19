@@ -19,9 +19,9 @@ TRANSPARENT_PLACEHOLDER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAE
 
 BACKGROUND_IMAGE = TRANSPARENT_PLACEHOLDER
 NetUtil.asyncFetch 'chrome://policeman/skin/blocked-image-icon-32.png', (stream) =>
-  btoa = Cc["@mozilla.org/appshell/appShellService;1"]
-          .getService(Ci.nsIAppShellService).hiddenDOMWindow.btoa
-  b64 = btoa NetUtil.readInputStreamToString stream, stream.available()
+  window = Cc["@mozilla.org/appshell/appShellService;1"]
+          .getService(Ci.nsIAppShellService).hiddenDOMWindow
+  b64 = window.btoa NetUtil.readInputStreamToString stream, stream.available()
   BACKGROUND_IMAGE = "data:image/png;base64," + b64
 
 

@@ -9,8 +9,8 @@ l10n:
     description: "Allow internal requests and navigation"
 
 rules:
-  internal -> (internal|inline): ACCEPT
-  web -> inline: ACCEPT
+  * -> inline: ACCEPT
+  internal -> internal: ACCEPT
 
   internal -> web:
     # allows various thing like navigation from chrome pages to web and
