@@ -15,9 +15,8 @@ require = do ->
                                     .getService().wrappedJSObject
   return reqComp.require
 
-log = do ->
-  { loggerFactory } = require 'log'
-  return loggerFactory (window.location.href.split '/').pop()
+Cu.import 'resource://gre/modules/devtools/Console.jsm'
+log = console.log.bind console
 
 $ = (s) -> document.querySelector s
 

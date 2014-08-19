@@ -9,9 +9,8 @@
 
 Cu.import 'resource://gre/modules/Services.jsm'
 
-console = Cc["@mozilla.org/consoleservice;1"].getService Ci.nsIConsoleService
-log = (args...) ->
-  console.logStringMessage "policeman: bootstrap: #{args}"
+Cu.import 'resource://gre/modules/devtools/Console.jsm'
+log = console.log.bind console
 
 tryer = (f) ->
   return ->

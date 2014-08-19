@@ -13,10 +13,9 @@
 Cu.import 'resource://gre/modules/Services.jsm'
 Cu.import 'resource://gre/modules/XPCOMUtils.jsm'
 
-loggerFactory = -> null
-console = Cc["@mozilla.org/consoleservice;1"].getService Ci.nsIConsoleService
-log = (args...) ->
-  console.logStringMessage "policeman: require: #{args}"
+Cu.import 'resource://gre/modules/devtools/Console.jsm'
+log = console.log.bind console
+
 addonData = null
 onShutdown = null
 
@@ -24,8 +23,6 @@ onShutdown = null
 
 setAddonData = (d) ->
   addonData = d
-  { loggerFactory } = require 'log'
-  log = loggerFactory 'require'
 
 setShutdownHandlers = (hs) ->
   onShutdown = hs
@@ -49,7 +46,7 @@ require = (module) ->
 
       require: require
       onShutdown: onShutdown
-      log: loggerFactory module
+      log: log
 
       exports: Object.create null
 
