@@ -4,8 +4,6 @@ exports.RuleSet = class RuleSet # Base class for rulesets
       id: @id
       version: @version
 
-      sourceUrl: @sourceUrl
-
       # Localized strings for ui
       name: @name
       description: @description

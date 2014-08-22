@@ -28,7 +28,13 @@
       <hbox flex="1">
         <vbox flex="1">
           <label class="title" value="&preferences_installed_rulesets;" crop="end"/>
+          <hbox>
+            <button id="install-file" label="&preferences_install_file;"/>
+            <button id="install-link" label="&preferences_install_link;"/>
+            <spacer flex="1"/>
+          </hbox>
           <richlistbox flex="1" id="installed-rulesets-list"/>
+          <richlistbox flex="1" id="downloads-list"/>
         </vbox>
 
         <splitter />

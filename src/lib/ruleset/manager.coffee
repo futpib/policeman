@@ -1,8 +1,11 @@
 
-{ path } = require 'file'
-{ remove, move, zip, cache } = require 'utils'
+{ TextEncoder, OS } = Cu.import 'resource://gre/modules/osfile.jsm'
+XMLHttpRequest = Components.Constructor("@mozilla.org/xmlextras/xmlhttprequest;1", "nsIXMLHttpRequest")
 
-{ loadUri } = require 'ruleset/ruleset'
+{ path: file_path } = require 'file'
+{ remove, move, zip, cache, defaults } = require 'utils'
+
+{ rulesetFromLocalUrl, rulesetFromString } = require 'ruleset/ruleset'
 { temporaryRuleSet } = require 'ruleset/temporary'
 { persistentRuleSet } = require 'ruleset/persistent'
 
@@ -27,26 +30,64 @@ prefs.define 'manager.enabledRuleSets',
   prefs.TYPE_JSON,
   ['default', 'user_temporary', 'user_persistent', 'allow_same_site', 'reject_any']
 
-pushEmbedded = (list) ->
+addEmbedded = (obj) ->
   for id in embeddedRuleSets
-    unless id in list
-      list.push id
-  return list
+    unless id of obj
+      if id in codeBasedRuleSets
+        obj[id] = null
+      else
+        obj[id] = file_path.toString file_path.join file_path.defaults, 'rulesets', "#{id}.ruleset"
+  return obj
 
-prefs.define 'manager.installedRuleSets',
+prefs.define 'manager.installedPathsByIds',
   prefs.TYPE_JSON,
-  embeddedRuleSets,
-    get: (l) -> pushEmbedded l
+  {},
+    get: (o) -> addEmbedded o
 
 prefs.define 'manager.suspended',
   prefs.TYPE_BOOLEAN, false
 
 
-cachedRulesetConstructor = cache ((uri) -> uri.spec), ((uri) ->
-  path.toFile(uri).lastModifiedTime
-), ((uri) ->
-  loadUri uri
-)
+cachedRulesetConstructor = cache ((uri) -> uri), ((uri) ->
+  try
+    return file_path.toFile(uri).lastModifiedTime
+  catch e
+    return Math.random()
+), rulesetFromLocalUrl
+
+
+files = new class
+  refCountByPath = Object.create null
+
+  scope = OS.Path.join OS.Constants.Path.profileDir, 'policeman', 'rulesets'
+  acquire: (path) ->
+    if scope != OS.Path.dirname path
+      throw new Error "#{JSON.stringify path} is out of
+          #{JSON.stringify scope} directory"
+    defaults refCountByPath, path, 0
+    refCountByPath[path] += 1
+
+  filenamesafe = (str) -> str.replace /[^A-Za-z._-]/g, '_'
+  filenameRnd_ = -> Math.random().toString(36).slice(2)
+  filenameRnd = (n=1) ->
+    s = ''
+    s += filenameRnd_() for i in [1..n]
+    return s
+  uniquePath: (prefix) ->
+    prefix_ = if prefix is undefined then '' else filenamesafe(prefix) + '.'
+    trial = 0
+    while trial += 1
+      path = OS.Path.join scope, "#{ prefix_ }#{ filenameRnd trial }.ruleset"
+      return path unless path of refCountByPath
+
+  release: (path) ->
+    unless path of refCountByPath
+      throw new Error "Releasing unknown path #{ JSON.stringify path }"
+    refCountByPath[path] -= 1
+    if refCountByPath[path] < 1
+      delete refCountByPath[path]
+      (OS.File.remove path).then null, ->
+        log "files: release #{ JSON.stringify path }: Failed to remove the file."
 
 
 exports.Manager = class Manager
@@ -54,23 +95,15 @@ exports.Manager = class Manager
   codeBasedRuleSets: codeBasedRuleSets
 
   constructor: (installed, enabled) ->
-    @_installedRuleSetsIds = []
+    @_installedPathsByIds = Object.create null
     @_installedMetadataById = Object.create null
 
-    @install id for id in installed
+    @install id, url for id, url of installed
 
     @_enabledRuleSetsIds = [] # order defines priority
     @_enabledRuleSetsById = Object.create null
 
     @enable id for id in enabled
-
-  _uriById: (id) ->
-    expectedFilename = id + '.ruleset'
-    if id in @embeddedRuleSets and not (id in @codeBasedRuleSets)
-      return path.join path.defaults, 'rulesets', expectedFilename
-    if id in @_installedRuleSetsIds
-      return path.join path.profile, 'rulesets', expectedFilename
-    throw new Error "Can't find ruleset file for ruleset '#{id}'"
 
   codeBasedIdToObject =
     'user_temporary': temporaryRuleSet
@@ -79,26 +112,99 @@ exports.Manager = class Manager
   _newRuleSetById: (id) ->
     if codeBasedIdToObject.hasOwnProperty id
       return codeBasedIdToObject[id]
-    return cachedRulesetConstructor @_uriById id
+    unless id of @_installedPathsByIds
+      throw new Error "Ruleset '#{id}' is not installed"
+    return cachedRulesetConstructor @_installedPathsByIds[id]
 
-  getMetadata: (id) -> @_installedMetadataById[id]
-
-  installed: (id) -> id of @_installedMetadataById
-  install: (id) ->
-    return if @installed id
-    @_installedRuleSetsIds.push id
+  installed: (id, path=undefined) ->
+    if path isnt undefined
+      return @_installedPathsByIds[id] == path
+    return id of @_installedPathsByIds
+  install: (id, path) ->
+    return if @installed id, path
+    @uninstall id if @installed id
+    if path and not (id in embeddedRuleSets)
+      files.acquire path
+    @_installedPathsByIds[id] = path
     rs = @_newRuleSetById id
     @_installedMetadataById[id] = rs.getMetadata()
-  uninstall: (id) ->
-    return unless @installed id
+    @_installedMetadataById[id].sourceUrl = path
+  uninstall: (id, path=undefined) ->
+    return unless @installed id, path
     if id in embeddedRuleSets
       throw new Error "Can't uninstall embedded ruleset '#{id}'"
+    if (path = @_installedPathsByIds[id])
+      files.release path
     @disable id
-    remove @_installedRuleSetsIds, id
+    delete @_installedPathsByIds[id]
     delete @_installedMetadataById[id]
 
-  getInstalledIds: -> @_installedRuleSetsIds.slice()
-  getInstalledMetadata: -> (@getMetadata id for id in @getInstalledIds())
+  encoder = new TextEncoder
+  downloadInstall: (url, listeners={}) ->
+    dispatch = (event, args...) ->
+      if event in ['start', 'progress', 'error', 'abort', 'success'] \
+      and event of listeners
+        listeners[event] args...
+
+    xhr = new XMLHttpRequest
+    aborted = no
+    abort = (-> aborted = yes; xhr.abort(); dispatch 'abort')
+    progressDetermined = yes
+    xhr.addEventListener 'progress', (e) ->
+      if progressDetermined and e.lengthComputable
+        dispatch 'progress', {
+          phase: 'load',
+          progress: (e.loaded / e.total),
+        }
+      else if progressDetermined
+        dispatch 'progress', {phase: 'load'}
+        progressDetermined = no
+    xhr.addEventListener 'error', -> dispatch 'error'
+    xhr.addEventListener 'load', =>
+      dispatch 'progress', {phase: 'parse'}
+      return if aborted
+      try
+        # TODO go async
+        str = xhr.responseText
+        id = rulesetFromString(str).id
+      catch err
+        log 'downloadInstall', url, 'Failed parsing downloaded file', err
+        dispatch 'error'
+        return
+      dispatch 'progress', {phase: 'save'}
+      return if aborted
+      path = files.uniquePath id
+      OS.File.writeAtomic(path, encoder.encode(str),
+                          tmpPath: "#{path}.tmp").then((=>
+        try
+          @install id, path
+        catch err
+          log 'downloadInstall', url, 'Failed installing ruleset', id, err
+          dispatch 'error'
+          return
+        dispatch 'success', {id}
+      ), (=>
+        log "downloadInstall #{ JSON.stringify url }:
+            Failed writing to #{ JSON.stringify path }.
+            Ruleset '#{id}' not installed."
+        dispatch 'error'
+      ))
+    dispatch 'start', {abort}
+    try
+      xhr.open "GET", url
+      xhr.send()
+    catch err
+      log 'downloadInstall', url, 'failed sending GET request', err
+      dispatch 'error'
+
+
+
+  getInstalledUrlsByIds: ->
+    r = Object.create null
+    r[k] = v for k, v of @_installedPathsByIds
+    return r
+  getMetadata: (id) -> @_installedMetadataById[id]
+  getInstalledMetadata: -> (@getMetadata id for id of @_installedMetadataById)
 
   enabled: (id) -> id of @_enabledRuleSetsById
   enable: (id, ix=Infinity) ->
@@ -120,7 +226,6 @@ exports.Manager = class Manager
   get: (id) -> @_enabledRuleSetsById[id]
 
   check: (origin, dest, ctx) ->
-    return true if @_suspended
     for id in @_enabledRuleSetsIds
       decision = @_enabledRuleSetsById[id].check origin, dest, ctx
       if decision != null
@@ -130,19 +235,31 @@ exports.Manager = class Manager
 
 class Snapshot extends Manager
   constructor: (@_model) ->
-    super @_model.getInstalledIds(), @_model.getEnabledIds()
+    super @_model.getInstalledUrlsByIds(), @_model.getEnabledIds()
   somethingChanged: ->
-    modelInstalledIds = @_model.getInstalledIds()
-    currentInstalledIds = @getInstalledIds()
+    modelInstalledUrlById = @_model.getInstalledUrlsByIds()
+    currentInstalledUrlById = @getInstalledUrlsByIds()
+    allIds = {}
+    allIds[i] = true for i of modelInstalledUrlById
+    allIds[i] = true for i of currentInstalledUrlById
+
     modelEnabledIds = @_model.getEnabledIds()
     currentEnabledIds = @getEnabledIds()
+
     return not (
       (modelEnabledIds.length == currentEnabledIds.length) \
       and zip(modelEnabledIds, currentEnabledIds).every(([a,b]) -> a == b) \
-      and (modelInstalledIds.length == currentInstalledIds.length) \
-      and (modelInstalledIds.every((i) -> i in currentInstalledIds)) \
-      and (currentInstalledIds.every((i) -> i in modelInstalledIds))
+      and (
+        (modelInstalledUrlById[i] == currentInstalledUrlById[i]) for i of allIds
+      ).reduce((a, b) -> a and b)
     )
+  # Since files are kinda reference counted, every snapshot has to realease all
+  # files when it's no longer used. Snapshot shall not be used after a call to
+  # destroy, although it is not enforced.
+  destroy: ->
+    for id, path of @getInstalledUrlsByIds()
+      if path and not (id in embeddedRuleSets)
+        files.release path
 
 
 class SanityCheckedSnapshot extends Snapshot
@@ -170,25 +287,37 @@ class SanityCheckedSnapshot extends Snapshot
     super id
 
 
-exports.manager = new class ManagerSingleton extends Manager
+class SuspendableManager extends Manager
   constructor: ->
-    @_suspended = false
-
+    super arguments...
+    @_suspended = prefs.get 'manager.suspended'
     prefs.onChange 'manager.suspended', =>
       @_suspended = prefs.get 'manager.suspended'
 
-    super (prefs.get 'manager.installedRuleSets'), (prefs.get 'manager.enabledRuleSets')
+  check: ->
+    return true if @_suspended
+    return super arguments...
 
-    prefs.onChange 'manager.installedRuleSets', @_onInstalledPrefChange.bind @
+  suspended: -> @_suspended
+  toggleSuspended: -> prefs.set 'manager.suspended', not @_suspended
+  suspend: -> prefs.set 'manager.suspended', true
+  unsuspend: -> prefs.set 'manager.suspended', false
+
+
+class SavableSnapshotableManager extends SuspendableManager
+  constructor: ->
+    super (prefs.get 'manager.installedPathsByIds'), (prefs.get 'manager.enabledRuleSets')
+
+    prefs.onChange 'manager.installedPathsByIds', @_onInstalledPrefChange.bind @
     prefs.onChange 'manager.enabledRuleSets', @_onEnabledPrefChange.bind @
 
-  _loadInstalledIds: (newInstalledIds) ->
-    for id in newInstalledIds
-      unless @installed id
-        @install id
-    for id in @getInstalledIds()
-      unless id in newInstalledIds
-        @uninstall id
+  _loadInstalledIds: (newInstalledUrlById) ->
+    for id, url of newInstalledUrlById
+      unless @installed id, url
+        @install id, url
+    for id, url of @getInstalledUrlsByIds()
+      unless newInstalledUrlById[id] == url
+        @uninstall id, url
 
   _loadEnabledIds: (newEnabledIds) ->
     for id, i in newEnabledIds
@@ -198,23 +327,21 @@ exports.manager = new class ManagerSingleton extends Manager
         @disable id
 
   _onInstalledPrefChange: ->
-    @_loadInstalledIds prefs.get 'manager.installedRuleSets'
+    @_loadInstalledIds prefs.get 'manager.installedPathsByIds'
 
   _onEnabledPrefChange: ->
     @_loadEnabledIds prefs.get 'manager.enabledRuleSets'
 
   save: ->
     prefs.set 'manager.enabledRuleSets', @_enabledRuleSetsIds
-    prefs.set 'manager.installedRuleSets', @_installedRuleSetsIds
-
-  suspended: -> @_suspended
-  toggleSuspended: -> prefs.set 'manager.suspended', not @_suspended
-  suspend: -> prefs.set 'manager.suspended', true
-  unsuspend: -> prefs.set 'manager.suspended', false
+    prefs.set 'manager.installedPathsByIds', @_installedPathsByIds
 
   # this is for ui to play with and then load when user hits "Save" or smth
   snapshot: -> new SanityCheckedSnapshot @
   loadSnapshot: (shot) ->
-    @_loadInstalledIds shot.getInstalledIds()
+    @_loadInstalledIds shot.getInstalledUrlsByIds()
     @_loadEnabledIds shot.getEnabledIds()
     @save()
+
+
+exports.manager = new SavableSnapshotableManager

@@ -1,5 +1,4 @@
 
-{ file } = require 'file'
 { MutableOrderedMap } = require 'mutable-ordered-map'
 
 { locale } = require 'l10n'
@@ -27,9 +26,8 @@ L10n = (raw) ->
         "RuleSet l10n error: Can't localize '#{str}' (type: #{typeof str})"
 
 exports.TreeRS = class TreeRS extends RuleSet
-  constructor: (uri) ->
-    @sourceUrl = uri.spec
-    @parse file.read uri
+  constructor: (str, @sourceUrl) ->
+    @parse str
 
   _mapConstructor: Map
   parse: (str) ->
