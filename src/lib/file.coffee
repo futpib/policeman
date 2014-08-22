@@ -62,14 +62,26 @@ exports.path = path = new class
   # 'defaults' folder of extension
   defaults: ioService.newURI(addonData.resourceURI.spec + 'defaults/', null, null)
 
+  NEW_DIR_PERMISSIONS = 0b111100100
+                        # rwxr--r-- permissions
+
+  profileDir = directoryService.get "ProfD", Ci.nsIFile
+
   # policeman folder in firefox's profile directory
-  profile: do ->
-    localDir = directoryService.get "ProfD", Ci.nsIFile
-    localDir.append 'policeman'
-    unless localDir.exists() and localDir.isDirectory()
-      localDir.create Ci.nsIFile.DIRECTORY_TYPE, 0b111100100
-                                                 # rwxr--r-- permissions
-    return ioService.newFileURI localDir
+  policemanDir = profileDir.clone()
+  policemanDir.append 'policeman'
+  unless policemanDir.exists() and policemanDir.isDirectory()
+    policemanDir.create Ci.nsIFile.DIRECTORY_TYPE, NEW_DIR_PERMISSIONS
+
+  profile: @::toURI policemanDir
+
+  # folder for installed rulesets in firefox's profile directory
+  rulesetsDir = policemanDir.clone()
+  rulesetsDir.append 'rulesets'
+  unless rulesetsDir.exists() and rulesetsDir.isDirectory()
+    rulesetsDir.create Ci.nsIFile.DIRECTORY_TYPE, NEW_DIR_PERMISSIONS
+
+  rulesets: @::toURI rulesetsDir
 
   content: 'chrome://policeman/content'
   skin   : 'chrome://policeman/skin'
