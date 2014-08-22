@@ -9,7 +9,7 @@ scriptableStream = Cc["@mozilla.org/scriptableinputstream;1"]
 directoryService = Cc["@mozilla.org/file/directory_service;1"]
     .getService Ci.nsIProperties
 
-exports.path = path =
+exports.path = path = new class
   join: (base, paths...) -> # preserves base type, assumes paths are just strings
     if base instanceof Ci.nsIFile
       baseClone = base.clone()
@@ -26,12 +26,16 @@ exports.path = path =
       return base
     throw new Error "path.join: wrong base path type: #{typeof base}"
 
+  localFileRe = /^(\/|[A-Z]+:(\\|\/){2})/i
+
   toURI: (x) ->
     if x instanceof Ci.nsIURI
       return x.clone()
     if x instanceof Ci.nsIFile
       return ioService.newFileURI x
     if typeof x == 'string'
+      if localFileRe.test x
+        x = 'file://' + x
       return ioService.newURI x, null, null
     throw new Error "path.toURI: Can't make URI from #{base} (type: #{typeof base})"
 
@@ -41,6 +45,8 @@ exports.path = path =
     if x instanceof Ci.nsIFile
       return x.clone()
     if typeof x == 'string'
+      if localFileRe.test x
+        x = 'file://' + x
       return fileProtocol.getFileFromURLSpec x
     throw new Error "path.toFile: Can't make File from #{base} (type: #{typeof base})"
 
@@ -71,7 +77,6 @@ exports.path = path =
 
 exports.file =
   read: (uri) ->
-    log uri.spec
     channel = ioService.newChannelFromURI path.toURI uri
     input = channel.open()
     scriptableStream.init input
