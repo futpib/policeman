@@ -6,13 +6,11 @@ policemanBranch = "extensions.policeman"
 
 exports.PreferencesError = class PreferencesError extends Error
 exports.UndefinedPreferenceError = class UndefinedPreferenceError extends PreferencesError
-exports.InvalidValueError = class InvalidValueError extends PreferencesError
 
 
 class Preferences
   PreferencesError: PreferencesError
   UndefinedPreferenceError: UndefinedPreferenceError
-  InvalidValueError: InvalidValueError
 
   TYPE_BOOLEAN: 0
   TYPE_INTEGER: 1
@@ -61,11 +59,9 @@ class Preferences
         try
           value = getterHook default_
         catch e
-          if e instanceof InvalidValueError
-            throw new PreferencesError "
-              Getter for preference '#{name}' considers
-              default value to be invalid."
-          throw e
+          throw new PreferencesError "
+            Getter for preference '#{name}' throws #{e}
+            when called with default value #{default_}."
         return value
       return default_
     type = @_nameToType[name]
@@ -78,10 +74,8 @@ class Preferences
       try
         value = getterHook value
       catch e
-        if e instanceof InvalidValueError
-          value = @_nameToDefault[name]
-        else
-          throw e
+        log 'Preferences.get', name, ' error: Getter threw', e, '. Returning default value.'
+        value = getterHook @_nameToDefault[name]
     return value
 
   set: (name, value) ->
