@@ -41,7 +41,6 @@ exports.toolbarbutton = toolbarbutton =
       closemenu:       'none'
     btn.addEventListener 'command', (e) =>
       inMenu = @wrapper.areaType == CustomizableUI.TYPE_MENU_PANEL
-      inMenu = false # XXX
       (if inMenu then panelview else popup).onToobarbuttonCommand e
     return btn
 

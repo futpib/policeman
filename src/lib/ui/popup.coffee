@@ -637,7 +637,7 @@ class RulesetEditButtons extends ContainerPopulation
     customRuleBox.appendChild Button::create doc,
       label: l10n 'popup_add_rule'
       click: =>
-        popup.requestPageReload(doc)
+        popup.autoreload.require(doc)
         allowReject = DataRotationButton::getData allowRejectBtn
         origin_ = DataRotationButton::getData originBtn
         destination_ = DataRotationButton::getData destinationBtn
@@ -661,7 +661,7 @@ class RulesetEditButtons extends ContainerPopulation
         orient: 'vertical'
       hbox.appendChild @_createDeleteButton doc,
         click: =>
-          popup.requestPageReload(doc)
+          popup.autoreload.require(doc)
           rs.revoke o, d, t
           @update doc
       container.appendChild hbox
@@ -732,7 +732,7 @@ temporaryRulesetEdit = new (class extends RulesetEditButtons
       container.appendChild Button::create doc,
         label: l10n 'popup_revoke_all_temporary'
         click: =>
-          popup.requestPageReload(doc)
+          popup.autoreload.require(doc)
           rs.revokeAll()
           @update doc
 
@@ -829,8 +829,6 @@ exports.popup = popup =
 
   styleURI: Services.io.newURI 'chrome://policeman/skin/popup.css', null, null
 
-  _reloadRequired: false
-
   init: ->
     tabs.onSelect.add (t) =>
       if @_visible
@@ -864,20 +862,16 @@ exports.popup = popup =
 
   onShowing: (e) ->
     doc = e.target.ownerDocument
-    @_reloadRequired = false
+    @autoreload.onShowing doc
     @updateUI doc
     @_visible = true
 
   onHiding: (e) ->
     doc = e.target.ownerDocument
     @cleanupUI doc
-    if @_reloadRequired and prefs.get 'ui.popup.autoReloadPageOnHiding'
+    if @autoreload.enabled() and @autoreload.required()
       tabs.reload tabs.getCurrent()
     @_visible = false
-
-  requestPageReload: (doc) ->
-    @_reloadRequired = true
-    footerCheckButtons.enableReload(doc)
 
   addUI: (doc) ->
     overlayQueue.add doc, 'chrome://policeman/content/popup.xul', =>
@@ -910,9 +904,16 @@ exports.popup = popup =
     statusIndicator.updateStarted doc
 
   autoreload:
+    _reloadRequired: false
     enabled: -> prefs.get AUTORELOAD_PREF
     enable: -> prefs.set AUTORELOAD_PREF, true
     disable: -> prefs.set AUTORELOAD_PREF, false
+    required: -> @_reloadRequired
+    require: (doc) ->
+      @_reloadRequired = true
+      footerCheckButtons.enableReload(doc)
+    onShowing: (doc) ->
+      @_reloadRequired = false
 
 
 do popup.init

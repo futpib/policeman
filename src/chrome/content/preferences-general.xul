@@ -18,8 +18,12 @@
               tooltiptext="&preferences_suspend_operation.tip;"
               />
 
-    <checkbox id="autoreload"
-              label="&preferences_reload_automaticaly;"
+    <checkbox id="autoreload-popup"
+              label="&preferences_reload_automaticaly_popup;"
+              />
+
+    <checkbox id="autoreload-panelview"
+              label="&preferences_reload_automaticaly_panelview;"
               />
   </vbox>
 
