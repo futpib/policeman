@@ -212,9 +212,14 @@ exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
   checkWithSuperdomains: (oh, dh, t) ->
     return @checkOrder oh, dh, t, @checkWithoutSuperdomains
 
+  theContentTypeMap =
+    'OBJECT_SUBREQUEST': 'OBJECT'
+  _contentTypeMap: (t) -> theContentTypeMap[t] or t
+
   check: (o, d, c) ->
     return null unless (o.schemeType == d.schemeType == 'web')
-    decision = @checkWithSuperdomains o.host, d.host, c.contentType
+    contentType = @_contentTypeMap c.contentType
+    decision = @checkWithSuperdomains o.host, d.host, contentType
     return decision if decision isnt null
     return @checkWithSuperdomains o.host, d.host, @WILDCARD_TYPE
 
