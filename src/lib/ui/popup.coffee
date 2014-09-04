@@ -528,7 +528,7 @@ class RulesetEditButtons extends ContainerPopulation
   constructor: (containerId, @_rulesetId) ->
     super containerId
 
-  _createRuleWidget: (doc, description) ->
+  _createBasicRuleWidget: (doc, description) ->
     {
       tooltiptext
       classList
@@ -560,16 +560,6 @@ class RulesetEditButtons extends ContainerPopulation
     box.appendChild subbox
 
     return box
-
-  _createDeleteButton: (doc, description={}) ->
-    defaults description, 'label', l10n 'popup_delete_rule'
-    btn = Button::create doc, description
-    return btn
-
-  _createAddButton: (doc, description={}) ->
-    defaults description, 'label', l10n 'popup_add_rule'
-    btn = Button::create doc, description
-    return btn
 
   _createCustomRuleWidget: (doc, description) ->
     {
@@ -647,24 +637,53 @@ class RulesetEditButtons extends ContainerPopulation
 
     return customRuleBox
 
-  _createRuleWidgetWithRemoveBtn: (doc, container, rs, o, d, t) =>
-      hbox = createElement doc, 'hbox'
-      decision = rs.checkWithoutSuperdomains o, d, t
-      return if decision is null
-      hbox.appendChild @_createRuleWidget doc,
-        origin: o
-        destination: d
-        type: t
-        decision: decision
-      hbox.appendChild createElement doc, 'spacer',
-        flex: 1
-        orient: 'vertical'
-      hbox.appendChild @_createDeleteButton doc,
+  _createRuleWidget: (doc, description) ->
+    {
+      ruleset: rs
+      origin: o
+      destination: d
+      type: t
+      decision
+    } = description
+    hbox = createElement doc, 'hbox'
+
+    hbox.appendChild @_createBasicRuleWidget doc,
+      origin: o
+      destination: d
+      type: t
+      decision: decision
+
+    hbox.appendChild createElement doc, 'spacer',
+      flex: 1
+      orient: 'vertical'
+
+    # "Move to another ruleset" button
+    if @_rulesetId == 'user_persistent'
+      anotherRs = manager.get 'user_temporary'
+      anotherWidget = temporaryRulesetEdit
+      label = l10n 'popup_persistent_rule_to_temporary'
+    else
+      anotherRs = manager.get 'user_persistent'
+      anotherWidget = persistentRulesetEdit
+      label = l10n 'popup_temporary_rule_to_persistent'
+    if anotherRs
+      hbox.appendChild Button::create doc,
+        label: label
         click: =>
           popup.autoreload.require(doc)
           rs.revoke o, d, t
+          anotherRs[if decision then 'allow' else 'reject'] o, d, t
           @update doc
-      container.appendChild hbox
+          anotherWidget.update doc
+
+    # "Remove" button
+    hbox.appendChild Button::create doc,
+      label: l10n 'popup_delete_rule'
+      click: =>
+        popup.autoreload.require(doc)
+        rs.revoke o, d, t
+        @update doc
+    return hbox
 
   populate: (doc) ->
     rs = manager.get @_rulesetId
@@ -675,18 +694,27 @@ class RulesetEditButtons extends ContainerPopulation
 
     fragment = doc.createDocumentFragment()
 
-    # Existing rules
     rules = createElement doc, 'vbox',
       class: 'policeman-existing-rules'
 
     supportedTypes = SUPPORTED_TYPES.concat [WILDCARD_TYPE]
 
     if selectedOrigin and selectedDestination
+      # show rules that apply to selected origin and destination only
       for type in supportedTypes
         rs.checkOrder selectedOrigin, selectedDestination, type, (o, d, t) =>
-          @_createRuleWidgetWithRemoveBtn doc, rules, rs, o, d, t
+          decision = rs.checkWithoutSuperdomains o, d, t
+          if decision isnt null
+            rules.appendChild @_createRuleWidget doc,
+              ruleset: rs
+              origin: o
+              destination: d
+              type: t
+              decision: decision
           return undefined
     else
+      # show rules that influenced anything in the current tab
+      # filtered by selected origin or destination if any
       checkThem = Object.create null # origin -> dest -> type -> true
       for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
         continue unless (o.schemeType == d.schemeType == 'web')
@@ -702,14 +730,20 @@ class RulesetEditButtons extends ContainerPopulation
         for ddom, types of dests
           for type in supportedTypes
             if types[type]
-              @_createRuleWidgetWithRemoveBtn doc, rules, rs, odom, ddom, type
+              decision = rs.checkWithoutSuperdomains odom, ddom, type
+              if decision isnt null
+                rules.appendChild @_createRuleWidget doc,
+                  ruleset: rs
+                  origin: odom
+                  destination: ddom
+                  type: type
+                  decision: decision
 
     fragment.appendChild rules
 
     fragment.appendChild createElement doc, 'separator',
       class: 'thin'
 
-    # Add custom rule
     fragment.appendChild @_createCustomRuleWidget doc,
       ruleset: rs
       origin: selectedOrigin
