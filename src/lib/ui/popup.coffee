@@ -132,7 +132,7 @@ class DataRotationButton extends Button
         i = valuesLabels.length-1 if i < 0
       that.setData @, valuesLabels[i][0]
       that.setLabel @, valuesLabels[i][1]
-      inferiorClick.apply @, arguments
+      inferiorClick.apply @, arguments if inferiorClick
     defaults description, 'classList', []
     description.classList.push 'policeman-popup-value-rotation-button'
     btn = Button::create doc, description
