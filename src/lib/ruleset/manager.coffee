@@ -32,6 +32,7 @@ prefs.define 'manager.enabledRuleSets',
     'user_temporary',
     'user_persistent',
     'allow_same_site',
+    'allow_same_second_level_domain',
     'reject_any',
   ]
 
