@@ -18,19 +18,15 @@ onShutdown.add persistentRuleSet.save.bind persistentRuleSet
 
 
 prefs.define rpImportPref = 'ruleset.persistent.requestpolicy.triedImport',
-  prefs.TYPE_BOOLEAN,
-  false
+  default: false
 
 if not prefs.get rpImportPref
   foreign.define rpOriginsPref = 'extensions.requestpolicy.allowedOrigins',
-    prefs.TYPE_STRING,
-    ''
+    default: ''
   foreign.define rpDestsPref = 'extensions.requestpolicy.allowedDestinations',
-    prefs.TYPE_STRING,
-    ''
+    default: ''
   foreign.define rpODPref = 'extensions.requestpolicy.allowedOriginsToDestinations',
-    prefs.TYPE_STRING,
-    ''
+    default: ''
   try
     origins = foreign.get(rpOriginsPref).split(' ')
     for o in origins

@@ -40,7 +40,8 @@ exports.ModifiableRS = class ModifiableRS extends RuleSet
 exports.SavableRS = class SavableRS extends ModifiableRS
   constructor: (@_pref=null) ->
     if @_pref
-      prefs.define @_pref, prefs.TYPE_JSON, @_marshal()
+      prefs.define @_pref,
+        default: @_marshal()
       do @load
       prefs.onChange @_pref, @load.bind @
   _marshal: -> throw new Error "Subclass should supply '_marshal' method"

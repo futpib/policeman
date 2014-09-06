@@ -33,13 +33,13 @@ NEGATIVE_COLOR_PREF = 'ui.popup.negativeBackgroundColor'
 colorGetter = (c) -> new Color c
 colorSetter = (c) -> c.toCssString()
 prefs.define POSITIVE_COLOR_PREF,
-  prefs.TYPE_STRING, '#0f02',
-    get: colorGetter
-    set: colorSetter
+  default: '#0f02'
+  get: colorGetter
+  set: colorSetter
 prefs.define NEGATIVE_COLOR_PREF,
-  prefs.TYPE_STRING, '#f002',
-    get: colorGetter
-    set: colorSetter
+  default: '#f002'
+  get: colorGetter
+  set: colorSetter
 
 positiveBackgroundColor = prefs.get POSITIVE_COLOR_PREF
 prefs.onChange POSITIVE_COLOR_PREF, ->
@@ -856,7 +856,7 @@ statusIndicator =
 
 
 prefs.define AUTORELOAD_PREF = 'ui.popup.autoReloadPageOnHiding',
-  prefs.TYPE_BOOLEAN, false
+  default: false
 
 exports.popup = popup =
   id: 'policeman-popup'

@@ -12,84 +12,114 @@ class Preferences
   PreferencesError: PreferencesError
   UndefinedPreferenceError: UndefinedPreferenceError
 
-  TYPE_BOOLEAN: 0
-  TYPE_INTEGER: 1
-  TYPE_STRING:  2
-  TYPE_JSON:    3
+  _supportedTypes: do ->
+    set = Object.create null
+    set.boolean = true
+    set.integer = true
+    set.string  = true
+    set.object  = true
+    return set
 
-  typeGetterMap: ['getBoolPref', 'getIntPref', 'getCharPref', 'getCharPref']
-  typeSetterMap: ['setBoolPref', 'setIntPref', 'setCharPref', 'setCharPref']
+  _typePrefGetterMap:
+    boolean: 'getBoolPref'
+    integer: 'getIntPref'
+    string:  'getCharPref'
+    object:  'getCharPref'
+  _typePrefSetterMap:
+    boolean: 'setBoolPref'
+    integer: 'setIntPref'
+    string:  'setCharPref'
+    object:  'setCharPref'
 
   constructor: (branch) ->
     @_nameToType = Object.create null
     @_nameToDefault = Object.create null
-    @_nameToGetterHook = Object.create null
-    @_nameToSetterHook = Object.create null
-
-    @_changeHandlers = Object.create null
 
     branch = branch + '.' if branch and not branch.endsWith('.')
     @_branch = prefService.getBranch branch
     @_branchName = branch
-    @_branch.addObserver '', this, false
-    onShutdown.add () => @_branch.removeObserver '', this
 
-  observe: (_branch, topic, name) ->
-    if name of @_changeHandlers
-      do h for h in @_changeHandlers[name]
+  _inferType: (default_) -> switch t = typeof default_
+    when 'boolean' then 'boolean'
+    when 'string'  then 'string'
+    when 'number'  then (if default_ % 1 == 0 then 'integer' else 'object')
+    when 'undefined', 'object' then 'object'
+    else throw new PreferencesError "
+                    Can't guess how to store value of type '#{t}'.
+                    Please supply explicit type."
 
-  define: (name, type, default_, hooks={}) ->
-    @_nameToType[name] = type
+  define: (name, description={}) ->
+    {
+      type
+      default: default_
+    } = description
+    if type and not (type of @_supportedTypes)
+      throw new PreferencesError "Unknown type '#{type}'. Try one of
+                                  #{ Object.keys(@_supportedTypes) }."
+    @_nameToType[name] = type or @_inferType default_
     @_nameToDefault[name] = default_
-    if 'get' of hooks
-      @_nameToGetterHook[name] = hooks.get
-    if 'set' of hooks
-      @_nameToSetterHook[name] = hooks.set
+    @_initDefault name, default_ unless @_branch.prefHasUserValue name
+    return name
+
+  _initDefault: (name, value) ->
+    type = @_nameToType[name]
+    setter = @_typePrefSetterMap[type]
+
+    value = JSON.stringify value if type == 'object'
+
+    @_branch[setter] name, value
 
   _assertDefined: (name) ->
     unless name of @_nameToType
       throw new UndefinedPreferenceError "Undefined preference '#{name}'"
 
+  _default: (name) -> @_nameToDefault[name]
+
   get: (name) ->
     @_assertDefined name
-    unless @_branch.prefHasUserValue name
-      default_ = @_nameToDefault[name]
-      if name of @_nameToGetterHook
-        getterHook = @_nameToGetterHook[name]
-        try
-          value = getterHook default_
-        catch e
-          throw new PreferencesError "
-            Getter for preference '#{name}' throws #{e}
-            when called with default value #{default_}."
-        return value
-      return default_
     type = @_nameToType[name]
-    getter = @typeGetterMap[type]
-    value = @_branch[getter](name)
-    if type == @TYPE_JSON
-      value = JSON.parse value
-    if name of @_nameToGetterHook
-      getterHook = @_nameToGetterHook[name]
-      try
-        value = getterHook value
-      catch e
-        log 'Preferences.get', name, ' error: Getter threw', e, '. Returning default value.'
-        value = getterHook @_nameToDefault[name]
+    getter = @_typePrefGetterMap[type]
+
+    try
+      value = @_branch[getter] name
+      if type == 'object'
+        value = JSON.parse value
+    catch e
+      log "Error getting preference '#{name}' ('#{getter}'):", e,
+          "Using default value"
+      value = @_default name
     return value
 
   set: (name, value) ->
     @_assertDefined name
     type = @_nameToType[name]
-    setter = @typeSetterMap[type]
-    if name of @_nameToSetterHook
-      value = @_nameToSetterHook[name] value
-    if type == @TYPE_JSON
-      value = JSON.stringify value
-    @_branch[setter](name, value)
+    setter = @_typePrefSetterMap[type]
+
+    value = JSON.stringify value if type == 'object'
+
+    @_branch[setter] name, value
 
   mutate: (name, f) ->
     @set name, (f @get name)
+
+  branch: (name) ->
+    name = name + '.' unless name.endsWith('.')
+    return new @::constructor @_branchName + name
+
+
+class ObservablePreferences extends Preferences
+  constructor: ->
+    super arguments...
+
+    @_changeHandlers = Object.create null
+
+    observer = observe: => @_observe arguments...
+    @_branch.addObserver '', observer, false
+    onShutdown.add => @_branch.removeObserver '', observer
+
+  _observe: (_branch, topic, name) ->
+    if name of @_changeHandlers
+      do h for h in @_changeHandlers[name]
 
   onChange: (name, handler) ->
     if name of @_changeHandlers
@@ -97,23 +127,51 @@ class Preferences
     else
       @_changeHandlers[name] = [handler]
 
-  branch: (name) ->
-    name = name + '.' unless name.endsWith('.')
-    return new Preferences @_branchName + name
+
+FinalPreferencesClass = class HookedPreferences extends ObservablePreferences
+  constructor: ->
+    super arguments...
+
+    @_nameToGetterHook = Object.create null
+    @_nameToSetterHook = Object.create null
+
+  define: (name, description={}) ->
+    {
+      get
+      set
+    } = description
+    @_nameToGetterHook[name] = get if get
+    @_nameToSetterHook[name] = set if set
+    return super arguments...
+
+  id = (x) -> x
+  _getterHook: (name) -> @_nameToGetterHook[name] or id
+  _setterHook: (name) -> @_nameToSetterHook[name] or id
+
+  get: (name) ->
+    value = super name
+    hook = @_getterHook name
+    return hook value
+
+  set: (name, value) ->
+    hook = @_setterHook name
+    value = hook value
+    super name, value
 
 
 exports.ReadOnlyError = class ReadOnlyError extends PreferencesError
 
-class ReadOnlyPreferences extends Preferences
+class ReadOnlyPreferences extends FinalPreferencesClass
   ReadOnlyError: ReadOnlyError
-  set: (name) -> throw new ReadOnlyError "Trying to set read-only preference '#{name}'"
+  _initDefault: ->
+  set: (name) ->
+    throw new ReadOnlyError "Trying to set read-only preference '#{name}'"
 
 
-exports.prefs = prefs = new Preferences policemanBranch
+exports.prefs = prefs = new FinalPreferencesClass policemanBranch
 
 prefs.define 'version',
-  prefs.TYPE_STRING,
-  '0.1'
+  default: '0.1'
 
 exports.foreign = foreign = new ReadOnlyPreferences ''
 

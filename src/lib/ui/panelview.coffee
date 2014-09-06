@@ -28,13 +28,13 @@ NEGATIVE_COLOR_PREF = 'ui.panelview.negativeTextColor'
 colorGetter = (c) -> new Color c
 colorSetter = (c) -> c.toCssString()
 prefs.define POSITIVE_COLOR_PREF,
-  prefs.TYPE_STRING, '#0f02',
-    get: colorGetter
-    set: colorSetter
+  default: '#0f02'
+  get: colorGetter
+  set: colorSetter
 prefs.define NEGATIVE_COLOR_PREF,
-  prefs.TYPE_STRING, '#f002',
-    get: colorGetter
-    set: colorSetter
+  default: '#f002'
+  get: colorGetter
+  set: colorSetter
 
 positiveTextColor = prefs.get POSITIVE_COLOR_PREF
 prefs.onChange POSITIVE_COLOR_PREF, ->
@@ -45,7 +45,7 @@ prefs.onChange NEGATIVE_COLOR_PREF, ->
 
 
 prefs.define AUTORELOAD_PREF = 'ui.panelview.autoReloadPageOnHiding',
-  prefs.TYPE_BOOLEAN, false
+  default: false
 
 
 class ContainerPopulation

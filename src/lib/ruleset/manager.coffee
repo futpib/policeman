@@ -27,8 +27,13 @@ embeddedRuleSets = [
 ].concat codeBasedRuleSets
 
 prefs.define 'manager.enabledRuleSets',
-  prefs.TYPE_JSON,
-  ['default', 'user_temporary', 'user_persistent', 'allow_same_site', 'reject_any']
+  default: [
+    'default',
+    'user_temporary',
+    'user_persistent',
+    'allow_same_site',
+    'reject_any',
+  ]
 
 addEmbedded = (obj) ->
   for id in embeddedRuleSets
@@ -40,12 +45,11 @@ addEmbedded = (obj) ->
   return obj
 
 prefs.define 'manager.installedPathsByIds',
-  prefs.TYPE_JSON,
-  {},
-    get: (o) -> addEmbedded o
+  default: {}
+  get: (o) -> addEmbedded o
 
 prefs.define 'manager.suspended',
-  prefs.TYPE_BOOLEAN, false
+  default: false
 
 
 cachedRulesetConstructor = cache ((uri) -> uri), ((uri) ->
