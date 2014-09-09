@@ -83,9 +83,10 @@ exports.TreeRS = class TreeRS extends RuleSet
     iterator = map.entries()
     while not (next = iterator.next()).done
       [predicate, consequent] = next.value
-      if predicate.test origin, dest, ctx
+      if fallthrough or predicate.test origin, dest, ctx
         return consequent if typeof consequent is 'boolean'
         throw RETURN if consequent is null
+        fallthrough = consequent.size is 0
         decision = checkHelper origin, dest, ctx, consequent
         if decision != null
           return decision
