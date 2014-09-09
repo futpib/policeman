@@ -12,17 +12,19 @@ rules:
   * -> inline: ACCEPT
   internal -> internal: ACCEPT
 
-  internal -> web:
+  internal -> (web|file):
     # allows various thing like navigation from chrome pages to web and
     # iframes on chrome pages (addons page has one)
-    # kind of entry point for page loads
+    # kind of entry point for document load
     [contentType] (DOCUMENT|SUBDOCUMENT): ACCEPT
 
   web -> web:
     # allows opening links on web pages
     [contentType] DOCUMENT: ACCEPT
 
-  web -> internal:
-    # top level video, sound or image need this
+  (web|file) -> internal:
+    # top-level media player and image viewer require internal styles
     [contentType] STYLESHEET: ACCEPT
+
+  file -> (file|web): ACCEPT
 

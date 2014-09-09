@@ -16,22 +16,32 @@ class UriInfo
     'path',
     'spec',
   ]
-  schemeInternal: {
-    '': true
-    'resource': true
-    'about': true
-    'chrome': true
-    'moz-icon': true
-    'moz-filedata': true
-    'view-source': true
-    'wyciwyg': true
-    'moz-nullprincipal': true
-  }
-  schemeInline: {
-    'data': true
-    'blob': true
-    'javascript': true
-  }
+
+  schemeClassification = Object.create null
+  schemeClass = (cls, schemes) -> schemeClassification[s] = cls for s in schemes
+
+  schemeClass 'internal', [
+    '',
+    'resource',
+    'about',
+    'chrome',
+    'moz-icon',
+    'moz-filedata',
+    'view-source',
+    'wyciwyg',
+    'moz-nullprincipal',
+  ]
+  schemeClass 'inline', [
+    'data',
+    'blob',
+    'javascript',
+  ]
+  schemeClass 'file', [
+    'file',
+  ]
+
+  classifyScheme: (s) -> schemeClassification[s]
+
   constructor: (uri) ->
     if typeof uri == 'string' # assuming it's a stringified uriinfo
       @parse uri
@@ -52,10 +62,7 @@ class UriInfo
         catch
           ''
     ) for k in @components
-    if @schemeInternal[@scheme]
-      @schemeType = 'internal'
-    else if @schemeInline[@scheme]
-      @schemeType = 'inline'
+    @schemeType = @classifyScheme(@scheme) or ''
 
   stringify: -> @spec
   parse: (str) ->
@@ -64,26 +71,22 @@ class UriInfo
 
 
 exports.OriginInfo = class OriginInfo extends UriInfo
-  schemeWebOrigin: {
+  schemeWebOrigin =
     https: true
     http: true
-  }
-  copyComponents: (uri) ->
-    super uri
-    if not @schemeType and @schemeWebOrigin[@scheme]
-      @schemeType = 'web'
+  classifyScheme: (s) -> if s of schemeWebOrigin \
+    then 'web' \
+    else super arguments...
 
 
 exports.DestinationInfo = class DestinationInfo extends UriInfo
-  schemeWebDestination: {
+  schemeWebDestination =
     https: true
     http: true
     ftp: true
-  }
-  copyComponents: (uri) ->
-    super uri
-    if not @schemeType and @schemeWebDestination[@scheme]
-      @schemeType = 'web'
+  classifyScheme: (s) -> if s of schemeWebDestination \
+    then 'web' \
+    else super arguments...
 
 
 exports.ContextInfo = class ContextInfo
