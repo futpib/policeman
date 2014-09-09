@@ -787,14 +787,11 @@ persistentRulesetEdit = new (class extends RulesetEditButtons
 
 
 footerCheckButtons = new (class extends ContainerPopulation
-  enableReload: (doc) ->
-    CheckButton::enable doc.getElementById 'policeman-popup-reload-button'
   populate: (doc) ->
     fragment = doc.createDocumentFragment()
 
     fragment.appendChild CheckButton::create doc,
       id: 'policeman-popup-reload-button'
-      disabled: 'true'
       label: l10n 'popup_reload_page'
       checked: popup.autoreload.enabled()
       click: ->
@@ -945,7 +942,6 @@ exports.popup = popup =
     required: -> @_reloadRequired
     require: (doc) ->
       @_reloadRequired = true
-      footerCheckButtons.enableReload(doc)
     onShowing: (doc) ->
       @_reloadRequired = false
 
