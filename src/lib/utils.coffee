@@ -140,3 +140,4 @@ exports.isSuperdomain = isSuperdomain = (super_, sub) ->
 exports.defaults = defaults = (o, k, v) ->
   unless k of o
     o[k] = v
+  return o[k]
