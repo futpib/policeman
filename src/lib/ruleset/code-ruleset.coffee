@@ -189,12 +189,12 @@ exports.DomainPairRS = class DomainPairRS extends Lookup2RS
 exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
   WILDCARD_TYPE: '_ANY_'
 
-  allow:      (o, d, t) -> super [o, d, t]
-  isAllowed:  (o, d, t) -> super [o, d, t]
-  reject:     (o, d, t) -> super [o, d, t]
-  isRejected: (o, d, t) -> super [o, d, t]
-  has:        (o, d, t) -> super [o, d, t]
-  revoke:     (o, d, t) -> super [o, d, t]
+  allow:      (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
+  isAllowed:  (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
+  reject:     (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
+  isRejected: (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
+  has:        (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
+  revoke:     (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
 
   checkOrder: (oh, dh, type, f) ->
     for o in superdomains oh
@@ -203,14 +203,14 @@ exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
         return res if typeof res == 'boolean'
     return null
 
-  checkWithoutSuperdomains: (o, d, t) ->
+  checkWithoutSuperdomains: (o, d, t=@WILDCARD_TYPE) ->
     if o of @_lookup
       if d of @_lookup[o]
         if t of @_lookup[o][d]
           return @_lookup[o][d][t]
     return null
 
-  checkWithSuperdomains: (oh, dh, t) ->
+  checkWithSuperdomains: (oh, dh, t=@WILDCARD_TYPE) ->
     return @checkOrder oh, dh, t, @checkWithoutSuperdomains
 
   theContentTypeMap =
