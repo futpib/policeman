@@ -30,8 +30,6 @@ setShutdownHandlers = (hs) ->
 
 scopes = Object.create null
 require = (module) ->
-  log module
-
   unless module of scopes
     scopes[module] =
       Cc: Cc

@@ -12,25 +12,12 @@ Cu.import 'resource://gre/modules/Services.jsm'
 Cu.import 'resource://gre/modules/devtools/Console.jsm'
 log = console.log.bind console
 
-tryer = (f) ->
-  return ->
-    try
-      f arguments...
-    catch e
-      log "tryer:
-              error: #{ e } \n
-              file: '#{ e.fileName }' \n
-              line: #{ e.lineNumber } \n
-              stack: #{ e.stack }"
-
 onShutdown = null
 requireScope = null
 
-install = tryer (data, reason) -> log 'install'
+install = (data, reason) ->
 
-startup = tryer (data, reason) ->
-  log 'startup'
-
+startup = (data, reason) ->
   requireScope = {}
   Services.scriptloader.loadSubScript \
         "#{ data.resourceURI.spec }lib/require.js",
@@ -48,12 +35,10 @@ startup = tryer (data, reason) ->
   requireScope.require 'ui/ui'
 
 
-shutdown = tryer (data, reason) ->
-  log 'shutdown'
-
+shutdown = (data, reason) ->
   do onShutdown.execute
 
   onShutdown = null
   requireScope = null
 
-uninstall = tryer (data, reason) -> log 'uninstall'
+uninstall = (data, reason) ->
