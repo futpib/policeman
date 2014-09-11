@@ -215,9 +215,9 @@ class DomainSelectionButtons extends RadioButtons
   class DomainTree
     constructor: ->
       # noname root domain
-      @t = [{label: '', hits: 0, directHits: 0, descendantDirectHits: 0, children: []}]
+      @root = {label: '', hits: 0, directHits: 0, descendantDirectHits: 0, children: []}
     hit: (domain) ->
-      tree = @t
+      tree = [@root]
       labels = domain.split('.').concat ''
       track = []
       while (label = labels.pop()) != undefined
@@ -236,45 +236,60 @@ class DomainSelectionButtons extends RadioButtons
           target.directHits += 1
       return
     noop = ->
-    walkIn: (in_, tree=@t) ->
+    walkIn: (in_, tree=[@root]) ->
       for n in tree
         in_ n, @walkIn(in_, n.children)
-    walk: (pre, post=noop, tree=@t) ->
+    walk: (pre, post=noop, tree=[@root]) ->
       for n in tree
         skip = pre n
         if not skip
           @walk pre, post, n.children
         post n
-    OMIT_DESCENDANTS_THRESHOLD = 2
+    OMIT_DESCENDANTS_THRESHOLD = 4
     OMIT_DESCENDANTS_DEPTH = 2 # do not omit second and higher level domains
     shouldOmitDescendants = (node, depth) ->
       (node.descendantDirectHits > OMIT_DESCENDANTS_THRESHOLD) \
       and (depth > OMIT_DESCENDANTS_DEPTH)
     getHitDomains: ->
-      @walkIn (n) -> n.children.sort (a, b) -> b.hits - a.hits
-      result = []
-      depth = 0
-      indentation = 0
+      reducedTree = [root = {domain: '', hits: @root.hits, children: []}]
+
+      nodesStack = [root]
       labels = []
       @walk ((node) ->
-        depth += 1
         labels.unshift node.label
+        depth = labels.length
         omit = shouldOmitDescendants node, depth
         if node.directHits or omit
-          indentation += 1
-          result.push [
-            indentation,
-            labels.join('.').slice(0, -1) # slice off trailing '.'
-          ]
-          if omit
-            return true
-        return false
+          rnode = {
+            domain: labels.join('.').slice(0, -1) # slice off trailing '.'
+            hits: node.hits
+            children: []
+          }
+          nodesStack[0].children.push rnode
+          nodesStack.unshift rnode if not omit
+        return omit
       ), ((node) ->
+        depth = labels.length
+        if node.directHits and not shouldOmitDescendants node, depth
+          nodesStack.shift()
         labels.shift()
-        if node.directHits or (shouldOmitDescendants node, depth)
-          indentation -= 1
-        depth -= 1
       )
+
+      @walkIn ((n) -> n.children.sort (a, b) -> b.hits - a.hits), reducedTree
+
+      result = []
+      indentation = 0
+      @walk ((n) ->
+        indentation += 1
+        result.push [
+          indentation,
+          n.domain,
+        ]
+        return false
+      ), ((n) ->
+        indentation -= 1
+      ), root.children
+
       return result
 
   _createButton: (doc, description) ->
