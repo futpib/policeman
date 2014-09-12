@@ -89,7 +89,7 @@ class DestinationSubmenu
               popup.appendChild createElement doc, 'menuitem',
                 label: l10n "panelview_allow_origin_destination_#{l}", origin, destination
                 event_command: ->
-                  rs.allow origin, destination
+                  rs.allow origin, destination, rs.WILDCARD_TYPE
                   panelview.autoreload.require()
 
           popup.appendChild createElement doc, 'menuitem',
@@ -140,7 +140,7 @@ affectedDestinations = new (class extends ContainerPopulation
 
 suspendCheckbox =
   id: 'policeman-panelview-suspend-operation'
-  add: (doc) ->
+  setup: (doc) ->
     cb = doc.getElementById @id
     cb.addEventListener 'command', ->
       if @getAttribute('checked') == 'true'
@@ -153,7 +153,7 @@ suspendCheckbox =
 
 reloadCheckbox =
   id: 'policeman-panelview-reload-page'
-  add: (doc) ->
+  setup: (doc) ->
     cb = doc.getElementById @id
     cb.addEventListener 'command', ->
       if @getAttribute('checked') == 'true'
@@ -164,17 +164,10 @@ reloadCheckbox =
     cb = doc.getElementById @id
     cb.setAttribute 'checked', prefs.get AUTORELOAD_PREF
 
-  enable: (doc) ->
-    cb = doc.getElementById @id
-    cb.setAttribute 'disabled', false
-  disable: (doc) ->
-    cb = doc.getElementById @id
-    cb.setAttribute 'disabled', false
-
 
 preferencesButton =
   id: 'policeman-panelview-open-preferences'
-  add: (doc) ->
+  setup: (doc) ->
     btn = doc.getElementById @id
     btn.addEventListener 'command', ->
       tabs.open 'chrome://policeman/content/preferences.xul#user-rulesets'
@@ -211,8 +204,12 @@ exports.panelview = panelview =
 
   onHiding: (e) ->
     doc = e.target.ownerDocument
-    if @autoreload.enabled() and @autoreload.required()
-      tabs.reload tabs.getCurrent()
+    # The ViewHiding event fires before any oncommand handler requires autoreload
+    # (autoreload.require()), so we have to delay autoreload.required test.
+    Services.tm.currentThread.dispatch (=>
+      if @autoreload.enabled() and @autoreload.required()
+        tabs.reload tabs.getCurrent()
+    ), Ci.nsIEventTarget.DISPATCH_NORMAL
     @cleanupUI doc
     @visible = false
 
@@ -225,9 +222,9 @@ exports.panelview = panelview =
     doc.getElementById("PanelUI-multiView").appendChild(view)
 
     overlayQueue.add doc, 'chrome://policeman/content/panelview.xul', =>
-      suspendCheckbox.add doc
-      reloadCheckbox.add doc
-      preferencesButton.add doc
+      suspendCheckbox.setup doc
+      reloadCheckbox.setup doc
+      preferencesButton.setup doc
 
     loadSheet doc.defaultView, @styleURI
 
@@ -249,12 +246,9 @@ exports.panelview = panelview =
     enable: -> prefs.set AUTORELOAD_PREF, true
     disable: -> prefs.set AUTORELOAD_PREF, false
     required: -> @_reloadRequired
-    require: (doc) ->
-      @_reloadRequired = true
-      reloadCheckbox.enable doc
-    onShowing: (doc) ->
-      @_reloadRequired = false
-      reloadCheckbox.disable doc
+    require: -> @_reloadRequired = true
+    onShowing: -> @_reloadRequired = false
+
 
 
 do panelview.init
