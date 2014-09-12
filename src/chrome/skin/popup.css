@@ -13,6 +13,10 @@
 
   .policeman-popup-button {
     margin: 1px;
+    box-sizing: border-box;
+  }
+  .policeman-popup-button-box {
+    border: 1px solid rgba(0, 0, 0, 0);
   }
   .policeman-popup-button, .policeman-popup-button-box {
     border-radius: 4px;
@@ -20,15 +24,18 @@
   .policeman-popup-button[disabled="false"][selected="true"]
   .policeman-popup-button-box,
   .policeman-popup-button[disabled="false"][checked="true"]
-  .policeman-popup-button-box {
+  .policeman-popup-button-box{
+    border: 1px solid rgba(0, 0, 0, 0.5);
     background: rgba(255, 255, 255, 0.25);
   }
   .policeman-popup-button[disabled="false"]
   .policeman-popup-button-box:hover {
+    border: 1px solid rgba(0, 0, 0, 0.25);
     background: rgba(255, 255, 255, 0.15);
   }
   .policeman-popup-button[disabled="false"]
   .policeman-popup-button-box:active {
+    border: 1px solid rgba(0, 0, 0, 0.1);
     background: rgba(255, 255, 255, 0.05);
   }
   .policeman-popup-button[disabled="false"]
@@ -40,8 +47,17 @@
     background: rgba(0, 0, 0, 0.1);
   }
 
+  .policeman-popup-value-rotation-button[disabled="false"]
+  .policeman-popup-button-box {
+    border: 1px solid rgba(0, 0, 0, 0.25);
+  }
+  #policeman-popup-ruleset-edit-container
+  .policeman-popup-button-box {
+    border: 1px solid rgba(0, 0, 0, 0.25);
+  }
+
   #policeman-popup label.policeman-popup-label-aligned-like-button {
-    margin-top: 2px; /* keep it aligned with button labels */
+    margin-top: 3px; /* keep it aligned with button labels */
   }
 
   #policeman-popup-temporary-edit-container .policeman-existing-rules,
