@@ -21,27 +21,27 @@
 { l10n } = require 'l10n'
 
 
-POSITIVE_COLOR_PREF = 'ui.panelview.positiveTextColor'
-NEGATIVE_COLOR_PREF = 'ui.panelview.negativeTextColor'
+POSITIVE_BG_PREF = 'ui.panelview.positiveBgColor'
+NEGATIVE_BG_PREF = 'ui.panelview.negativeBgColor'
 
 
 colorGetter = (c) -> new Color c
 colorSetter = (c) -> c.toCssString()
-prefs.define POSITIVE_COLOR_PREF,
+prefs.define POSITIVE_BG_PREF,
   default: '#0f02'
   get: colorGetter
   set: colorSetter
-prefs.define NEGATIVE_COLOR_PREF,
+prefs.define NEGATIVE_BG_PREF,
   default: '#f002'
   get: colorGetter
   set: colorSetter
 
-positiveTextColor = prefs.get POSITIVE_COLOR_PREF
-prefs.onChange POSITIVE_COLOR_PREF, ->
-  positiveTextColor = prefs.get POSITIVE_COLOR_PREF
-negativeTextColor = prefs.get NEGATIVE_COLOR_PREF
-prefs.onChange NEGATIVE_COLOR_PREF, ->
-  negativeTextColor = prefs.get NEGATIVE_COLOR_PREF
+positiveBgColor = prefs.get POSITIVE_BG_PREF
+prefs.onChange POSITIVE_BG_PREF, ->
+  positiveBgColor = prefs.get POSITIVE_BG_PREF
+negativeBgColor = prefs.get NEGATIVE_BG_PREF
+prefs.onChange NEGATIVE_BG_PREF, ->
+  negativeBgColor = prefs.get NEGATIVE_BG_PREF
 
 
 prefs.define AUTORELOAD_PREF = 'ui.panelview.autoReloadPageOnHiding',
@@ -70,9 +70,9 @@ class DestinationSubmenu
     menu = createElement doc, 'menu',
       class: 'subviewbutton'
       label: destination
-      style: "color: #{
-        positiveTextColor.mix(
-          negativeTextColor, allowRatio
+      style: "background: #{
+        positiveBgColor.mix(
+          negativeBgColor, allowRatio
         ).toCssString()
       };"
     popup = createElement doc, 'menupopup'
