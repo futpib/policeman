@@ -1,5 +1,4 @@
 content   policeman chrome/content/
 skin      policeman classic/1.0 chrome/skin/
 
-locale    policeman en-US chrome/locale/en-US/
-locale    policeman ru-RU chrome/locale/ru-RU/
+locale    policeman ${locale} chrome/locale/${locale}/

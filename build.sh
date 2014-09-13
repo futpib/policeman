@@ -12,6 +12,7 @@ gen () {
   copy && \
   make_coffee && \
   make_jison && \
+  manifest_locales && \
   properties && \
   svg || \
   exit 1
@@ -55,6 +56,18 @@ svg () {
   for f in "$build_root/icon.svg"
   do
     inkscape -z -e ${f/%.svg/.png} -w 64 -h 64 ${f} >/dev/null
+  done
+}
+
+manifest_locales () {
+  echo "Listing locales in chrome.manifest..."
+  format="$(grep '^locale\s' "$build_root/chrome.manifest")"
+  sed -ni '/^locale\s/!p' $build_root/chrome.manifest
+  locales="$(find $build_root/chrome/locale/ \
+                  -mindepth 1 -maxdepth 1 -type d -printf "%f\n")"
+  for l in $locales
+  do
+    echo ${format//\$\{locale\}/$l} >> "$build_root/chrome.manifest"
   done
 }
 
