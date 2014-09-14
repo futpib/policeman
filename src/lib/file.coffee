@@ -26,7 +26,7 @@ exports.path = path = new class
       return base
     throw new Error "path.join: wrong base path type: #{typeof base}"
 
-  localFileRe = /^(\/|[A-Z]+:(\\|\/){2})/i
+  localFileRe = /^(\/|[A-Z]+:(\\|\/){2})(^.+:(\\|\/){2})/i
 
   toURI: (x) ->
     if x instanceof Ci.nsIURI
