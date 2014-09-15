@@ -30,7 +30,15 @@ exports.toolbarbutton = toolbarbutton =
         type:            'custom'
         defaultArea:     CustomizableUI.AREA_NAVBAR
         onBuild:         @onBuild.bind @
+    CustomizableUI.addListener
+        onWidgetAdded:   (id) => if id == @id then @onWidgetAdded arguments...
+        onWidgetRemoved: (id) => if id == @id then @onWidgetRemoved arguments...
     onShutdown.add => CustomizableUI.destroyWidget @id
+
+  _getAreaTypeSpecificWidget: (areaType=@wrapper.areaType) ->
+    if areaType == CustomizableUI.TYPE_MENU_PANEL
+      return panelview
+    return popup
 
   onBuild: (doc) ->
     btn = createElement doc, 'toolbarbutton',
@@ -40,19 +48,24 @@ exports.toolbarbutton = toolbarbutton =
       tooltiptext:     l10n 'toolbarbutton.tip'
       closemenu:       'none'
     btn.addEventListener 'command', (e) =>
-      inMenu = @wrapper.areaType == CustomizableUI.TYPE_MENU_PANEL
-      (if inMenu then panelview else popup).onToobarbuttonCommand e
+      @_getAreaTypeSpecificWidget().onToobarbuttonCommand e
     return btn
 
+  onWidgetAdded: (_, area) ->
+    areaWidget = @_getAreaTypeSpecificWidget CustomizableUI.getAreaType area
+    areaWidget.addUI w.document for w in windows.list
+
+  onWidgetRemoved: (_, area) ->
+    areaWidget = @_getAreaTypeSpecificWidget CustomizableUI.getAreaType area
+    areaWidget.removeUI w.document for w in windows.list
+
   addUI: (win) ->
-    panelview.addUI win.document
-    popup.addUI win.document
+    @_getAreaTypeSpecificWidget().addUI win.document
 
     loadSheet win, @styleURI
 
   removeUI: (win) ->
-    panelview.removeUI win.document
-    popup.removeUI win.document
+    @_getAreaTypeSpecificWidget().removeUI win.document
 
     removeSheet win, @styleURI
 
