@@ -9,6 +9,8 @@ l10n:
     description: "Allow internal requests and navigation"
 
 rules:
+  # Essentials
+
   * -> inline: ACCEPT
   internal -> internal: ACCEPT
 
@@ -28,6 +30,9 @@ rules:
 
   file -> (file|web): ACCEPT
 
+
+  # Compatibility and workarounds
+
   inline -> *:
     # Jetpack-based addons use 'data:application/vnd.mozilla.xul+xml,<window/>'
     # with an iframe for toolbar popups, let's not break that
@@ -37,3 +42,10 @@ rules:
       [path] "application/vnd.mozilla.xul+xml;"* -> *:
         [contentType] DOCUMENT: ACCEPT
 
+  * -> internal:
+    # This fixes a page with some nasty iframe-related script (an email at i.ua).
+    # I didn't understood the problem completely. The script had something about
+    # writing <iframe src="">'s contentDocument.innerHtml and setting it's size.
+    # And this rule happens to fix it.
+    [spec] * -> "about:blank":
+      [contentType] (DOCUMENT|SUBDOCUMENT): ACCEPT
