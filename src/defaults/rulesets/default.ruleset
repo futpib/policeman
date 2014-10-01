@@ -28,3 +28,12 @@ rules:
 
   file -> (file|web): ACCEPT
 
+  inline -> *:
+    # Jetpack-based addons use 'data:application/vnd.mozilla.xul+xml,<window/>'
+    # with an iframe for toolbar popups, let's not break that
+    [scheme] data -> *:
+      # Only allow that for chrome xul data documents
+      # Firefox won't load xul in content, so this check makes sence
+      [path] "application/vnd.mozilla.xul+xml;"* -> *:
+        [contentType] DOCUMENT: ACCEPT
+
