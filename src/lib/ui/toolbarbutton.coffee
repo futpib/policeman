@@ -20,11 +20,6 @@ exports.toolbarbutton = toolbarbutton =
   styleURI: Services.io.newURI 'chrome://policeman/skin/toolbar.css', null, null
 
   init: ->
-    @addUI(w) for w in windows.list
-    windows.onOpen.add @addUI.bind @
-    windows.onClose.add @removeUI.bind @
-    onShutdown.add => @removeUI(w) for w in windows.list
-
     @wrapper = CustomizableUI.createWidget
         id:              @id
         type:            'custom'
@@ -34,6 +29,11 @@ exports.toolbarbutton = toolbarbutton =
         onWidgetAdded:   (id) => if id == @id then @onWidgetAdded arguments...
         onWidgetRemoved: (id) => if id == @id then @onWidgetRemoved arguments...
     onShutdown.add => CustomizableUI.destroyWidget @id
+
+    @addUI(w) for w in windows.list
+    windows.onOpen.add @addUI.bind @
+    windows.onClose.add @removeUI.bind @
+    onShutdown.add => @removeUI(w) for w in windows.list
 
   _getAreaTypeSpecificWidget: (areaType=@wrapper.areaType) ->
     if areaType == CustomizableUI.TYPE_MENU_PANEL
