@@ -84,6 +84,8 @@ exports.DestinationInfo = class DestinationInfo extends UriInfo
     https: true
     http: true
     ftp: true
+    wss: true
+    ws: true
   classifyScheme: (s) -> if s of schemeWebDestination \
     then 'web' \
     else super arguments...
