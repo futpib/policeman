@@ -141,3 +141,7 @@ exports.defaults = defaults = (o, k, v) ->
   unless k of o
     o[k] = v
   return o[k]
+
+
+exports.runAsync = runAsync = (f) ->
+  Services.tm.currentThread.dispatch f, Ci.nsIEventTarget.DISPATCH_NORMAL

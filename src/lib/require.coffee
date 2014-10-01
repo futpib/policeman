@@ -63,7 +63,15 @@ requireComponent =
 
   init: ->
     @wrappedJSObject = @
-    @register()
+    try
+      @register()
+    catch e
+      if e.result == Cr.NS_ERROR_FACTORY_EXISTS
+        # too early to init now, the old version didn't finish removing itself
+        Services.tm.currentThread.dispatch (@init.bind @),
+                                            Ci.nsIEventTarget.DISPATCH_NORMAL
+        return
+      throw e
     onShutdown.add @unregister.bind @
 
   register: ->

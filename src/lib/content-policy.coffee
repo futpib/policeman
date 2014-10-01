@@ -6,6 +6,9 @@ catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
 { memo } = require 'request-memo'
 { cache } = require 'request-cache'
 { blockedElements } = require 'blocked-elements'
+{
+  runAsync
+} = require 'utils'
 
 registrar = Cm.QueryInterface Ci.nsIComponentRegistrar
 
@@ -16,7 +19,14 @@ policy =
   xpcom_categories: ["content-policy"]
 
   init: ->
-    @register()
+    try
+      @register()
+    catch e
+      if e.result == Cr.NS_ERROR_FACTORY_EXISTS
+        # too early to init now, the old version didn't finish removing itself
+        runAsync @init.bind @
+        return
+      throw e
     onShutdown.add @unregister.bind @
 
   register: ->
@@ -30,9 +40,7 @@ policy =
       catMan.deleteCategoryEntry category, @contractID, false
 
     # This needs to run asynchronously, see ff bug 753687
-    Services.tm.currentThread.dispatch \
-      (=> registrar.unregisterFactory @classID, @),
-      Ci.nsIEventTarget.DISPATCH_NORMAL
+    runAsync (=> registrar.unregisterFactory @classID, @)
 
   # nsIContentPolicy interface implementation
   shouldLoad: (contentType, destUri, originUri, \
