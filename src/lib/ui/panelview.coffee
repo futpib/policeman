@@ -1,5 +1,6 @@
 
 
+{ windows } = require 'windows'
 { tabs } = require 'tabs'
 { memo } = require 'request-memo'
 { manager } = require 'ruleset/manager'
@@ -179,9 +180,15 @@ exports.panelview = panelview =
   styleURI: Services.io.newURI 'chrome://policeman/skin/panelview.css', null, null
 
   init: ->
+    @addUI(w) for w in windows.list
+    windows.onOpen.add @addUI.bind @
+    windows.onClose.add @removeUI.bind @
+    onShutdown.add => @removeUI(w) for w in windows.list
+
     tabs.onSelect.add (t) =>
       if @visible
         @updateUI t.ownerDocument
+
 
   onToobarbuttonCommand: (e) ->
     btn = e.target
@@ -213,7 +220,8 @@ exports.panelview = panelview =
     @cleanupUI doc
     @visible = false
 
-  addUI: (doc) ->
+  addUI: (win) ->
+    doc = win.document
     view = createElement doc, "panelview",
         id: @id
         flex: 1
@@ -226,12 +234,13 @@ exports.panelview = panelview =
       reloadCheckbox.setup doc
       preferencesButton.setup doc
 
-    loadSheet doc.defaultView, @styleURI
+    loadSheet win, @styleURI
 
-  removeUI: (doc) ->
+  removeUI: (win) ->
+    doc = win.document
     view = doc.getElementById @id
     view.parentNode.removeChild view
-    removeSheet doc.defaultView, @styleURI
+    removeSheet win, @styleURI
 
   updateUI: (doc) ->
     suspendCheckbox.update doc

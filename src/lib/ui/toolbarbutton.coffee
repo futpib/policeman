@@ -25,9 +25,6 @@ exports.toolbarbutton = toolbarbutton =
         type:            'custom'
         defaultArea:     CustomizableUI.AREA_NAVBAR
         onBuild:         @onBuild.bind @
-    CustomizableUI.addListener
-        onWidgetAdded:   (id) => if id == @id then @onWidgetAdded arguments...
-        onWidgetRemoved: (id) => if id == @id then @onWidgetRemoved arguments...
     onShutdown.add => CustomizableUI.destroyWidget @id
 
     @addUI(w) for w in windows.list
@@ -51,22 +48,10 @@ exports.toolbarbutton = toolbarbutton =
       @_getAreaTypeSpecificWidget().onToobarbuttonCommand e
     return btn
 
-  onWidgetAdded: (_, area) ->
-    areaWidget = @_getAreaTypeSpecificWidget CustomizableUI.getAreaType area
-    areaWidget.addUI w.document for w in windows.list
-
-  onWidgetRemoved: (_, area) ->
-    areaWidget = @_getAreaTypeSpecificWidget CustomizableUI.getAreaType area
-    areaWidget.removeUI w.document for w in windows.list
-
   addUI: (win) ->
-    @_getAreaTypeSpecificWidget().addUI win.document
-
     loadSheet win, @styleURI
 
   removeUI: (win) ->
-    @_getAreaTypeSpecificWidget().removeUI win.document
-
     removeSheet win, @styleURI
 
 do toolbarbutton.init

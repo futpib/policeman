@@ -12,6 +12,7 @@
 } = require 'utils'
 { overlayQueue } = require 'ui/overlay-queue'
 
+{ windows } = require 'windows'
 { tabs } = require 'tabs'
 { memo } = require 'request-memo'
 { manager } = require 'ruleset/manager'
@@ -876,6 +877,11 @@ exports.popup = popup =
   styleURI: Services.io.newURI 'chrome://policeman/skin/popup.css', null, null
 
   init: ->
+    @addUI(w) for w in windows.list
+    windows.onOpen.add @addUI.bind @
+    windows.onClose.add @removeUI.bind @
+    onShutdown.add => @removeUI(w) for w in windows.list
+
     tabs.onSelect.add (t) =>
       if @_visible
         @cleanupUI t.ownerDocument
@@ -919,7 +925,8 @@ exports.popup = popup =
       tabs.reload tabs.getCurrent()
     @_visible = false
 
-  addUI: (doc) ->
+  addUI: (win) ->
+    doc = win.document
     overlayQueue.add doc, 'chrome://policeman/content/popup.xul', =>
       panel = doc.getElementById @id
       panel.addEventListener 'popupshown', @onShowing.bind @
@@ -927,7 +934,8 @@ exports.popup = popup =
 
     loadSheet doc.defaultView, @styleURI
 
-  removeUI: (doc) ->
+  removeUI: (win) ->
+    doc = win.document
     removeNode doc.getElementById @id
     removeSheet doc.defaultView, @styleURI
 
