@@ -717,9 +717,9 @@ class RulesetEditButtons extends ContainerPopulation
 
     if selectedOrigin and selectedDestination
       # show rules that apply to selected origin and destination only
-      for type in supportedTypes
-        rs.checkOrder selectedOrigin, selectedDestination, type, (o, d, t) =>
-          decision = rs.checkWithoutSuperdomains o, d, t
+      rs.superdomainsCheckOrder selectedOrigin, selectedDestination, (o, d) =>
+        for t in supportedTypes
+          decision = rs.lookup o, d, t
           if decision isnt null
             rules.appendChild @_createRuleWidget doc,
               ruleset: rs
@@ -727,33 +727,42 @@ class RulesetEditButtons extends ContainerPopulation
               destination: d
               type: t
               decision: decision
-          return undefined
+        return
     else
       # show rules that influenced anything in the current tab
       # filtered by selected origin or destination if any
-      checkThem = Object.create null # origin -> dest -> type -> true
+      # ordered by priority
+      rulesSet = Object.create null # origin -> dest -> type -> index
+      rulesList = [] # [[o, d, t, decision]]
+      index = 0
       for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
         continue unless (o.schemeType == d.schemeType == 'web')
         continue if selectedOrigin and not (isSuperdomain selectedOrigin, o.host)
         continue if selectedDestination and not (isSuperdomain selectedDestination, d.host)
-        for type in supportedTypes
-          rs.checkOrder o.host, d.host, type, (o, d, t) =>
-            defaults checkThem, o, Object.create null
-            defaults checkThem[o], d, Object.create null
-            defaults checkThem[o][d], t, true
-            return undefined
-      for odom, dests of checkThem
-        for ddom, types of dests
-          for type in supportedTypes
-            if types[type]
-              decision = rs.checkWithoutSuperdomains odom, ddom, type
-              if decision isnt null
-                rules.appendChild @_createRuleWidget doc,
-                  ruleset: rs
-                  origin: odom
-                  destination: ddom
-                  type: type
-                  decision: decision
+        rs.superdomainsCheckOrder o.host, d.host, (o, d) =>
+          for t in supportedTypes
+            decision = rs.lookup o, d, t
+            continue if decision is null
+            defaults rulesSet, o, Object.create null
+            defaults rulesSet[o], d, Object.create null
+            if t of rulesSet[o][d]
+              delete rulesList[rulesSet[o][d][t]]
+              rulesList[index] = [o, d, t, decision]
+            else
+              rulesList[index] = [o, d, t, decision]
+            rulesSet[o][d][t] = index
+            index += 1
+          return
+      for x in rulesList
+        continue unless x
+        [origin, destination, type, decision] = x
+        rules.appendChild @_createRuleWidget doc, {
+          ruleset: rs
+          origin
+          destination
+          type
+          decision
+        }
 
     fragment.appendChild rules
 

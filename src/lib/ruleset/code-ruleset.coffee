@@ -85,6 +85,14 @@ exports.DeepLookupRS = class DeepLookupRS extends LookupRS
     ((l, k) -> if k of l then depthLoop_.continue else false), \
     (-> true)
 
+  lookup: depthLoop_ (l, k, eta) ->
+    if k of l
+      if eta
+        depthLoop_.continue
+      else
+        l[k]
+    else null
+
   revoke_ = (keys, lookup) ->
     return if not keys.length
     k = keys.shift()
@@ -127,24 +135,24 @@ exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
   reject:     (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
   isRejected: (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
   has:        (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
+  lookup:     (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
   revoke:     (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
 
-  checkOrder: (oh, dh, type, f) ->
-    for o in superdomains oh
-      for d in superdomains dh
-        res = f.call @, o, d, type
+  wildLookup: (o, d, t=@WILDCARD_TYPE) ->
+    decision = @lookup o, d, t
+    return decision if typeof decision == 'boolean'
+    return @lookup o, d, @WILDCARD_TYPE
+
+  superdomainsCheckOrder: (oh, dh, f) ->
+    for d in superdomains dh
+      for o in superdomains oh
+        res = f.call @, o, d
         return res if typeof res == 'boolean'
     return null
 
-  checkWithoutSuperdomains: (o, d, t=@WILDCARD_TYPE) ->
-    if o of @_lookup
-      if d of @_lookup[o]
-        if t of @_lookup[o][d]
-          return @_lookup[o][d][t]
-    return null
-
   checkWithSuperdomains: (oh, dh, t=@WILDCARD_TYPE) ->
-    return @checkOrder oh, dh, t, @checkWithoutSuperdomains
+    return @superdomainsCheckOrder oh, dh, (o, d) =>
+      @wildLookup o, d, t
 
   theContentTypeMap =
     'OBJECT_SUBREQUEST': 'OBJECT'
@@ -153,7 +161,5 @@ exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
   check: (o, d, c) ->
     return null unless (o.schemeType == d.schemeType == 'web')
     contentType = @_contentTypeMap c.contentType
-    decision = @checkWithSuperdomains o.host, d.host, contentType
-    return decision if decision isnt null
-    return @checkWithSuperdomains o.host, d.host, @WILDCARD_TYPE
+    return @checkWithSuperdomains o.host, d.host, contentType
 
