@@ -72,6 +72,9 @@
     margin: 1px;
     border-radius: 4px;
   }
+  .policeman-popup-rule-label {
+    margin-top: 2px;
+  }
   .policeman-popup-rule-reject {
     background: rgba(255, 0, 0, 0.1);
   }
