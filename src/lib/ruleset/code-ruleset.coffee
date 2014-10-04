@@ -49,21 +49,6 @@ exports.SavableRS = class SavableRS extends ModifiableRS
   save: -> prefs.set @_pref, @_marshal() if @_pref
   load: -> @_unmarshal prefs.get @_pref if @_pref
 
-exports.TernaryRS = class TernaryRS extends SavableRS
-  constructor: (pref) ->
-    @revokeAll()
-    super pref
-  _marshal: -> @_value
-  _unmarshal: (o) -> @_value = o
-  isEmpty: -> not @_value
-  allow: -> @_value = true
-  isAllowed: -> @_value == true
-  reject: -> @_value = false
-  isRejected: -> @_value == false
-  revoke: -> @_value = null
-  revokeAll: -> @_value = null
-  check: -> @_value
-
 exports.LookupRS = class LookupRS extends SavableRS
   constructor: (pref) ->
     @revokeAll()
@@ -78,33 +63,6 @@ exports.LookupRS = class LookupRS extends SavableRS
   isRejected: (x) -> (x of @_lookup) and (not @_lookup[x])
   has: (x) -> x of @_lookup
   revoke: (x) -> delete @_lookup[x]
-
-exports.Lookup2RS = class Lookup2RS extends LookupRS
-  has: (a, b) ->
-    if a of @_lookup
-      if b of @_lookup[a]
-        return true
-    return false
-  allow: (a, b) ->
-    defaults @_lookup, a, Object.create null
-    defaults @_lookup[a], b, Object.create null
-    @_lookup[a][b] = true
-  isAllowed: (a, b) ->
-    if @has a, b
-      return @_lookup[a][b]
-    return false
-  reject: (a, b) ->
-    defaults @_lookup, a, Object.create null
-    defaults @_lookup[a], b, Object.create null
-    @_lookup[a][b] = false
-  isRejected: (a, b) ->
-    if @has a, b
-      return not @_lookup[a][b]
-    return false
-  revoke: (a, b) ->
-    delete @_lookup[a][b]
-    if not Object.keys(@_lookup[a]).length
-      delete @_lookup[a]
 
 exports.DeepLookupRS = class DeepLookupRS extends LookupRS
   depthLoop_ = (iter, after) -> (keys) ->
@@ -160,31 +118,6 @@ exports.DeepLookupRS = class DeepLookupRS extends LookupRS
         rows.push [k].concat r
     return rows
   toTable: -> toTableRec @_lookup
-
-
-exports.DomainPairRS = class DomainPairRS extends Lookup2RS
-  checkOrder: (oh, dh, f) ->
-    # order has to be defined separately and publicly for ui to be able to
-    # depict it truthfully
-    for o in superdomains oh
-      for d in superdomains dh
-        res = f.call @, o, d
-        if typeof res == 'boolean'
-          return res
-    return null
-
-  checkWithoutSuperdomains: (o, d) ->
-    if o of @_lookup
-      if d of @_lookup[o]
-        return @_lookup[o][d]
-    return null
-
-  checkWithSuperdomains: (oh, dh) ->
-    return @checkOrder oh, dh, @checkWithoutSuperdomains
-
-  check: (o, d, c) ->
-    return null unless (o.schemeType == d.schemeType == 'web')
-    return @checkWithSuperdomains o.host, d.host, c
 
 exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
   WILDCARD_TYPE: '_ANY_'
