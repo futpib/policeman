@@ -163,7 +163,10 @@ class BlockedFrames extends BlockedElements
 class BlockedObjects extends BlockedElements
   isBlocked: (elem) ->
     (super elem) and 'true' == elem.getAttribute 'policeman-blocked-object'
-  _filter: (o, d, c) -> c.nodeName in ['object', 'embed'] and super arguments...
+  _filter: (o, d, c) ->
+    return c.nodeName in ['object', 'embed'] \
+           and c.contentType == 'OBJECT' \ # do not process OBJECT_SUBREQUESTs
+           and super arguments...
   _filteredProcess: (elem, o, d, c) ->
     super elem, o, d, c
     elem.setAttribute 'policeman-blocked-object', 'true'
