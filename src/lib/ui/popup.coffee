@@ -385,11 +385,23 @@ destinationSelection = new (class extends DomainSelectionButtons
 
 SUPPORTED_TYPES = [
   'IMAGE',
+  'MEDIA',
   'STYLESHEET',
   'SCRIPT',
   'OBJECT',
   'SUBDOCUMENT',
 ]
+
+localizeTypeLookup =
+  IMAGE: l10n 'popup_type_image'
+  MEDIA: l10n 'popup_type_media'
+  STYLESHEET: l10n 'popup_type_stylesheet'
+  SCRIPT: l10n 'popup_type_script'
+  SUBDOCUMENT: l10n 'popup_type_subdocument'
+  OBJECT: l10n 'popup_type_object'
+localizeTypeLookup[WILDCARD_TYPE] = l10n 'popup_type_wildcard'
+localizeType = (t) -> localizeTypeLookup[t]
+# also check popup_filter_* properties when changing that ^^^
 
 
 categorizeRequest = (o, d, c) ->
@@ -530,15 +542,6 @@ rejectedList = new (class extends FilteredRequestList
   requests: ->
     super().filter ([o,d,c,decision]) -> decision is false
 ) 'policeman-popup-rejected-requests-container', rejectedFilter
-
-localizeTypeLookup =
-  IMAGE: l10n 'popup_type_image'
-  STYLESHEET: l10n 'popup_type_stylesheet'
-  SCRIPT: l10n 'popup_type_script'
-  SUBDOCUMENT: l10n 'popup_type_subdocument'
-  OBJECT: l10n 'popup_type_object'
-localizeTypeLookup[WILDCARD_TYPE] = l10n 'popup_type_wildcard'
-localizeType = (t) -> localizeTypeLookup[t]
 
 class RulesetEditButtons extends ContainerPopulation
   constructor: (containerId, @_rulesetId) ->

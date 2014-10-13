@@ -15,6 +15,7 @@ WILDCARD_TYPE = DomainDomainTypeRS::WILDCARD_TYPE
 
 localizeTypeLookup =
   IMAGE: l10n 'preferences_type_image'
+  MEDIA: l10n 'preferences_type_media'
   STYLESHEET: l10n 'preferences_type_stylesheet'
   SCRIPT: l10n 'preferences_type_script'
   SUBDOCUMENT: l10n 'preferences_type_subdocument'

@@ -97,6 +97,7 @@
           <menupopup>
             <menuitem label="&preferences_custom_rule.type.wildcard;" value="_ANY_"/>
             <menuitem label="&preferences_custom_rule.type.image;" value="IMAGE"/>
+            <menuitem label="&preferences_custom_rule.type.media;" value="MEDIA"/>
             <menuitem label="&preferences_custom_rule.type.stylesheet;" value="STYLESHEET"/>
             <menuitem label="&preferences_custom_rule.type.script;" value="SCRIPT"/>
             <menuitem label="&preferences_custom_rule.type.object;" value="OBJECT"/>
