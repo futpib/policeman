@@ -4,7 +4,7 @@
 
   <Description about="urn:mozilla:install-manifest">
     <em:id>policeman@futpib.addons.mozilla.org</em:id>
-    <em:version>0.6</em:version>
+    <em:version>0.7</em:version>
     <em:type>2</em:type>
     <em:bootstrap>true</em:bootstrap>
     <em:optionsType>3</em:optionsType>
