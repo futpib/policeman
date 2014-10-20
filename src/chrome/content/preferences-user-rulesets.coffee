@@ -79,9 +79,15 @@ class AddRuleWidget
     @_originTextbox = $ "##{ @_idPrefix }-origin-domain"
     @_destinationTextbox = $ "##{ @_idPrefix }-destination-domain"
 
-    validateDomain = (textbox) ->
-      str = textbox.value
-      return str if /^(([a-z]+\.)+[a-z]+)?$/.test str
+    webHostRe = ///
+      ^(
+        ([a-z0-9][a-z0-9-]*\.)+[a-z]+ # something like a domain name
+        |([0-9]{1,3}\.){3}[0-9]{1,3}  # or ip4 address
+      )?$
+    ///i
+    validateHost = (textbox) ->
+      str = textbox.value.toLowerCase()
+      return str if webHostRe.test str
       textbox.select()
       textbox.focus()
       return null
@@ -90,8 +96,8 @@ class AddRuleWidget
     @_addButton.addEventListener 'command', =>
       allowReject = @_decisionList.selectedItem.value
       type = @_typeList.selectedItem.value
-      origin = validateDomain @_originTextbox
-      destination = validateDomain @_destinationTextbox
+      origin = validateHost @_originTextbox
+      destination = validateHost @_destinationTextbox
       return if origin is null or destination is null
       manager.get(@_rulesetId)[allowReject](origin, destination, type)
       @_onAdd()
