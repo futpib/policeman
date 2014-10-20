@@ -47,7 +47,7 @@ array of values to be substituted into the first test.
 
 backrefRe = ///
   (^|[^\$])     # start of string or anything but $
-  (\$\$)*       # zero or even number of $
+  ((\$\$)*)     # zero or even number of $
   \$([\$\&]|[1-9][0-9]*) # backreference like those supported by str.replace
 ///g            # lacks ['`] support, groups can be used instead
 
@@ -75,7 +75,9 @@ exports.IntTest = class IntTest extends BackrefTest
   stringify: -> @int.toString()
 
 substituteBackrefs = (str, backrefsValues) ->
-  str.replace backrefRe, (_, start, evenBucks, ref) ->
+  str.replace backrefRe, (_, start, evenBucks, __, ref) ->
+    start = start or ''
+    evenBucks = evenBucks or ''
     bucks = evenBucks.slice(evenBucks.length / 2)
     if ref == '$'
       return start + bucks + '$'
