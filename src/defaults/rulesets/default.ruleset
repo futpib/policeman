@@ -49,3 +49,10 @@ rules:
     # And this rule happens to fix it.
     [spec] * -> "about:blank":
       [contentType] (DOCUMENT|SUBDOCUMENT): ACCEPT
+
+  internal -> web:
+    # Fixes KeeFox and probably other addons that comunicate with local services
+    # via websockets
+    [scheme] * -> ws:
+      [host] * -> (localhost|"127.0.0.1"):
+        [contentType] WEBSOCKET: ACCEPT
