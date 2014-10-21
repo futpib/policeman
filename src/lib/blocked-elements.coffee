@@ -139,7 +139,11 @@ class BlockedElements
 class BlockedImages extends BlockedElements
   isBlocked: (elem) ->
     (super elem) and 'true' == elem.getAttribute 'policeman-blocked-image'
-  _filter: (o, d, c) -> c.nodeName == 'img' and super arguments...
+  _filter: (o, d, c) ->
+    return super(arguments...) \
+           and c.nodeName == 'img' \
+           # filter off 1px counter images
+           and not (c._element.clientWidth == c._element.clientHeight == 1)
   _filteredProcess: (img, o, d, c) ->
     super img, o, d, c
     img.setAttribute 'policeman-blocked-image', 'true'
