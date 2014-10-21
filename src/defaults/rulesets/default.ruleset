@@ -56,3 +56,9 @@ rules:
     [scheme] * -> ws:
       [host] * -> (localhost|"127.0.0.1"):
         [contentType] WEBSOCKET: ACCEPT
+
+  web -> internal:
+    # LastPass shows a popup with a chrome://lastpass iframe
+    [scheme] * -> chrome:
+      [host] * -> lastpass:
+        [contentType] SUBDOCUMENT: ACCEPT
