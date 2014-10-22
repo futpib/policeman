@@ -26,7 +26,10 @@ exports.path = path = new class
       return base
     throw new Error "path.join: wrong base path type: #{typeof base}"
 
-  localFileRe = /^(\/|[A-Z]+:(\\|\/){2})(^.+:(\\|\/){2})/i
+  localFileRe = /// # used to determine if we need to prepend 'file://'
+    ^(\/|[A-Z]+:(\\|\/){2}) # match '/', 'A://a', 'A:\\a'
+    (?!.+:(\\|\/){2})       # but not 'file://A:\\a'
+  ///i
 
   toURI: (x) ->
     if x instanceof Ci.nsIURI
