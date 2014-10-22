@@ -62,3 +62,7 @@ rules:
     [scheme] * -> chrome:
       [host] * -> lastpass:
         [contentType] SUBDOCUMENT: ACCEPT
+
+  * -> *:
+    # Custom Buttons addon invents and handles it's own scheme
+    [scheme] * -> custombutton: ACCEPT
