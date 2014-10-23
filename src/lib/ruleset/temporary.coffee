@@ -15,6 +15,9 @@ exports.temporaryRuleSet = new (class extends DomainDomainTypeRS
   permissiveness: 'mixed'
   homepage: 'https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#temporary-rules-added-by-ui'
 
+  _sortagePref: null
+  _restrictToWebPref: 'ruleset.temporary.restrictToWeb'
+
   constructor: ->
     @_closures = new ClosuresRS
     super arguments...

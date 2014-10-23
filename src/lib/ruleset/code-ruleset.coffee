@@ -130,6 +130,15 @@ exports.DeepLookupRS = class DeepLookupRS extends LookupRS
 exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
   WILDCARD_TYPE: '_ANY_'
 
+  constructor: ->
+    super @_sortagePref
+    if @_restrictToWebPref
+      prefs.define @_restrictToWebPref,
+        default: false
+      @_restrictToWeb = prefs.get @_restrictToWebPref
+      prefs.onChange @_restrictToWebPref, =>
+        @_restrictToWeb = prefs.get @_restrictToWebPref
+
   allow:      (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
   isAllowed:  (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
   reject:     (o, d, t=@WILDCARD_TYPE) -> super [o, d, t]
@@ -159,7 +168,12 @@ exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
   _contentTypeMap: (t) -> theContentTypeMap[t] or t
 
   check: (o, d, c) ->
-    return null unless (o.schemeType == d.schemeType == 'web')
+    originIsWeb = o.schemeType == 'web'
+    destinationIsWeb = d.schemeType == 'web'
+    return null if @_restrictToWeb and not (originIsWeb and destinationIsWeb)
     contentType = @_contentTypeMap c.contentType
-    return @checkWithSuperdomains o.host, d.host, contentType
+    # for non-web URI schemes check only wildcard host
+    originHost = if originIsWeb then o.host else ''
+    destinationHost = if destinationIsWeb then d.host else ''
+    return @checkWithSuperdomains originHost, destinationHost, contentType
 

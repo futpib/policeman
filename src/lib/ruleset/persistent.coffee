@@ -13,7 +13,10 @@ exports.persistentRuleSet = persistentRuleSet = new (class extends DomainDomainT
   description: l10n 'pers_ruleset_description'
   permissiveness: 'mixed'
   homepage: 'https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#persistent-rules-added-by-ui'
-) 'ruleset.persistent.domainDomainType'
+
+  _sortagePref: 'ruleset.persistent.domainDomainType'
+  _restrictToWebPref: 'ruleset.persistent.restrictToWeb'
+)
 
 onShutdown.add persistentRuleSet.save.bind persistentRuleSet
 
