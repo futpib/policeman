@@ -2,6 +2,7 @@
 magic: policeman_ruleset
 version: 0.1
 id: "allow_same_second_level_domain"
+homepage: "https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#same-second-level-domain"
 
 l10n:
   en-US:

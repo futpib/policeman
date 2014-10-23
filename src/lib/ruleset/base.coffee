@@ -8,6 +8,8 @@ exports.RuleSet = class RuleSet # Base class for rulesets
       name: @name
       description: @description
 
+      homepage: @homepage
+
       # Possible values: 'mixed', 'permissive', 'restrictive'. A tip for user.
       permissiveness: @permissiveness or 'mixed'
     }

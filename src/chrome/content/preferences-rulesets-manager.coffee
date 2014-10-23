@@ -25,80 +25,88 @@ window.top.location.hash = "#rulesets-manager"
 
 RULESET_CONTENT_TYPE = 'application/x-policeman-ruleset'
 
-installedMenu =
-  init: ->
-    @$ = $ '#installed-ruleset-menu'
 
-    @_enableMenu = @$.getElementsByClassName('menu-enable')[0]
-    @_enableMenu.addEventListener 'command', @_enableCommand
+class ContextMenu
+  init: (@list, @menupopupSelector) ->
+    @$ = $ @menupopupSelector
+
+    @_visitHomepageMenu = @$.getElementsByClassName('menu-visit-homepage')[0]
+    @_visitHomepageMenu.addEventListener 'command', @_visitHomepageCommand.bind @
 
     @_viewSourceMenu = @$.getElementsByClassName('menu-view-source')[0]
-    @_viewSourceMenu.addEventListener 'command', @_viewSourceCommand
+    @_viewSourceMenu.addEventListener 'command', @_viewSourceCommand.bind @
+
+  _visitHomepageCommand: ->
+    id = InstalledRulesetRichListItem::getData @list.$.selectedItem
+    { homepage } = snapshot.getMetadata id
+    tabs.open homepage
+
+  _viewSourceCommand: ->
+    id = InstalledRulesetRichListItem::getData @list.$.selectedItem
+    { sourceUrl } = snapshot.getMetadata id
+    tabs.open "view-source:#{ sourceUrl }"
+
+  open: (x, y) ->
+    id = InstalledRulesetRichListItem::getData @list.$.selectedItem
+
+    rulesetMetadata = snapshot.getMetadata id
+    @_beforeOpen rulesetMetadata
+
+    @$.openPopupAtScreen x, y, true
+
+  _beforeOpen: ({sourceUrl, homepage}) ->
+    @_viewSourceMenu.disabled = not sourceUrl
+    @_visitHomepageMenu.disabled = not homepage
+
+
+installedMenu = new class extends ContextMenu
+  init: ->
+    super installedList, '#installed-ruleset-menu'
+
+    @_enableMenu = @$.getElementsByClassName('menu-enable')[0]
+    @_enableMenu.addEventListener 'command', @_enableCommand.bind @
 
     @_removeMenu = @$.getElementsByClassName('menu-uninstall')[0]
-    @_removeMenu.addEventListener 'command', @_removeCommand
+    @_removeMenu.addEventListener 'command', @_removeCommand.bind @
 
   _enableCommand: ->
-    id = InstalledRulesetRichListItem::getData installedList.$.selectedItem
+    id = InstalledRulesetRichListItem::getData @list.$.selectedItem
     snapshot.enable id
     updateUi()
 
   _removeCommand: ->
-    id = InstalledRulesetRichListItem::getData installedList.$.selectedItem
+    id = InstalledRulesetRichListItem::getData @list.$.selectedItem
     snapshot.uninstall id
     updateUi()
 
-  _viewSourceCommand: ->
-    id = InstalledRulesetRichListItem::getData installedList.$.selectedItem
-    { sourceUrl } = snapshot.getMetadata id
-    tabs.open "view-source:#{ sourceUrl }"
-
-  open: (x, y) ->
-    id = InstalledRulesetRichListItem::getData installedList.$.selectedItem
-
-    { sourceUrl } = snapshot.getMetadata id
+  _beforeOpen: (rulesetMetadata) ->
+    super rulesetMetadata
+    { id } = rulesetMetadata
 
     enabled = snapshot.enabled id
     embedded = id in snapshot.embeddedRuleSets
-
     @_enableMenu.disabled = enabled
-    @_viewSourceMenu.disabled = not sourceUrl
     @_removeMenu.disabled = embedded
 
-    @$.openPopupAtScreen x, y, true
 
-
-enabledMenu =
+enabledMenu = new class extends ContextMenu
   init: ->
-    @$ = $ '#enabled-ruleset-menu'
+    super enabledList, '#enabled-ruleset-menu'
 
     @_disableMenu = @$.getElementsByClassName('menu-disable')[0]
-    @_disableMenu.addEventListener 'command', @_disableCommand
-
-    @_viewSourceMenu = @$.getElementsByClassName('menu-view-source')[0]
-    @_viewSourceMenu.addEventListener 'command', @_viewSourceCommand
+    @_disableMenu.addEventListener 'command', @_disableCommand.bind @
 
   _disableCommand: ->
-    id = InstalledRulesetRichListItem::getData enabledList.$.selectedItem
+    id = InstalledRulesetRichListItem::getData @list.$.selectedItem
     snapshot.disable id
     updateUi()
 
-  _viewSourceCommand: ->
-    id = InstalledRulesetRichListItem::getData enabledList.$.selectedItem
-    { sourceUrl } = snapshot.getMetadata id
-    tabs.open "view-source:#{ sourceUrl }"
-
-  open: (x, y) ->
-    id = InstalledRulesetRichListItem::getData enabledList.$.selectedItem
-
-    { sourceUrl } = snapshot.getMetadata id
+  _beforeOpen: (rulesetMetadata) ->
+    super rulesetMetadata
+    { id } = rulesetMetadata
 
     enabled = snapshot.enabled id
-
     @_disableMenu.disabled = not enabled
-    @_viewSourceMenu.disabled = not sourceUrl
-
-    @$.openPopupAtScreen x, y, true
 
 
 class RulesetRichListItem

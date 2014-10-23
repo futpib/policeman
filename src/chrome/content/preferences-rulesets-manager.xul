@@ -13,13 +13,16 @@
   <popupset>
     <menupopup id="installed-ruleset-menu">
       <menuitem class="menu-enable" label="&preferences_enable;"/>
-      <menuitem class="menu-view-source" label="&preferences_view_source;"/>
-      <menuseparator/>
       <menuitem class="menu-uninstall" label="&preferences_uninstall;"/>
+      <menuseparator/>
+      <menuitem class="menu-view-source" label="&preferences_view_source;"/>
+      <menuitem class="menu-visit-homepage" label="&preferences_visit_homepage;"/>
     </menupopup>
     <menupopup id="enabled-ruleset-menu">
       <menuitem class="menu-disable" label="&preferences_disable;"/>
+      <menuseparator/>
       <menuitem class="menu-view-source" label="&preferences_view_source;"/>
+      <menuitem class="menu-visit-homepage" label="&preferences_visit_homepage;"/>
     </menupopup>
   </popupset>
 

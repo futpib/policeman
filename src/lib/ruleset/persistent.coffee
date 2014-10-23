@@ -12,6 +12,7 @@ exports.persistentRuleSet = persistentRuleSet = new (class extends DomainDomainT
   name: l10n 'pers_ruleset_name'
   description: l10n 'pers_ruleset_description'
   permissiveness: 'mixed'
+  homepage: 'https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#persistent-rules-added-by-ui'
 ) 'ruleset.persistent.domainDomainType'
 
 onShutdown.add persistentRuleSet.save.bind persistentRuleSet

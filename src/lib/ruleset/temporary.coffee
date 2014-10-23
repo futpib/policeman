@@ -13,6 +13,7 @@ exports.temporaryRuleSet = new (class extends DomainDomainTypeRS
   name: l10n 'temp_ruleset_name'
   description: l10n 'temp_ruleset_description'
   permissiveness: 'mixed'
+  homepage: 'https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#temporary-rules-added-by-ui'
 
   constructor: ->
     @_closures = new ClosuresRS

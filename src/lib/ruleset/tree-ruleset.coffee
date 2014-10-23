@@ -38,6 +38,7 @@ exports.TreeRS = class TreeRS extends RuleSet
       version: @version
       name: @name
       description: @description
+      homepage: @homepage
       rules: @rules
       permissiveness: @permissiveness
     } = parsed
@@ -71,7 +72,7 @@ exports.TreeRS = class TreeRS extends RuleSet
     for k, v of {
       version: @version
       id: @id
-      name: @names
+      name: @name
       description: @description
       rules: @rules
     }

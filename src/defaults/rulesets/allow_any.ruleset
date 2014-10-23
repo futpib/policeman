@@ -2,6 +2,7 @@
 magic: policeman_ruleset
 version: 0.1
 id: "allow_any"
+homepage: "https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#allow-any"
 
 l10n:
   en-US:
