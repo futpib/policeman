@@ -65,18 +65,11 @@ class Button
     } = description
     classList = classList or []
 
-    lbl = createElement doc, 'label',
-      class: 'policeman-popup-button-label'
-      value: label
-      style: 'cursor: inherit;'
-    if tooltiptext
-      lbl.setAttribute 'tooltiptext', tooltiptext
-
-    innerBox = createElement doc, 'vbox',
-      class: 'policeman-popup-button-box'
-    box = createElement doc, 'vbox',
+    box = createElement doc, 'hbox',
       class: (classList.concat ['policeman-popup-button']).join(' ')
       disabled: if disabled then 'true' else 'false'
+    box.appendChild outerBox = createElement doc, 'hbox',
+      class: 'policeman-popup-button-outer'
       style: style or ''
     if id
       box.setAttribute 'id', id
@@ -85,8 +78,15 @@ class Button
         return if that.disabled @
         click.apply @, arguments
 
-    box.appendChild innerBox
-    innerBox.appendChild lbl
+    outerBox.appendChild innerBox = createElement doc, 'hbox',
+      class: 'policeman-popup-button-inner'
+
+    innerBox.appendChild lbl = createElement doc, 'label',
+      class: 'policeman-popup-button-label'
+      value: label
+      style: 'cursor: inherit;'
+    if tooltiptext
+      box.setAttribute 'tooltiptext', tooltiptext
 
     appendTo.appendChild box if appendTo
 
@@ -316,6 +316,20 @@ class DomainSelectionButtons extends RadioButtons
 
     btn = super doc, description
 
+    btn.appendChild createElement doc, 'spacer',
+      class: 'policeman-popup-domain-button-hits-spacer'
+      flex: 1
+
+    btn.appendChild box = createElement doc, 'hbox',
+      class: 'policeman-popup-button-allow-hits'
+    box.appendChild createElement doc, 'label',
+      value: allowHits
+
+    btn.appendChild box = createElement doc, 'hbox',
+      class: 'policeman-popup-button-reject-hits'
+    box.appendChild createElement doc, 'label',
+      value: rejectHits
+
     return btn
 
   populate: (doc) ->
@@ -330,7 +344,8 @@ class DomainSelectionButtons extends RadioButtons
       stat = if decision then 'allow' else 'reject'
       for d in superdomains domain
         defaults domainToStats, d, {allow:0, reject:0}
-        domainToStats[d][stat] += 1
+        if not (domain == CHROME_DOMAIN) or d == CHROME_DOMAIN
+          domainToStats[d][stat] += 1
 
     fragment = doc.createDocumentFragment()
 
