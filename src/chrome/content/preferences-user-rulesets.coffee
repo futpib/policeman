@@ -12,6 +12,7 @@
 
 
 WILDCARD_TYPE = DomainDomainTypeRS::WILDCARD_TYPE
+CHROME_DOMAIN = DomainDomainTypeRS::CHROME_DOMAIN
 
 localizeTypeLookup =
   IMAGE: l10n 'preferences_type_image'
@@ -25,8 +26,13 @@ localizeType = (t) -> localizeTypeLookup[t]
 
 localizeDecision = (d) -> l10n if d then 'allow' else 'reject'
 
-L10N_ANY_DOMAIN = l10n 'preferences_any_domain'
-
+localizeDomain = (d) ->
+  if d == CHROME_DOMAIN
+    return l10n 'preferences_chrome_domain'
+  else if not d
+    return l10n 'preferences_any_domain'
+  else
+    return d
 
 window.top.location.hash = "#user-rulesets"
 
@@ -127,9 +133,9 @@ class Rule
     row.appendChild createElement document, 'listcell',
       label: localizeType type
     row.appendChild createElement document, 'listcell',
-      label: origin or L10N_ANY_DOMAIN
+      label: localizeDomain origin
     row.appendChild createElement document, 'listcell',
-      label: destination or L10N_ANY_DOMAIN
+      label: localizeDomain destination
     return row
 
   getOrigin: (el) -> el.getAttribute 'data-policeman-origin'
@@ -171,8 +177,8 @@ class RulesList
     removeChildren @$, 'listitem'
     for [o, d, t, decision] in manager.get(@_rulesetId).toTable()
       if @_filter
-        continue unless (o or L10N_ANY_DOMAIN).contains(@_filter.toLowerCase()) \
-          or (d or L10N_ANY_DOMAIN).contains(@_filter.toLowerCase()) \
+        continue unless (localizeDomain o).toLowerCase().contains(@_filter.toLowerCase()) \
+          or (localizeDomain d).toLowerCase().contains(@_filter.toLowerCase()) \
           or localizeType(t).toLowerCase().contains(@_filter.toLowerCase()) \
           or localizeDecision(t).toLowerCase().contains(@_filter.toLowerCase())
       @$.appendChild @_ruleClass::create {

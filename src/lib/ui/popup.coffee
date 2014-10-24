@@ -25,6 +25,7 @@
 
 
 WILDCARD_TYPE = DomainDomainTypeRS::WILDCARD_TYPE
+CHROME_DOMAIN = DomainDomainTypeRS::CHROME_DOMAIN
 
 
 POSITIVE_COLOR_PREF = 'ui.popup.positiveBackgroundColor'
@@ -295,7 +296,8 @@ class DomainSelectionButtons extends RadioButtons
 
   _createButton: (doc, description) ->
     { allowHits, rejectHits } = description
-    allowRatio = allowHits/(allowHits + rejectHits)
+    totalHits = allowHits + rejectHits
+    allowRatio = if totalHits then allowHits/totalHits else 1
 
     defaults description, 'label', description.domain
     defaults description, 'data', description.domain
@@ -318,6 +320,7 @@ class DomainSelectionButtons extends RadioButtons
 
   populate: (doc) ->
     domainToStats = Object.create null
+    defaults domainToStats, '', {allow:0, reject:0}
     tree = new DomainTree
     for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
       continue if decision is null
@@ -328,8 +331,6 @@ class DomainSelectionButtons extends RadioButtons
       for d in superdomains domain
         defaults domainToStats, d, {allow:0, reject:0}
         domainToStats[d][stat] += 1
-
-    return if not domainToStats['']
 
     fragment = doc.createDocumentFragment()
 
@@ -342,6 +343,7 @@ class DomainSelectionButtons extends RadioButtons
       rejectHits: domainToStats[''].reject
 
     for [indentation, domain] in tree.getHitDomains()
+      continue if domain == CHROME_DOMAIN
       fragment.appendChild btn = @_createButton doc,
         domain: domain
         allowHits: domainToStats[domain].allow
@@ -351,18 +353,48 @@ class DomainSelectionButtons extends RadioButtons
         @_select btn
         selectionRestored = true
 
+    if CHROME_DOMAIN of domainToStats
+      fragment.appendChild btn = @_createButton doc,
+        label: @_chromeDomainLabel
+        domain: CHROME_DOMAIN
+        allowHits: domainToStats[CHROME_DOMAIN].allow
+        rejectHits: domainToStats[CHROME_DOMAIN].reject
+      if (not selectionRestored) and (@selectedData == CHROME_DOMAIN)
+        @_select btn
+        selectionRestored = true
+
     if not selectionRestored
       @_select anyBtn
 
     doc.getElementById(@_containerId).appendChild fragment
+
+  filter: (requestInfo) ->
+    if requestInfo.schemeType == 'web'
+      if not @selectedData
+        yes
+      else if @selectedData == CHROME_DOMAIN
+        no
+      else
+        isSuperdomain @selectedData, requestInfo.host
+    else if requestInfo.schemeType == 'internal'
+      if not @selectedData
+        no
+      else if @selectedData == CHROME_DOMAIN
+        yes
+      else
+        no
+    else
+      no
 
   _chooseDomain: -> throw new Error 'Subclass must supply "_chooseDomain" method.'
 
 
 originSelection = new (class extends DomainSelectionButtons
   _chooseDomain: (o, d, c, decision) ->
-    if (o.schemeType == d.schemeType == 'web')
+    if o.schemeType == 'web'
       return o.host
+    else if o.schemeType == 'internal'
+      return CHROME_DOMAIN
     else
       return false
 
@@ -371,15 +403,24 @@ originSelection = new (class extends DomainSelectionButtons
     @selectedData = location.hostname
     super doc
 
+  _chromeDomainLabel: l10n 'popup_chrome_origin'
+
 ) 'policeman-popup-origins-container'
 
 destinationSelection = new (class extends DomainSelectionButtons
   _chooseDomain: (o, d, c, decision) ->
-    if (o.schemeType == d.schemeType == 'web') \
-    and (isSuperdomain originSelection.selectedData, o.host)
-      return d.host
+    if originSelection.filter o
+      if d.schemeType == 'web'
+        return d.host
+      else if d.schemeType == 'internal'
+        return CHROME_DOMAIN
+      else
+        return false
     else
       return false
+
+  _chromeDomainLabel: l10n 'popup_chrome_destination'
+
 ) 'policeman-popup-destinations-container'
 
 
@@ -403,6 +444,21 @@ localizeTypeLookup[WILDCARD_TYPE] = l10n 'popup_type_wildcard'
 localizeType = (t) -> localizeTypeLookup[t]
 # also check popup_filter_* properties when changing that ^^^
 
+localizeOrigin = (o) ->
+  if o == CHROME_DOMAIN
+    return l10n 'popup_chrome_origin'
+  else if not o
+    return l10n 'popup_rule_any_domain'
+  else
+    return o
+
+localizeDestination = (d) ->
+  if d == CHROME_DOMAIN
+    return l10n 'popup_chrome_destination'
+  else if not d
+    return l10n 'popup_rule_any_domain'
+  else
+    return d
 
 categorizeRequest = (o, d, c) ->
   if c.contentType in SUPPORTED_TYPES
@@ -417,9 +473,8 @@ class FilterButtons extends RadioButtons
     stats[t] = 0 for t in SUPPORTED_TYPES
     for [o, d, c, decision_] in memo.getByTab tabs.getCurrent()
       if  (decision_ == decision) \
-      and (o.schemeType == d.schemeType == 'web') \
-      and (isSuperdomain originSelection.selectedData, o.host) \
-      and (isSuperdomain destinationSelection.selectedData, d.host)
+      and (originSelection.filter o) \
+      and (destinationSelection.filter d)
         category = categorizeRequest o, d, c
         stats[category] += 1
         stats.ALL += 1
@@ -468,7 +523,8 @@ class RequestList extends ContainerPopulation
 
     originLbl = createElement doc, 'label',
       class: 'text-link policeman-popup-request-label policeman-popup-request-origin-label'
-      value: origin.host
+      value: if origin.schemeType == 'web' \
+          then origin.host else origin.prePath
       tooltiptext: origin.spec
       href: origin.spec
 
@@ -526,9 +582,8 @@ class FilteredRequestList extends RequestList
     super containerId
   requests: ->
     requests = memo.getByTab(tabs.getCurrent()).filter ([o, d, c]) ->
-      (o.schemeType == d.schemeType == 'web') \
-      and (isSuperdomain originSelection.selectedData, o.host) \
-      and (isSuperdomain destinationSelection.selectedData, d.host)
+      (originSelection.filter o) \
+      and (destinationSelection.filter d)
     return requests if @filterButtons.selectedData == 'ALL'
     return requests.filter ([o, d, c, decision]) =>
       @filterButtons.selectedData == categorizeRequest(o, d, c)
@@ -547,6 +602,13 @@ class RulesetEditButtons extends ContainerPopulation
   constructor: (containerId, @_rulesetId) ->
     super containerId
 
+  localizeDomain = (d) -> if d == CHROME_DOMAIN
+        l10n 'popup_rule_chrome_domain'
+      else if not d
+        l10n 'popup_rule_any_domain'
+      else
+        d
+
   _createBasicRuleWidget: (doc, description) ->
     {
       tooltiptext
@@ -558,8 +620,8 @@ class RulesetEditButtons extends ContainerPopulation
     } = description
     classList = classList or []
 
-    origin = origin or l10n 'popup_rule_any_domain'
-    destination = destination or l10n 'popup_rule_any_domain'
+    origin = localizeDomain origin
+    destination = localizeDomain destination
 
     box = createElement doc, 'vbox',
       class: classList.join(' ') \
@@ -622,8 +684,8 @@ class RulesetEditButtons extends ContainerPopulation
       class: 'policeman-popup-label-aligned-like-button'
 
     customRuleBox.appendChild originBtn = DataRotationButton::create doc,
-      valuesLabels: ([d, d or l10n 'popup_rule_any_domain'] \
-                        for d in superdomains(origin, 2).concat(''))
+      valuesLabels: ([o, localizeOrigin o] \
+                     for o in superdomains(origin, 2).concat(''))
       tooltiptext: l10n 'popup_domain_rotation_button.tip'
 
     customRuleBox.appendChild createElement doc, 'label',
@@ -631,8 +693,8 @@ class RulesetEditButtons extends ContainerPopulation
       class: 'policeman-popup-label-aligned-like-button'
 
     customRuleBox.appendChild destinationBtn = DataRotationButton::create doc,
-      valuesLabels: ([d, d or l10n 'popup_rule_any_domain'] \
-                        for d in superdomains(destination, 2).concat(''))
+      valuesLabels: ([d, localizeDestination d] \
+                     for d in superdomains(destination, 2).concat(''))
       tooltiptext: l10n 'popup_domain_rotation_button.tip'
 
     customRuleBox.appendChild createElement doc, 'label',
@@ -735,14 +797,22 @@ class RulesetEditButtons extends ContainerPopulation
       # show rules that influenced anything in the current tab
       # filtered by selected origin or destination if any
       # ordered by priority
+      chooseDomain = (requestInfo) ->
+        if o.schemeType == 'web'
+          o.host
+        else if o.schemeType == 'internal'
+          CHROME_DOMAIN
+        else
+          ''
       rulesSet = Object.create null # origin -> dest -> type -> index
       rulesList = [] # [[o, d, t, decision]]
       index = 0
       for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
-        continue unless (o.schemeType == d.schemeType == 'web')
-        continue if selectedOrigin and not (isSuperdomain selectedOrigin, o.host)
-        continue if selectedDestination and not (isSuperdomain selectedDestination, d.host)
-        rs.superdomainsCheckOrder o.host, d.host, (o, d) =>
+        continue if selectedOrigin and not (originSelection.filter o)
+        continue if selectedDestination and not (destinationSelection.filter d)
+        originDomain = chooseDomain o
+        destinationDomain = chooseDomain d
+        rs.superdomainsCheckOrder originDomain, destinationDomain, (o, d) =>
           for t in supportedTypes
             decision = rs.lookup o, d, t
             continue if decision is null
@@ -863,21 +933,12 @@ footerLinkButtons = new (class extends ContainerPopulation
 
 statusIndicator =
   id: 'policeman-popup-status-indicator-container'
-  nothingToShowId: 'policeman-popup-no-web-requests-container'
-  progressIndicatorId: 'policeman-popup-progress-indicator-container'
 
   updateStarted: (doc) ->
     doc.getElementById(@id).hidden = false
-    doc.getElementById(@nothingToShowId).hidden = true
-    doc.getElementById(@progressIndicatorId).hidden = false
 
   updateFinished: (doc) ->
-    webRequests = memo.getByTab(tabs.getCurrent()).filter ([o,d,c]) ->
-      (o.schemeType == d.schemeType == 'web')
-    noWebRequestsRecorded = not webRequests.length
-    doc.getElementById(@id).hidden = not noWebRequestsRecorded
-    doc.getElementById(@nothingToShowId).hidden = not noWebRequestsRecorded
-    doc.getElementById(@progressIndicatorId).hidden = noWebRequestsRecorded
+    doc.getElementById(@id).hidden = true
 
 
 prefs.define AUTORELOAD_PREF = 'ui.popup.autoReloadPageOnHiding',
