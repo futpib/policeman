@@ -71,11 +71,35 @@ manifest_locales () {
   done
 }
 
+properties_extract_keys () {
+  grep -v "^#"  "$1" | sed 's/\s*=.*$//g'
+}
+properties_line_by_key () {
+  grep "^$1\s*=" "$2"
+}
 properties () {
   echo "Cloning properties to dtd..."
+
+  model_locale="$build_root/chrome/locale/en-US/policeman.properties"
+  declare -A model_keys
+  for key in $(properties_extract_keys $model_locale)
+  do
+    model_keys["$key"]=1
+  done
+
   props="$(find $build_root/chrome/locale -type f -name '*.properties')"
   for f in $props
   do
+    # take missing keys from model_locale
+    for key in "${!model_keys[@]}"
+    do
+      # FIXME fails for multiline values
+      if [ -z "$(properties_line_by_key $key $f)" ]
+      then
+        properties_line_by_key "$key" "$model_locale" >> $f
+      fi
+    done
+
     cat $f | grep -vE '(^#|^$)' \
       | grep -vE '(^|[^\%])(%%)*(%[0-9]+)' \
       | perl -pe 's/^"?(.+)"?\s*=\s*"?(.*)"?\n$/<!ENTITY \1 "\2">\n/' \
