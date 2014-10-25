@@ -164,7 +164,8 @@ exports.Manager = class Manager
       else if progressDetermined
         dispatch 'progress', {phase: 'load'}
         progressDetermined = no
-    xhr.addEventListener 'error', -> dispatch 'error'
+    xhr.addEventListener 'error', (event) ->
+      dispatch 'error', new Error 'Download error.'
     xhr.addEventListener 'load', =>
       dispatch 'progress', {phase: 'parse'}
       return if aborted
@@ -174,7 +175,7 @@ exports.Manager = class Manager
         id = rulesetFromString(str).id
       catch err
         log 'downloadInstall', url, 'Failed parsing downloaded file', err
-        dispatch 'error'
+        dispatch 'error', err
         return
       dispatch 'progress', {phase: 'save'}
       return if aborted
@@ -185,7 +186,7 @@ exports.Manager = class Manager
           @install id, path
         catch err
           log 'downloadInstall', url, 'Failed installing ruleset', id, err
-          dispatch 'error'
+          dispatch 'error', err
           return
         dispatch 'success', {id}
       ), (=>
@@ -200,7 +201,7 @@ exports.Manager = class Manager
       xhr.send()
     catch err
       log 'downloadInstall', url, 'failed sending GET request', err
-      dispatch 'error'
+      dispatch 'error', err
 
 
 

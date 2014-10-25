@@ -324,12 +324,14 @@ class DownloadsRichListItem
       meter.mode = 'determined'
       meter.value = (progress * 100) // 1
 
-  setFailed: (item) ->
+  setFailed: (item, error) ->
     meter = item.getElementsByClassName('download-progressmeter')[0]
     label = item.getElementsByClassName('download-progress')[0]
 
     meter.hidden = true
-    label.value = l10n 'preferences_download_install_failed'
+    label.value = l10n('preferences_download_install_failed') + if error \
+      then ': ' + error.message \
+      else ''
 
 
 downloadsList =
@@ -344,8 +346,8 @@ downloadsList =
         @_addItem item = DownloadsRichListItem::create document, {link, abort}
       progress: ({phase, progress}) ->
         DownloadsRichListItem::setProgress item, {phase, progress}
-      error: ->
-        DownloadsRichListItem::setFailed item
+      error: (e) ->
+        DownloadsRichListItem::setFailed item, e
       abort: =>
         @_removeItem item
       success: =>
