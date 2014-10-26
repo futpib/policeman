@@ -74,6 +74,7 @@ exports.OriginInfo = class OriginInfo extends UriInfo
   schemeWebOrigin =
     https: true
     http: true
+    ftp: true
   classifyScheme: (s) -> if s of schemeWebOrigin \
     then 'web' \
     else super arguments...
