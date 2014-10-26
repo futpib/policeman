@@ -215,19 +215,36 @@ class RadioButtons extends ContainerPopulation
 
 class DomainSelectionButtons extends RadioButtons
   class DomainTree
+    makeNode = (obj={}) ->
+      node = {
+        label: undefined,
+        hits: 0,
+        allowHits: 0,
+        rejectHits: 0,
+        directHits: 0,
+        descendantDirectHits: 0,
+        children: [],
+      }
+      for k, v of obj
+        node[k] = v
+      return node
     constructor: ->
       # noname root domain
-      @root = {label: '', hits: 0, directHits: 0, descendantDirectHits: 0, children: []}
-    hit: (domain) ->
+      @root = makeNode {label:''}
+    hit: (domain, decision) ->
       tree = [@root]
-      labels = domain.split('.').concat ''
+      labels = if domain then domain.split('.').concat '' else ['']
       track = []
       while (label = labels.pop()) != undefined
         target = tree.find (n) -> n.label == label # find node for label
         if not target # or create it
-          target = {label: label, hits: 0, directHits: 0, descendantDirectHits: 0, children: []}
+          target = makeNode {label}
           tree.push target
         target.hits += 1
+        if decision
+            target.allowHits += 1
+        else
+          target.rejectHits += 1
         if labels.length
           track.push target
           tree = target.children
@@ -252,8 +269,16 @@ class DomainSelectionButtons extends RadioButtons
     shouldOmitDescendants = (node, depth) ->
       (node.descendantDirectHits > OMIT_DESCENDANTS_THRESHOLD) \
       and (depth > OMIT_DESCENDANTS_DEPTH)
+    get: (domain) ->
+      labels = if domain then domain.split('.').concat '' else ['']
+      tree = [@root]
+      while (label = labels.pop()) != undefined
+        target = tree.find (n) -> n.label == label
+        return undefined if not target
+        tree = target.children
+      return target
     getHitDomains: ->
-      reducedTree = [root = {domain: '', hits: @root.hits, children: []}]
+      reducedTree = [root = makeNode {domain: '', hits: @root.hits}]
 
       nodesStack = [root]
       labels = []
@@ -262,10 +287,11 @@ class DomainSelectionButtons extends RadioButtons
         depth = labels.length
         omit = shouldOmitDescendants node, depth
         if node.directHits or omit
-          rnode = {
+          rnode = makeNode {
             domain: labels.join('.').slice(0, -1) # slice off trailing '.'
             hits: node.hits
-            children: []
+            allowHits: node.allowHits
+            rejectHits: node.rejectHits
           }
           nodesStack[0].children.push rnode
           nodesStack.unshift rnode if not omit
@@ -286,6 +312,8 @@ class DomainSelectionButtons extends RadioButtons
         result.push [
           indentation,
           n.domain,
+          n.allowHits,
+          n.rejectHits,
         ]
         return false
       ), ((n) ->
@@ -333,47 +361,40 @@ class DomainSelectionButtons extends RadioButtons
     return btn
 
   populate: (doc) ->
-    domainToStats = Object.create null
-    defaults domainToStats, '', {allow:0, reject:0}
     tree = new DomainTree
     for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
       continue if decision is null
       domain = @_chooseDomain o, d, c, decision
       continue if not domain
-      tree.hit domain
-      stat = if decision then 'allow' else 'reject'
-      for d in superdomains domain
-        defaults domainToStats, d, {allow:0, reject:0}
-        if not (domain == CHROME_DOMAIN) or d == CHROME_DOMAIN
-          domainToStats[d][stat] += 1
+      tree.hit domain, decision
 
     fragment = doc.createDocumentFragment()
 
     selectionRestored = no
 
+    anyDomainStats = tree.get ''
     fragment.appendChild anyBtn = @_createButton doc,
       label: l10n 'popup_any_domain'
       domain: ''
-      allowHits: domainToStats[''].allow
-      rejectHits: domainToStats[''].reject
+      allowHits: anyDomainStats.allowHits
+      rejectHits: anyDomainStats.rejectHits
 
-    for [indentation, domain] in tree.getHitDomains()
+    for [indentation, domain, allowHits, rejectHits] in tree.getHitDomains()
       continue if domain == CHROME_DOMAIN
-      fragment.appendChild btn = @_createButton doc,
-        domain: domain
-        allowHits: domainToStats[domain].allow
-        rejectHits: domainToStats[domain].reject
-        indentation: indentation
+      fragment.appendChild btn = @_createButton doc, {
+        domain, allowHits, rejectHits, indentation,
+      }
       if (not selectionRestored) and (@selectedData == domain)
         @_select btn
         selectionRestored = true
 
-    if CHROME_DOMAIN of domainToStats
+    chromeDomainStats = tree.get CHROME_DOMAIN
+    if chromeDomainStats
       fragment.appendChild btn = @_createButton doc,
         label: @_chromeDomainLabel
         domain: CHROME_DOMAIN
-        allowHits: domainToStats[CHROME_DOMAIN].allow
-        rejectHits: domainToStats[CHROME_DOMAIN].reject
+        allowHits: chromeDomainStats.allowHits
+        rejectHits: chromeDomainStats.rejectHits
       if (not selectionRestored) and (@selectedData == CHROME_DOMAIN)
         @_select btn
         selectionRestored = true
