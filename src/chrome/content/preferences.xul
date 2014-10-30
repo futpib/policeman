@@ -30,6 +30,13 @@
           &preferences_general;
         </html:a>
         <html:a class="text-link"
+                hash="popup"
+                href="chrome://policeman/content/preferences-popup.xul"
+                style="display: block;"
+                target="subview">
+          &preferences_popup;
+        </html:a>
+        <html:a class="text-link"
                 hash="rulesets-manager"
                 href="chrome://policeman/content/preferences-rulesets-manager.xul"
                 style="display: block;"

@@ -7,20 +7,20 @@
 
   <script src="xul-page-common.js"
           type="application/javascript"/>
-  <script src="preferences-general.js"
+  <script src="preferences-popup.js"
           type="application/javascript"/>
 
   <vbox id="subpref-container">
-    <label class="title" value="&preferences_general;"/>
+    <label class="title" value="&preferences_popup;"/>
 
-    <checkbox id="suspended"
-              label="&preferences_suspend_operation;"
-              tooltiptext="&preferences_suspend_operation.tip;"
+    <checkbox id="autoreload-popup"
+              label="&preferences_reload_automaticaly_popup;"
               />
 
-    <checkbox id="autoreload-panelview"
-              label="&preferences_reload_automaticaly_panelview;"
-              />
+    <groupbox id="content-type-groupbox">
+      <caption label="&preferences_popup_enabled_content_types;"/>
+    </groupbox>
+
   </vbox>
 
 </page>
