@@ -26,6 +26,7 @@
 
 WILDCARD_TYPE = DomainDomainTypeRS::WILDCARD_TYPE
 CHROME_DOMAIN = DomainDomainTypeRS::CHROME_DOMAIN
+USER_AVAILABLE_CONTENT_TYPES = DomainDomainTypeRS::USER_AVAILABLE_CONTENT_TYPES
 
 
 POSITIVE_COLOR_PREF = 'ui.popup.positiveBackgroundColor'
@@ -215,19 +216,36 @@ class RadioButtons extends ContainerPopulation
 
 class DomainSelectionButtons extends RadioButtons
   class DomainTree
+    makeNode = (obj={}) ->
+      node = {
+        label: undefined,
+        hits: 0,
+        allowHits: 0,
+        rejectHits: 0,
+        directHits: 0,
+        descendantDirectHits: 0,
+        children: [],
+      }
+      for k, v of obj
+        node[k] = v
+      return node
     constructor: ->
       # noname root domain
-      @root = {label: '', hits: 0, directHits: 0, descendantDirectHits: 0, children: []}
-    hit: (domain) ->
+      @root = makeNode {label:''}
+    hit: (domain, decision) ->
       tree = [@root]
-      labels = domain.split('.').concat ''
+      labels = if domain then domain.split('.').concat '' else ['']
       track = []
       while (label = labels.pop()) != undefined
         target = tree.find (n) -> n.label == label # find node for label
         if not target # or create it
-          target = {label: label, hits: 0, directHits: 0, descendantDirectHits: 0, children: []}
+          target = makeNode {label}
           tree.push target
         target.hits += 1
+        if decision
+          target.allowHits += 1
+        else
+          target.rejectHits += 1
         if labels.length
           track.push target
           tree = target.children
@@ -252,8 +270,16 @@ class DomainSelectionButtons extends RadioButtons
     shouldOmitDescendants = (node, depth) ->
       (node.descendantDirectHits > OMIT_DESCENDANTS_THRESHOLD) \
       and (depth > OMIT_DESCENDANTS_DEPTH)
+    get: (domain) ->
+      labels = if domain then domain.split('.').concat '' else ['']
+      tree = [@root]
+      while (label = labels.pop()) != undefined
+        target = tree.find (n) -> n.label == label
+        return undefined if not target
+        tree = target.children
+      return target
     getHitDomains: ->
-      reducedTree = [root = {domain: '', hits: @root.hits, children: []}]
+      reducedTree = [root = makeNode {domain: '', hits: @root.hits}]
 
       nodesStack = [root]
       labels = []
@@ -262,10 +288,11 @@ class DomainSelectionButtons extends RadioButtons
         depth = labels.length
         omit = shouldOmitDescendants node, depth
         if node.directHits or omit
-          rnode = {
+          rnode = makeNode {
             domain: labels.join('.').slice(0, -1) # slice off trailing '.'
             hits: node.hits
-            children: []
+            allowHits: node.allowHits
+            rejectHits: node.rejectHits
           }
           nodesStack[0].children.push rnode
           nodesStack.unshift rnode if not omit
@@ -286,6 +313,8 @@ class DomainSelectionButtons extends RadioButtons
         result.push [
           indentation,
           n.domain,
+          n.allowHits,
+          n.rejectHits,
         ]
         return false
       ), ((n) ->
@@ -333,47 +362,40 @@ class DomainSelectionButtons extends RadioButtons
     return btn
 
   populate: (doc) ->
-    domainToStats = Object.create null
-    defaults domainToStats, '', {allow:0, reject:0}
     tree = new DomainTree
     for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
       continue if decision is null
       domain = @_chooseDomain o, d, c, decision
       continue if not domain
-      tree.hit domain
-      stat = if decision then 'allow' else 'reject'
-      for d in superdomains domain
-        defaults domainToStats, d, {allow:0, reject:0}
-        if not (domain == CHROME_DOMAIN) or d == CHROME_DOMAIN
-          domainToStats[d][stat] += 1
+      tree.hit domain, decision
 
     fragment = doc.createDocumentFragment()
 
     selectionRestored = no
 
+    anyDomainStats = tree.get ''
     fragment.appendChild anyBtn = @_createButton doc,
       label: l10n 'popup_any_domain'
       domain: ''
-      allowHits: domainToStats[''].allow
-      rejectHits: domainToStats[''].reject
+      allowHits: anyDomainStats.allowHits
+      rejectHits: anyDomainStats.rejectHits
 
-    for [indentation, domain] in tree.getHitDomains()
+    for [indentation, domain, allowHits, rejectHits] in tree.getHitDomains()
       continue if domain == CHROME_DOMAIN
-      fragment.appendChild btn = @_createButton doc,
-        domain: domain
-        allowHits: domainToStats[domain].allow
-        rejectHits: domainToStats[domain].reject
-        indentation: indentation
+      fragment.appendChild btn = @_createButton doc, {
+        domain, allowHits, rejectHits, indentation,
+      }
       if (not selectionRestored) and (@selectedData == domain)
         @_select btn
         selectionRestored = true
 
-    if CHROME_DOMAIN of domainToStats
+    chromeDomainStats = tree.get CHROME_DOMAIN
+    if chromeDomainStats
       fragment.appendChild btn = @_createButton doc,
         label: @_chromeDomainLabel
         domain: CHROME_DOMAIN
-        allowHits: domainToStats[CHROME_DOMAIN].allow
-        rejectHits: domainToStats[CHROME_DOMAIN].reject
+        allowHits: chromeDomainStats.allowHits
+        rejectHits: chromeDomainStats.rejectHits
       if (not selectionRestored) and (@selectedData == CHROME_DOMAIN)
         @_select btn
         selectionRestored = true
@@ -439,26 +461,6 @@ destinationSelection = new (class extends DomainSelectionButtons
 ) 'policeman-popup-destinations-container'
 
 
-SUPPORTED_TYPES = [
-  'IMAGE',
-  'MEDIA',
-  'STYLESHEET',
-  'SCRIPT',
-  'OBJECT',
-  'SUBDOCUMENT',
-]
-
-localizeTypeLookup =
-  IMAGE: l10n 'popup_type_image'
-  MEDIA: l10n 'popup_type_media'
-  STYLESHEET: l10n 'popup_type_stylesheet'
-  SCRIPT: l10n 'popup_type_script'
-  SUBDOCUMENT: l10n 'popup_type_subdocument'
-  OBJECT: l10n 'popup_type_object'
-localizeTypeLookup[WILDCARD_TYPE] = l10n 'popup_type_wildcard'
-localizeType = (t) -> localizeTypeLookup[t]
-# also check popup_filter_* properties when changing that ^^^
-
 localizeOrigin = (o) ->
   if o == CHROME_DOMAIN
     return l10n 'popup_chrome_origin'
@@ -475,33 +477,52 @@ localizeDestination = (d) ->
   else
     return d
 
+CONTENT_TYPE_FILTER_OTHER = '_popup_OTHER_'
+CONTENT_TYPE_FILTER_ALL   = WILDCARD_TYPE
+CONTENT_TYPE_FILTER_NONE  = '_popup_NONE_'
+
 categorizeRequest = (o, d, c) ->
-  if c.contentType in SUPPORTED_TYPES
+  if popup.contentTypes.enabled c.contentType
     return c.contentType
-  return 'OTHER'
+  return CONTENT_TYPE_FILTER_OTHER
+
+localizeContentTypeFilter = (type) ->
+    # CONTENT_TYPE_FILTER_NONE handled by rejectedFilter and allowedFilter
+    if type == CONTENT_TYPE_FILTER_ALL
+      return l10n 'popup_filter_all'
+    else if type == CONTENT_TYPE_FILTER_OTHER
+      return l10n 'popup_filter_other'
+    else
+      return l10n 'content_type.title.plural.' + type
+
+localizeType = (type) ->
+  return l10n 'content_type.lower.plural.' + type
 
 class FilterButtons extends RadioButtons
   constructor: (containerId) ->
-    super containerId, 'NONE'
+    super containerId, CONTENT_TYPE_FILTER_NONE
   populate: (doc, decision) ->
-    stats = { ALL:0, OTHER:0 }
-    stats[t] = 0 for t in SUPPORTED_TYPES
+    stats = {}
+    stats[CONTENT_TYPE_FILTER_OTHER] = 0
+    stats[t] = 0 for t in USER_AVAILABLE_CONTENT_TYPES
     for [o, d, c, decision_] in memo.getByTab tabs.getCurrent()
       if  (decision_ == decision) \
       and (originSelection.filter o) \
       and (destinationSelection.filter d)
         category = categorizeRequest o, d, c
         stats[category] += 1
-        stats.ALL += 1
+        stats[CONTENT_TYPE_FILTER_ALL] += 1
 
     filters = doc.createDocumentFragment()
-    for value in ['ALL'].concat(SUPPORTED_TYPES).concat(['OTHER'])
-      label = "popup_filter_#{value.toLowerCase()}"
+    for type in [] \
+                 .concat(popup.contentTypes.enabledList()) \
+                 .concat([CONTENT_TYPE_FILTER_OTHER])
+      label = localizeContentTypeFilter type
       filters.appendChild btn = @_createButton doc,
-        label: l10n label, stats[value]
-        data: value
-        disabled: not stats[value]
-      @_select btn if @selectedData == value
+        label: "#{label} (#{stats[type]})"
+        data: type
+        disabled: not stats[type]
+      @_select btn if @selectedData == type
 
     doc.getElementById(@_containerId).appendChild filters
 
@@ -510,8 +531,8 @@ rejectedFilter = new (class extends FilterButtons
     filters = doc.getElementById @_containerId
     filters.appendChild none = @_createButton doc,
       label: l10n 'popup_filter_rejected_none'
-      data: 'NONE'
-    @_select none if @selectedData == 'NONE'
+      data: CONTENT_TYPE_FILTER_NONE
+    @_select none if @selectedData == CONTENT_TYPE_FILTER_NONE
     super doc, false
 ) 'policeman-popup-rejected-requests-filters-container'
 
@@ -521,8 +542,8 @@ allowedFilter = new (class extends FilterButtons
     filters = doc.getElementById @_containerId
     filters.appendChild none = @_createButton doc,
       label: l10n 'popup_filter_allowed_none'
-      data: 'NONE'
-    @_select none if @selectedData == 'NONE'
+      data: CONTENT_TYPE_FILTER_NONE
+    @_select none if @selectedData == CONTENT_TYPE_FILTER_NONE
     super doc, true
 ) 'policeman-popup-allowed-requests-filters-container'
 
@@ -599,7 +620,7 @@ class FilteredRequestList extends RequestList
     requests = memo.getByTab(tabs.getCurrent()).filter ([o, d, c]) ->
       (originSelection.filter o) \
       and (destinationSelection.filter d)
-    return requests if @filterButtons.selectedData == 'ALL'
+    return requests if @filterButtons.selectedData == CONTENT_TYPE_FILTER_ALL
     return requests.filter ([o, d, c, decision]) =>
       @filterButtons.selectedData == categorizeRequest(o, d, c)
 
@@ -692,7 +713,7 @@ class RulesetEditButtons extends ContainerPopulation
 
     customRuleBox.appendChild typeBtn = DataRotationButton::create doc,
       valuesLabels: ([t, l10n('popup_custom_rule.2') + ' ' + localizeType(t)] \
-              for t in [WILDCARD_TYPE].concat(SUPPORTED_TYPES))
+              for t in popup.contentTypes.enabledList())
 
     customRuleBox.appendChild createElement doc, 'label',
       value: l10n 'popup_custom_rule.3'
@@ -793,12 +814,12 @@ class RulesetEditButtons extends ContainerPopulation
     rules = createElement doc, 'vbox',
       class: 'policeman-existing-rules'
 
-    supportedTypes = SUPPORTED_TYPES.concat [WILDCARD_TYPE]
+    enabledTypes = popup.contentTypes.enabledList()
 
     if selectedOrigin and selectedDestination
       # show rules that apply to selected origin and destination only
       rs.superdomainsCheckOrder selectedOrigin, selectedDestination, (o, d) =>
-        for t in supportedTypes
+        for t in enabledTypes
           decision = rs.lookup o, d, t
           if decision isnt null
             rules.appendChild @_createRuleWidget doc,
@@ -813,9 +834,9 @@ class RulesetEditButtons extends ContainerPopulation
       # filtered by selected origin or destination if any
       # ordered by priority
       chooseDomain = (requestInfo) ->
-        if o.schemeType == 'web'
-          o.host
-        else if o.schemeType == 'internal'
+        if requestInfo.schemeType == 'web'
+          requestInfo.host
+        else if requestInfo.schemeType == 'internal'
           CHROME_DOMAIN
         else
           ''
@@ -828,7 +849,7 @@ class RulesetEditButtons extends ContainerPopulation
         originDomain = chooseDomain o
         destinationDomain = chooseDomain d
         rs.superdomainsCheckOrder originDomain, destinationDomain, (o, d) =>
-          for t in supportedTypes
+          for t in enabledTypes
             decision = rs.lookup o, d, t
             continue if decision is null
             defaults rulesSet, o, Object.create null
@@ -1056,5 +1077,38 @@ exports.popup = popup =
     onShowing: (doc) ->
       @_reloadRequired = false
 
+  contentTypes: new class
+    ENABLED_CONTENT_TYPES_PREF = 'ui.popup.enabledContentTypes'
+
+    _enabled: Object.create null
+
+    constructor: ->
+      prefs.define ENABLED_CONTENT_TYPES_PREF,
+        default: {
+          '_ANY_': yes
+          'IMAGE': yes
+          'MEDIA': yes
+          'STYLESHEET': yes
+          'SCRIPT': yes
+          'OBJECT': yes
+          'SUBDOCUMENT': yes
+        }
+        get: (enabled) ->
+          enabled['_ANY_'] = yes
+          return enabled
+      @_enabled = prefs.get ENABLED_CONTENT_TYPES_PREF
+      onShutdown.add => prefs.set ENABLED_CONTENT_TYPES_PREF, @_enabled
+
+    enabled: (type) -> !! @_enabled[type]
+    enable: (type) -> @_enabled[type] = yes
+    disable: (type) ->
+      return if type == WILDCARD_TYPE
+      delete @_enabled[type]
+    enabledList: ->
+      list = []
+      for t in USER_AVAILABLE_CONTENT_TYPES
+        if @enabled t
+          list.push t
+      return list
 
 do popup.init

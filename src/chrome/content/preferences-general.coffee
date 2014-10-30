@@ -1,7 +1,6 @@
 
 
 { manager } = require 'ruleset/manager'
-{ popup } = require 'ui/popup'
 { panelview } = require 'ui/panelview'
 
 
@@ -20,12 +19,6 @@ onLoad = ->
       manager.suspend()
     else
       manager.unsuspend()
-
-  checkbox '#autoreload-popup', popup.autoreload.enabled(), ->
-    if @checked
-      popup.autoreload.enable()
-    else
-      popup.autoreload.disable()
 
   checkbox '#autoreload-panelview', panelview.autoreload.enabled(), ->
     if @checked

@@ -1,12 +1,62 @@
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
 @-moz-document url("chrome://browser/content/browser.xul") {
+  /* In palette */
+  toolbarpaletteitem[place="palette"] > #policeman-toolbarbutton {
+    list-style-image: url("chrome://policeman/skin/toolbar-icon-32.png");
+  }
+
+  /* In toolbar */
   #policeman-toolbarbutton {
     list-style-image: url("chrome://policeman/skin/toolbar-icon-16.png");
   }
 
-  #policeman-toolbarbutton[cui-areatype="menu-panel"],
-  toolbarpaletteitem[place="palette"] > #policeman-toolbarbutton {
+  /* Different allow ratios for toolbar */
+  #policeman-toolbarbutton[policeman-allow-ratio="0"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-0-icon-16.png");
+  }
+  #policeman-toolbarbutton[policeman-allow-ratio="25"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-25-icon-16.png");
+  }
+  #policeman-toolbarbutton[policeman-allow-ratio="50"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-50-icon-16.png");
+  }
+  #policeman-toolbarbutton[policeman-allow-ratio="75"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-75-icon-16.png");
+  }
+  #policeman-toolbarbutton[policeman-allow-ratio="100"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-100-icon-16.png");
+  }
+
+  /* Suspended in toolbar */
+  #policeman-toolbarbutton[policeman-suspended="true"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-suspended-icon-16.png");
+  }
+
+  /* In menu */
+  #policeman-toolbarbutton[cui-areatype="menu-panel"] {
     list-style-image: url("chrome://policeman/skin/toolbar-icon-32.png");
+  }
+
+  /* Different allow ratios for menu */
+  #policeman-toolbarbutton[cui-areatype="menu-panel"][policeman-allow-ratio="0"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-0-icon-32.png");
+  }
+  #policeman-toolbarbutton[cui-areatype="menu-panel"][policeman-allow-ratio="25"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-25-icon-32.png");
+  }
+  #policeman-toolbarbutton[cui-areatype="menu-panel"][policeman-allow-ratio="50"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-50-icon-32.png");
+  }
+  #policeman-toolbarbutton[cui-areatype="menu-panel"][policeman-allow-ratio="75"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-75-icon-32.png");
+  }
+  #policeman-toolbarbutton[cui-areatype="menu-panel"][policeman-allow-ratio="100"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-100-icon-32.png");
+  }
+
+  /* Suspended in menu */
+  #policeman-toolbarbutton[cui-areatype="menu-panel"][policeman-suspended="true"] {
+    list-style-image: url("chrome://policeman/skin/toolbar-suspended-icon-32.png");
   }
 }

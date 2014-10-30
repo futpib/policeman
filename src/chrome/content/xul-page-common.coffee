@@ -20,6 +20,10 @@ log = console.log.bind console
 
 $ = (s) -> document.querySelector s
 
+{ createElement: _createElement } = require 'utils'
+createElement = ->
+  return _createElement document, arguments...
+
 onLoad = ->
 
 window.addEventListener 'load', ->
