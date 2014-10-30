@@ -128,8 +128,30 @@ exports.DeepLookupRS = class DeepLookupRS extends LookupRS
   toTable: -> toTableRec @_lookup
 
 exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
-  WILDCARD_TYPE: '_ANY_'
   CHROME_DOMAIN: '_CHROME_DOMAIN_'
+
+  WILDCARD_TYPE = '_ANY_'
+  WILDCARD_TYPE: WILDCARD_TYPE
+
+  USER_AVAILABLE_CONTENT_TYPES: [
+    WILDCARD_TYPE,
+    'IMAGE',
+    'MEDIA',
+    'STYLESHEET',
+    'FONT',
+    'SCRIPT',
+    'OBJECT',
+    # 'OBJECT_SUBREQUEST', # This is treated as OBJECT by `check`
+    'SUBDOCUMENT',
+    # 'DOCUMENT', # Let's hide this from user, default ruleset handles it
+    'XMLHTTPREQUEST',
+    'WEBSOCKET',
+    'DTD',
+    # 'XBL', # This is mozilla-specific, web doesn't use XBL
+    'PING',
+    # 'REFRESH', # docs on nsIContentPolicy say shouldLoad() will never get this
+    'OTHER', # What exactly falls into this category?
+  ]
 
   constructor: ->
     super @_sortagePref

@@ -11,18 +11,9 @@
 { l10n } = require 'l10n'
 
 
-WILDCARD_TYPE = DomainDomainTypeRS::WILDCARD_TYPE
 CHROME_DOMAIN = DomainDomainTypeRS::CHROME_DOMAIN
 
-localizeTypeLookup =
-  IMAGE: l10n 'preferences_type_image'
-  MEDIA: l10n 'preferences_type_media'
-  STYLESHEET: l10n 'preferences_type_stylesheet'
-  SCRIPT: l10n 'preferences_type_script'
-  SUBDOCUMENT: l10n 'preferences_type_subdocument'
-  OBJECT: l10n 'preferences_type_object'
-localizeTypeLookup[WILDCARD_TYPE] = l10n 'preferences_type_wildcard'
-localizeType = (t) -> localizeTypeLookup[t]
+localizeType = (t) -> l10n 'content_type.title.plural.' + t
 
 localizeDecision = (d) -> l10n if d then 'allow' else 'reject'
 
