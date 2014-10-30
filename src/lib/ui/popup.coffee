@@ -478,7 +478,7 @@ localizeDestination = (d) ->
     return d
 
 CONTENT_TYPE_FILTER_OTHER = '_popup_OTHER_'
-CONTENT_TYPE_FILTER_ALL   = '_popup_ALL_'
+CONTENT_TYPE_FILTER_ALL   = WILDCARD_TYPE
 CONTENT_TYPE_FILTER_NONE  = '_popup_NONE_'
 
 categorizeRequest = (o, d, c) ->
@@ -502,7 +502,8 @@ class FilterButtons extends RadioButtons
   constructor: (containerId) ->
     super containerId, CONTENT_TYPE_FILTER_NONE
   populate: (doc, decision) ->
-    stats = { _popup_ALL_:0, _popup_OTHER_:0 }
+    stats = {}
+    stats[CONTENT_TYPE_FILTER_OTHER] = 0
     stats[t] = 0 for t in USER_AVAILABLE_CONTENT_TYPES
     for [o, d, c, decision_] in memo.getByTab tabs.getCurrent()
       if  (decision_ == decision) \
@@ -510,11 +511,10 @@ class FilterButtons extends RadioButtons
       and (destinationSelection.filter d)
         category = categorizeRequest o, d, c
         stats[category] += 1
-        stats._popup_ALL_ += 1
+        stats[CONTENT_TYPE_FILTER_ALL] += 1
 
     filters = doc.createDocumentFragment()
     for type in [] \
-                 .concat([CONTENT_TYPE_FILTER_ALL]) \
                  .concat(popup.contentTypes.enabledList()) \
                  .concat([CONTENT_TYPE_FILTER_OTHER])
       label = localizeContentTypeFilter type
