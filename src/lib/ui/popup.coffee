@@ -243,7 +243,7 @@ class DomainSelectionButtons extends RadioButtons
           tree.push target
         target.hits += 1
         if decision
-            target.allowHits += 1
+          target.allowHits += 1
         else
           target.rejectHits += 1
         if labels.length
@@ -1101,7 +1101,9 @@ exports.popup = popup =
 
     enabled: (type) -> !! @_enabled[type]
     enable: (type) -> @_enabled[type] = yes
-    disable: (type) -> delete @_enabled[type]
+    disable: (type) ->
+      return if type == WILDCARD_TYPE
+      delete @_enabled[type]
     enabledList: ->
       list = []
       for t in USER_AVAILABLE_CONTENT_TYPES
