@@ -834,9 +834,9 @@ class RulesetEditButtons extends ContainerPopulation
       # filtered by selected origin or destination if any
       # ordered by priority
       chooseDomain = (requestInfo) ->
-        if o.schemeType == 'web'
-          o.host
-        else if o.schemeType == 'internal'
+        if requestInfo.schemeType == 'web'
+          requestInfo.host
+        else if requestInfo.schemeType == 'internal'
           CHROME_DOMAIN
         else
           ''
