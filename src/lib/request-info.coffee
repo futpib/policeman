@@ -115,6 +115,9 @@ exports.ContextInfo = class ContextInfo
     'FONT', # 14
     'MEDIA', # 15
     'WEBSOCKET', # 16
+    'CSP_REPORT', # 17
+    'XSLT', # 18
+    'BEACON', # 19
   ]
 
   makeClassList = (className) ->
