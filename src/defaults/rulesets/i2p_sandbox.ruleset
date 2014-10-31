@@ -3,8 +3,13 @@ magic: policeman_ruleset
 version: 0.1
 id: "i2p_sandbox"
 
-name: "I2P isolation"
-description: "Reject .i2p -> web and web -> .i2p"
+l10n:
+  en-US:
+    name: "I2P isolation"
+    description: "Reject .i2p -> web and web -> .i2p"
+  de-DE:
+    name: "I2P Isolation"
+    description: "Blockiert .i2p -> Web und Web -> .i2p"
 
 rules:
   web -> web:
