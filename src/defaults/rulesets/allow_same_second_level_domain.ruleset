@@ -8,6 +8,9 @@ l10n:
   en-US:
     name: "Same second-level domain"
     description: "Allow requests to same second-level domain"
+  de-DE:
+    name: "Gleiche Second-level Domain"
+    description: "Erlaubt Anfragen zur selben Second-level Domain"
 
 rules:
   web -> web:
