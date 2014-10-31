@@ -10,6 +10,10 @@ l10n:
     name: "Same site"
     description: "Allow requests to same domain and subdomains"
     warnOnDisable: "TODO"
+  de-DE:
+    name: "Gleiceh Seite"
+    description: "Erlaubt Anfragen zur selben Domain und Unterdomains"
+    warnOnDisable: "TODO"
 
 rules:
   web -> web:
