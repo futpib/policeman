@@ -2,7 +2,7 @@
 Firefox extention for cross-site requests control
 
 ## Help
-If [wiki](https://github.com/futpib/policeman/wiki) does not cover you question, you can get help commenting on [this issue](https://github.com/futpib/policeman/issues/18)
+If the [wiki](https://github.com/futpib/policeman/wiki) does not cover your question, you can get help by commenting on [this issue](https://github.com/futpib/policeman/issues/18)
 
 ## License
 [GPL v3](http://www.gnu.org/licenses/gpl-3.0.html)
