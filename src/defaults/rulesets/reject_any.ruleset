@@ -8,6 +8,9 @@ l10n:
   en-US:
     name: "Reject any request"
     description: "Reject any request"
+  de-DE:
+    name: "Blockiere alle Anfragen"
+    description: "Blockiert alle Anfragen"
 
 rules:
   -> : REJECT
