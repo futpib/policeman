@@ -11,6 +11,8 @@ Cu.import "resource://gre/modules/NetUtil.jsm"
 } = require 'utils'
 { tabs } = require 'tabs'
 
+{ prefs } = require 'prefs'
+
 { l10n } = require 'l10n'
 
 
@@ -29,10 +31,63 @@ exports.findTabThatOwnsImage = findTabThatOwnsImage = (img) ->
   tabs.getWindowOwner img.ownerDocument.defaultView.top
 
 
-class BlockedElements
-  constructor: ->
-    @_tabIdToBlockedElements = Object.create null
-    tabs.onClose.add (t) => @_removeAllByTabId tabs.getTabId t
+class Filter
+  shouldProcess: (elem, origin, destination, context, decision) ->
+    return decision == false \
+           and origin.schemeType == origin.schemeType == 'web' \
+           and context._element \
+           and context._tabId
+  mayHaveBeenBlocked: -> true
+
+imageFilter = new class ImageFilter extends Filter
+  isImage = (elem) -> elem.nodeName == 'IMG'
+  shouldProcess: (elem, origin, destination, context, decision) ->
+    return super(arguments...) \
+           and isImage(elem) \
+           # filter off 1px counter images
+           and not (elem.clientWidth == elem.clientHeight == 1)
+  mayHaveBeenBlocked: isImage
+
+frameFilter = new class FrameFilter extends Filter
+  isFrame = (elem) -> elem.nodeName in ['IFRAME', 'FRAME']
+  shouldProcess: (elem, origin, destination, context, decision) ->
+    return super(arguments...) \
+           and isFrame(elem)
+  mayHaveBeenBlocked: isFrame
+
+objectFilter = new class ObjectFilter extends Filter
+  isObject = (elem) -> elem.nodeName in ['OBJECT', 'EMBED']
+  shouldProcess: (elem, origin, destination, context, decision) ->
+    return super(arguments...) \
+           and isObject(elem) \
+           # do not process OBJECT_SUBREQUESTs
+           and context.contentType == 'OBJECT'
+  mayHaveBeenBlocked: isObject
+
+
+class BlockedElementHandler
+  _backupAttribute: (elem, attr) ->
+    elem.setAttribute 'policeman-original-' + attr, (elem.getAttribute attr) or ''
+  _restoreAttribute: (elem, attr) ->
+    elem.setAttribute attr, elem.getAttribute 'policeman-original-' + attr
+    elem.removeAttribute 'policeman-original-' + attr
+
+  _processedFlagAttribute: undefined # to be defined by inferior classes
+  isBlocked: (elem) ->
+    return @filter.mayHaveBeenBlocked(elem) \
+           and 'true' == elem.getAttribute(
+                                'policeman-blocked-' + @_processedFlagAttribute)
+  tagAsProcessed: (elem) ->
+    elem.setAttribute 'policeman-blocked-' + @_processedFlagAttribute, 'true'
+  removeProcessedTag: (elem) ->
+    elem.removeAttribute 'policeman-blocked-' + @_processedFlagAttribute
+
+  setData: (elem, name, value) ->
+    elem.setAttribute 'policeman-data-' + name, value
+  getData: (elem, name) ->
+    elem.getAttribute 'policeman-data-' + name
+  removeData: (elem, name) ->
+    elem.removeAttribute 'policeman-data-' + name
 
   _addElemByTabId: (tabId, elem) ->
     defaults @_tabIdToBlockedElements, tabId, []
@@ -42,66 +97,31 @@ class BlockedElements
   _removeAllByTabId: (tabId) -> delete @_tabIdToBlockedElements[tabId]
   _getAllByTabId: (tabId) -> (@_tabIdToBlockedElements[tabId] or []).slice()
 
-  _backupAttribute: (elem, attr) ->
-    elem.setAttribute 'policeman-original-' + attr, (elem.getAttribute attr) or ''
-  _restoreAttribute: (elem, attr) ->
-    elem.setAttribute attr, elem.getAttribute 'policeman-original-' + attr
-    elem.removeAttribute 'policeman-original-' + attr
+  constructor: (@filter) ->
+    @_tabIdToBlockedElements = Object.create null
+    tabs.onClose.add (t) => @_removeAllByTabId tabs.getTabId t
 
-  setData: (elem, name, value) ->
-    elem.setAttribute 'policeman-data-' + name, value
-  getData: (elem, name) ->
-    elem.getAttribute 'policeman-data-' + name
-  removeData: (elem, name) ->
-    elem.removeAttribute 'policeman-data-' + name
-
-  _filter: (origin, destination, context, decision) ->
-    return decision == false \
-           and origin.schemeType == origin.schemeType == 'web' \
-           and context._element \
-           and context._tabId
-
-  process: (origin, destination, context, decision) ->
-    return unless @_filter arguments...
-    @_filteredProcess context._element, origin, destination, context
-
-  _filteredProcess: (elem, origin, destination, context) ->
-    elem.setAttribute 'policeman-blocked', 'true'
-
-    @setData elem, 'src', destination.spec
-    @setData elem, 'host', destination.host
-    @setData elem, 'contentType', context.contentType
-
-    @_backupAttribute elem, 'src'
-    @_backupAttribute elem, 'title'
-
-    @_backupAttribute elem, 'style'
-    elem.style.boxShadow = 'inset 0px 0px 0px 1px #fcc'
-    elem.style.backgroundRepeat = 'no-repeat'
-    elem.style.backgroundPosition = 'center center'
-    elem.style.backgroundImage = "url('#{ BACKGROUND_IMAGE }')"
-    elem.style.minWidth = elem.style.minHeight = '32px'
-
+  process: (elem, origin, destination, context, decision) ->
+    return unless @filter.shouldProcess elem, origin, destination, context, decision
+    @_filteredProcess arguments...
     @_addElemByTabId context._tabId, elem
-
-  isBlocked: (elem) ->
-    (not isDead elem) and 'true' == elem.getAttribute 'policeman-blocked'
 
   restore: (elem) ->
     return unless @isBlocked elem
+    @_filteredRestore arguments...
+    @_removeElemByTabId (tabs.getTabId tabs.getNodeOwner elem), elem
 
-    elem.removeAttribute 'policeman-blocked'
+  _filteredProcess: (elem, origin, destination, context, decision) ->
+    @tagAsProcessed elem
+    @setData elem, 'src', destination.spec
+    @_backupAttribute elem, 'src'
+
+  _filteredRestore: (elem) ->
+    @removeProcessedTag elem
     @removeData elem, 'src'
-    @removeData elem, 'host'
-
     elem.ownerDocument.defaultView.setTimeout (=>
       @_restoreAttribute elem, 'src'
     ), 1
-
-    @_restoreAttribute elem, 'style'
-    @_restoreAttribute elem, 'title'
-
-    @_removeElemByTabId tabs.getTabId tabs.getNodeOwner elem
 
   restoreAllOnTab: (tab) ->
     return unless tab
@@ -136,55 +156,100 @@ class BlockedElements
     return restored
 
 
-class BlockedImages extends BlockedElements
-  isBlocked: (elem) ->
-    (super elem) and 'true' == elem.getAttribute 'policeman-blocked-image'
-  _filter: (o, d, c) ->
-    return super(arguments...) \
-           and c.nodeName == 'img' \
-           # filter off 1px counter images
-           and not (c._element.clientWidth == c._element.clientHeight == 1)
-  _filteredProcess: (img, o, d, c) ->
-    super img, o, d, c
-    img.setAttribute 'policeman-blocked-image', 'true'
-    img.src = TRANSPARENT_PLACEHOLDER
-    img.title = (if img.title then img.title + ' ' else '') \
-        + (if img.alt and img.alt != img.title then img.alt + ' ' else '') \
-        + l10n('blocked_image.tip', d.host)
+class Passer
+  process: ->
+  restore: ->
+
+class Placeholder extends BlockedElementHandler
+  _processedFlagAttribute: 'placeholder'
+
+  _filteredProcess: (elem, origin, destination, context) ->
+    super arguments...
+
+    @setData elem, 'host', destination.host
+    @setData elem, 'contentType', context.contentType
+
+    @_backupAttribute elem, 'title'
+    @_backupAttribute elem, 'style'
+    elem.style.boxShadow = 'inset 0px 0px 0px 1px #fcc'
+    elem.style.backgroundRepeat = 'no-repeat'
+    elem.style.backgroundPosition = 'center center'
+    elem.style.backgroundImage = "url('#{ BACKGROUND_IMAGE }')"
+    elem.style.minWidth = elem.style.minHeight = '32px'
+
+  _filteredRestore: (elem) ->
+    super arguments...
+
+    return unless @isBlocked elem
+
+    @removeData elem, 'host'
+    @removeData elem, 'contentType'
+
+    @_restoreAttribute elem, 'title'
+    @_restoreAttribute elem, 'style'
+
+class Remover extends BlockedElementHandler
+  _processedFlagAttribute: 'removed'
+
+  _filteredProcess: (elem, origin, destination, context) ->
+    super arguments...
+    @_backupAttribute elem, 'style'
+    elem.style.display = 'none'
+
+  _filteredRestore: (elem) ->
+    super arguments...
+    return unless @isBlocked elem
+    @_restoreAttribute elem, 'style'
 
 
-class BlockedFrames extends BlockedElements
-  isBlocked: (elem) ->
-    (super elem) and 'true' == elem.getAttribute 'policeman-blocked-frame'
-  _filter: (o, d, c) -> c.nodeName in ['iframe', 'frame'] and super arguments...
-  _filteredProcess: (elem, o, d, c) ->
-    super elem, o, d, c
-    elem.setAttribute 'policeman-blocked-frame', 'true'
-    elem.title = (if elem.title then elem.title + ' ' else '') \
-        + l10n('blocked_frame.tip', d.host)
+exports.blockedElements = blockedElements = new class
+  # define [preference string] <-> [handler class] mapping
+  prefToHandlerClass = new Map
+  handlerClassToPref = new Map
+  defHandlerClassPref = (pref, procClass) ->
+    prefToHandlerClass.set pref, procClass
+    handlerClassToPref.set procClass, pref
 
+  defHandlerClassPref 'placeholder', Placeholder
+  defHandlerClassPref 'remover', Remover
+  defHandlerClassPref 'passer', Passer
 
-class BlockedObjects extends BlockedElements
-  isBlocked: (elem) ->
-    (super elem) and 'true' == elem.getAttribute 'policeman-blocked-object'
-  _filter: (o, d, c) ->
-    return c.nodeName in ['object', 'embed'] \
-           and c.contentType == 'OBJECT' \ # do not process OBJECT_SUBREQUESTs
-           and super arguments...
-  _filteredProcess: (elem, o, d, c) ->
-    super elem, o, d, c
-    elem.setAttribute 'policeman-blocked-object', 'true'
-    elem.title = (if elem.title then elem.title + ' ' else '') \
-        + l10n('blocked_object.tip', d.host)
+  # define preferences themselves
+  fullHandlerPreferenceName = (name) -> "blockedElements.#{name}.handler"
 
+  defHandlerPref = (name) ->
+    prefs.define fullname = fullHandlerPreferenceName(name),
+      default: 'placeholder'
+      get: (str) ->
+        cls = prefToHandlerClass.get(str)
+        return cls
+      set: (cls) ->
+        str = handlerClassToPref.get(cls)
+        return str
 
-exports.blockedElements = blockedElements =
-  image: new BlockedImages
-  frame: new BlockedFrames
-  object: new BlockedObjects
+  _initHandlerPref: (name, filter) ->
+    defHandlerPref name
+    prefs.onChange fullname = fullHandlerPreferenceName(name), update = =>
+      cls = prefs.get fullname
+      this[name] = new cls filter
+    do update
+
+  constructor: ->
+    @_initHandlerPref 'image', imageFilter
+    @_initHandlerPref 'frame', frameFilter
+    @_initHandlerPref 'object', objectFilter
+
+  setHandler: (filterName, handlerName) ->
+    prefs.set fullHandlerPreferenceName(filterName), \
+              prefToHandlerClass.get(handlerName)
+  getHandler: (filterName) ->
+    handlerClassToPref.get prefs.get fullHandlerPreferenceName filterName
 
   process: (origin, destination, context, decision) ->
-    @image.process arguments...
-    @frame.process arguments...
-    @object.process arguments...
+    for handler in [@image, @frame, @object]
+      handler.process context._element, origin, destination, context, decision
+
+  restore: (elem) ->
+    for handler in [@image, @frame, @object]
+      handler.restore elem
 
