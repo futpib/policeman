@@ -21,6 +21,52 @@
     <checkbox id="autoreload-panelview"
               label="&preferences_reload_automaticaly_panelview;"
               />
+
+    <groupbox>
+      <caption label="&preferences_blocked_elements_handling;"/>
+      <groupbox>
+        <caption>
+          <checkbox id="enable-image-handling"
+                    label="&preferences_enable_image_handling;"
+                    />
+        </caption>
+        <radiogroup id="image-handling-radiogroup">
+          <radio policeman-handler="placeholder"
+                 label="&preferences_replace_with_placeholder;"/>
+          <radio policeman-handler="remover"
+                 label="&preferences_hide_blocked_elements;"/>
+        </radiogroup>
+      </groupbox>
+
+      <groupbox>
+        <caption>
+          <checkbox id="enable-frame-handling"
+                    label="&preferences_enable_frame_handling;"
+                    />
+        </caption>
+        <radiogroup id="frame-handling-radiogroup">
+          <radio policeman-handler="placeholder"
+                 label="&preferences_replace_with_placeholder;"/>
+          <radio policeman-handler="remover"
+                 label="&preferences_hide_blocked_elements;"/>
+        </radiogroup>
+      </groupbox>
+
+      <groupbox>
+        <caption>
+          <checkbox id="enable-object-handling"
+                    label="&preferences_enable_object_handling;"
+                    />
+        </caption>
+        <radiogroup id="object-handling-radiogroup">
+          <radio policeman-handler="placeholder"
+                 label="&preferences_replace_with_placeholder;"/>
+          <radio policeman-handler="remover"
+                 label="&preferences_hide_blocked_elements;"/>
+        </radiogroup>
+      </groupbox>
+    </groupbox>
+
   </vbox>
 
 </page>
