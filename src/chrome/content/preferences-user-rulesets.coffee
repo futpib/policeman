@@ -6,6 +6,7 @@
 {
   createElement
   removeChildren
+  mutateAttribute
 } = require 'utils'
 
 { l10n } = require 'l10n'
@@ -32,20 +33,17 @@ temporaryRuleMenu =
   init: ->
     @$ = $ '#temporary-rule-menu'
     $('#temporary-rule-menu > .menu-remove').addEventListener 'command', ->
-      item = temporaryRules.$.selectedItem
-      o = Rule::getOrigin item
-      d = Rule::getDestination item
-      t = Rule::getType item
-      manager.get('user_temporary').revoke(o, d, t)
+      selectedRows = temporaryRules.getSelectedRows()
+      for i in selectedRows
+        [o, d, t] = temporaryRules.getRule i
+        manager.get('user_persistent').revoke o, d, t
       temporaryRules.update()
     $('#temporary-rule-menu > .menu-promote').addEventListener 'command', ->
-      item = temporaryRules.$.selectedItem
-      o = Rule::getOrigin item
-      d = Rule::getDestination item
-      t = Rule::getType item
-      decision = Rule::getDecision item
-      manager.get('user_temporary').revoke(o, d, t)
-      manager.get('user_persistent')[if decision then 'allow' else 'reject'](o, d, t)
+      selectedRows = temporaryRules.getSelectedRows()
+      for i in selectedRows
+        [o, d, t, decision] = temporaryRules.getRule i
+        manager.get('user_temporary').revoke(o, d, t)
+        manager.get('user_persistent')[if decision then 'allow' else 'reject'](o, d, t)
       temporaryRules.update()
       persistentRules.update()
 
@@ -57,11 +55,10 @@ persistentRuleMenu =
   init: ->
     @$ = $ '#persistent-rule-menu'
     $('#persistent-rule-menu > .menu-remove').addEventListener 'command', ->
-      item = persistentRules.$.selectedItem
-      o = Rule::getOrigin item
-      d = Rule::getDestination item
-      t = Rule::getType item
-      manager.get('user_persistent').revoke(o, d, t)
+      selectedRows = persistentRules.getSelectedRows()
+      for i in selectedRows
+        [o, d, t] = persistentRules.getRule i
+        manager.get('user_persistent').revoke o, d, t
       persistentRules.update()
   open: (x, y) ->
     @$.openPopupAtScreen x, y, true
@@ -89,8 +86,7 @@ class AddRuleWidget
       textbox.focus()
       return null
 
-    @_addButton = $ "##{ @_idPrefix }-button"
-    @_addButton.addEventListener 'command', =>
+    add = =>
       allowReject = @_decisionList.selectedItem.value
       type = @_typeList.selectedItem.value
       origin = validateHost @_originTextbox
@@ -99,6 +95,15 @@ class AddRuleWidget
       manager.get(@_rulesetId)[allowReject](origin, destination, type)
       @_onAdd()
 
+    @_addButton = $ "##{ @_idPrefix }-button"
+    @_addButton.addEventListener 'command', add
+
+    addOnEnterPress = (event) ->
+      if event.keyCode == 13 # Enter
+        do add
+    @_originTextbox.addEventListener 'keypress', addOnEnterPress
+    @_destinationTextbox.addEventListener 'keypress', addOnEnterPress
+
 
 addTemporaryRuleWidget = new AddRuleWidget 'add-temporary-rule', 'user_temporary', ->
   temporaryRules.update()
@@ -106,90 +111,120 @@ addPersistentRuleWidget = new AddRuleWidget 'add-persistent-rule', 'user_persist
   persistentRules.update()
 
 
-class Rule
-  create: (description) ->
-    {
-      origin
-      destination
-      type
-      decision
-    } = description
-    row = createElement document, 'listitem',
-      'data-policeman-origin': origin
-      'data-policeman-destination': destination
-      'data-policeman-type': type
-      'data-policeman-decision': decision
-    row.appendChild createElement document, 'listcell',
-      label: localizeDecision decision
-    row.appendChild createElement document, 'listcell',
-      label: localizeType type
-    row.appendChild createElement document, 'listcell',
-      label: localizeDomain origin
-    row.appendChild createElement document, 'listcell',
-      label: localizeDomain destination
-    return row
+class RulesTree
+  COLUMNS_COUNT = 4
 
-  getOrigin: (el) -> el.getAttribute 'data-policeman-origin'
-  getDestination: (el) -> el.getAttribute 'data-policeman-destination'
-  getType: (el) -> el.getAttribute 'data-policeman-type'
-  getDecision: (el) -> 'true' == el.getAttribute 'data-policeman-decision'
-
-
-class TemporaryRule extends Rule
-  create: (description) ->
-    row = super arguments...
-    row.addEventListener 'contextmenu', (e) ->
-      temporaryRuleMenu.open e.screenX, e.screenY
-    return row
-
-
-class PersistentRule extends Rule
-  create: (description) ->
-    row = super arguments...
-    row.addEventListener 'contextmenu', (e) ->
-      persistentRuleMenu.open e.screenX, e.screenY
-    return row
-
-
-class RulesList
   constructor: (@_selector, @_searchSelector, @_rulesetId) ->
 
   init: ->
     @$ = $ @_selector
     @_searchBox = $ @_searchSelector
-    @_searchBox.addEventListener 'command', do (that=@) -> ->
-      that._filter = @value
+
+    that = this
+    @$.addEventListener 'contextmenu', (event) ->
+      return unless event.target.nodeName == 'treechildren' \
+                    and that._treeView.selection.count > 0
+      that._onTreechildrenContextMenu event
+
+    @$.addEventListener 'keypress', (event) ->
+      if event.keyCode == 46 # Delete
+        selectedRows = that.getSelectedRows()
+        for i in selectedRows
+          [o, d, t] = that.getRule i
+          manager.get(that._rulesetId).revoke o, d, t
+        that.update()
+
+    for col in @$.getElementsByTagName 'treecol'
+      col.addEventListener 'click', ->
+        for col in that.$.getElementsByTagName 'treecol'
+          if col isnt this
+            col.removeAttribute 'sortDirection'
+        mutateAttribute this, 'sortDirection', (order) ->
+          if order == 'ascending' then 'descending' else 'ascending'
+        that.$.setAttribute 'sortResource', this.getAttribute 'sortResource'
+        that.$.setAttribute 'sortDirection', this.getAttribute 'sortDirection'
+        that.update()
+
+    @_searchBox.addEventListener 'command', ->
+      that._filter = this.value
       that.update()
     @update()
 
-  _ruleClass: Rule
+  getSelectedRows: ->
+    selection = @_treeView.selection
+    selectedRows = []
+
+    if selection.single
+      selectedRows.push selection.currentIndex
+      return selectedRows
+
+    start = {}
+    end = {}
+    for i in [0...selection.getRangeCount()]
+      selection.getRangeAt i, start, end
+      for j in [start.value..end.value]
+        selectedRows.push j
+    return selectedRows
+
+  getRule: (i) -> @_rows[i].source
+
+  _onTreechildrenContextMenu: ->
 
   update: ->
-    removeChildren @$, 'listitem'
-    for [o, d, t, decision] in manager.get(@_rulesetId).toTable()
+    @_rows = []
+    for rule in manager.get(@_rulesetId).toTable()
+      [o, d, t, dec] = rule
+      origin = localizeDomain o
+      destination = localizeDomain d
+      type = localizeType   t
+      decision = localizeDecision dec
       if @_filter
-        continue unless (localizeDomain o).toLowerCase().contains(@_filter.toLowerCase()) \
-          or (localizeDomain d).toLowerCase().contains(@_filter.toLowerCase()) \
-          or localizeType(t).toLowerCase().contains(@_filter.toLowerCase()) \
-          or localizeDecision(t).toLowerCase().contains(@_filter.toLowerCase())
-      @$.appendChild @_ruleClass::create {
-        origin: o
-        destination: d
-        type: t
-        decision: decision
+        filter = @_filter.toLowerCase()
+        continue unless origin.toLowerCase().contains(filter) \
+          or destination.toLowerCase().contains(filter) \
+          or type.toLowerCase().contains(filter) \
+          or decision.toLowerCase().contains(filter)
+      @_rows.push {
+        decision,    0: decision
+        type,        1: type
+        origin,      2: origin
+        destination, 3: destination
+        length: 4
+        source: rule
       }
 
+    sortResource = @$.getAttribute 'sortResource'
+    sortDirection = if 'ascending' == @$.getAttribute 'sortDirection' \
+      then 1 \
+      else -1
+    @_rows.sort (rowA, rowB) ->
+      a = rowA[sortResource]
+      b = rowB[sortResource]
+      if a < b
+        return - sortDirection
+      if a > b
+        return sortDirection
+      return 0
 
-class TemporaryRulesList extends RulesList
-  _ruleClass: TemporaryRule
+    that = this
+    @_treeView =
+      rowCount: that._rows.length
+      getCellText: (row, column) -> that._rows[row][column.index]
+      setTree: (@treebox) ->
+      cycleHeader: (col, elem) ->
+      isContainer: (row) -> no
+    @$.view = @_treeView
 
+persistentRules = new (class extends RulesTree
+  _onTreechildrenContextMenu: (e) ->
+    persistentRuleMenu.open e.screenX, e.screenY
+) '#persistent-rules', '#persistent-rules-search-box', 'user_persistent'
 
-class PersistentRulesList extends RulesList
-  _ruleClass: PersistentRule
+temporaryRules = new (class extends RulesTree
+  _onTreechildrenContextMenu: (e) ->
+    temporaryRuleMenu.open e.screenX, e.screenY
+) '#temporary-rules', '#temporary-rules-search-box', 'user_temporary'
 
-
-temporaryRules = new TemporaryRulesList '#temporary-rules', '#temporary-rules-search-box', 'user_temporary'
-persistentRules = new PersistentRulesList '#persistent-rules', '#persistent-rules-search-box', 'user_persistent'
 
 onLoad = ->
   temporaryRules.init()

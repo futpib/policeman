@@ -30,7 +30,7 @@
               </vbox>
             </vbox>
             <separator orient="vertical"/>
-            <vbox>
+            <vbox flex="1">
               <vbox id="policeman-popup-ruleset-edit-container">
                 <vbox id="policeman-popup-temporary-ruleset-container">
                   <hbox>
@@ -64,15 +64,15 @@
                   </vbox>
                 </vbox>
               </vbox>
-              <spacer flex="1"/>
+              <spacer flex="1000"/> <!-- HACK -->
               <separator/>
-              <vbox>
+              <vbox flex="1">
                 <hbox id="policeman-popup-rejected-requests-filters-container">
                   <!--
                   filter buttons for requests below populate here
                   -->
                 </hbox>
-                <vbox id="policeman-popup-rejected-requests-container">
+                <vbox flex="1" id="policeman-popup-rejected-requests-container">
                   <!--
                   rejected requests populate here
                   -->
@@ -83,7 +83,7 @@
                   filter buttons for requests below populate here
                   -->
                 </hbox>
-                <vbox id="policeman-popup-allowed-requests-container">
+                <vbox flex="1" id="policeman-popup-allowed-requests-container">
                   <!--
                   allowed requests summary populate here
                   -->

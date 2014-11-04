@@ -591,9 +591,11 @@ class RequestList extends ContainerPopulation
       tooltiptext: destination.spec
       href: destination.spec
       crop: 'center'
+      flex: 1
 
     box = createElement doc, 'hbox',
       class: 'policeman-popup-request'
+      flex: 1
 
     box.appendChild originLbl
     box.appendChild arrowLbl
