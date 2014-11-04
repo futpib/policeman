@@ -86,8 +86,7 @@ class AddRuleWidget
       textbox.focus()
       return null
 
-    @_addButton = $ "##{ @_idPrefix }-button"
-    @_addButton.addEventListener 'command', =>
+    add = =>
       allowReject = @_decisionList.selectedItem.value
       type = @_typeList.selectedItem.value
       origin = validateHost @_originTextbox
@@ -95,6 +94,15 @@ class AddRuleWidget
       return if origin is null or destination is null
       manager.get(@_rulesetId)[allowReject](origin, destination, type)
       @_onAdd()
+
+    @_addButton = $ "##{ @_idPrefix }-button"
+    @_addButton.addEventListener 'command', add
+
+    addOnEnterPress = (event) ->
+      if event.keyCode == 13 # Enter
+        do add
+    @_originTextbox.addEventListener 'keypress', addOnEnterPress
+    @_destinationTextbox.addEventListener 'keypress', addOnEnterPress
 
 
 addTemporaryRuleWidget = new AddRuleWidget 'add-temporary-rule', 'user_temporary', ->
