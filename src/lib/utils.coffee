@@ -42,7 +42,11 @@ exports.Observer = class Observer
     observerService.removeObserver @, @topic
 
 
-exports.cache = cache = (hash, version, f) ->
+exports.cache = cache = ({hash, version, function: f}) ->
+  if not hash
+    hash = -> JSON.stringify arguments
+  if not version
+    version = -> '' # just a constant
   versions = Object.create null
   cache_ = Object.create null
   return (args...) ->
