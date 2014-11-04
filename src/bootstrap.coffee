@@ -33,6 +33,8 @@ startup = (data, reason) ->
 
   requireScope.require 'content-policy'
   requireScope.require 'ui/ui'
+  { updating } = requireScope.require 'updating'
+  updating.finalize '0.13'
 
 
 shutdown = (data, reason) ->
