@@ -80,6 +80,9 @@ exports.removeChildren = removeChildren = (node, selector='*') ->
 exports.removeNode = removeNode = (node) ->
   node.parentNode.removeChild node
 
+exports.mutateAttribute = mutateAttribute = (node, attr, f) ->
+  node.setAttribute attr, f(node.getAttribute attr)
+
 exports.isDead = isDead = (node) ->
   try
     node.nodeName
