@@ -2,6 +2,7 @@
 { DomainDomainTypeRS } = require 'ruleset/code-ruleset'
 
 { prefs, foreign } = require 'prefs'
+{ updating } = require 'updating'
 { l10n } = require 'l10n'
 
 
@@ -14,7 +15,7 @@ exports.persistentRuleSet = persistentRuleSet = new (class extends DomainDomainT
   permissiveness: 'mixed'
   homepage: 'https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#persistent-rules-added-by-ui'
 
-  _sortagePref: 'ruleset.persistent.domainDomainType'
+  _sortagePref: 'ruleset.persistent.domainDomainTypeUnicode'
   _restrictToWebPref: 'ruleset.persistent.restrictToWeb'
 )
 
@@ -47,3 +48,23 @@ if not prefs.get rpImportPref
   catch e
     log "Error trying to import PequestPolicy rules: #{e}\n #{e.stack}."
   prefs.set rpImportPref, true
+
+
+updating.from '0.12', ->
+  ###
+  0.12 and below used 'ruleset.persistent.domainDomainType' which was defined
+  as 'object' by ruleset/code-ruleset#SavableRS.
+  Now we have 'ruleset.persistent.domainDomainTypeUnicode' define as 'uobject'
+  for proper internationalized domain names support.
+  ###
+  prefs.define ddtPref = 'ruleset.persistent.domainDomainType',
+    type: 'object'
+    default: {}
+  ddt = prefs.get ddtPref
+  for o of ddt
+    for d of ddt[o]
+      for t of ddt[o][d]
+        if ddt[o][d][t]
+          persistentRuleSet.allow o, d, t
+        else
+          persistentRuleSet.reject o, d, t

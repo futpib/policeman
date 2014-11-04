@@ -41,6 +41,7 @@ exports.SavableRS = class SavableRS extends ModifiableRS
   constructor: (@_pref=null) ->
     if @_pref
       prefs.define @_pref,
+        type: 'uobject'
         default: @_marshal()
       do @load
       prefs.onChange @_pref, @load.bind @
