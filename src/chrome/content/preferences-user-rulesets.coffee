@@ -11,6 +11,9 @@
 
 { l10n } = require 'l10n'
 
+idnService = Cc["@mozilla.org/network/idn-service;1"]
+              .getService Ci.nsIIDNService
+
 
 CHROME_DOMAIN = DomainDomainTypeRS::CHROME_DOMAIN
 
@@ -63,12 +66,16 @@ class AddRuleWidget
 
     webHostRe = ///
       ^(
-        ([a-z0-9][a-z0-9-]*\.)+[a-z]+ # something like a domain name
-        |([0-9]{1,3}\.){3}[0-9]{1,3}  # or ip4 address
+        ([^\.]+\.)+[^\.]+ # something like an IDN or ip4 address
       )?$
     ///i
     validateHost = (textbox) ->
       str = textbox.value.toLowerCase()
+      if idnService.isACE str
+        # Doc on `nsIIDNService` says `convertToDisplayIDN` ensures that
+        # the encoding is consistent with `nsIURI.host` which is precisely
+        # what we want here
+        str = idnService.convertToDisplayIDN str, no
       return str if webHostRe.test str
       textbox.select()
       textbox.focus()
