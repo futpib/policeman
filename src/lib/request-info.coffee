@@ -40,7 +40,7 @@ class UriInfo
     'file',
   ]
 
-  classifyScheme: (s) -> schemeClassification[s]
+  classifyScheme: (s) -> schemeClassification[s] or 'unknown'
 
   constructor: (uri) ->
     if typeof uri == 'string' # assuming it's a stringified uriinfo
