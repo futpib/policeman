@@ -68,3 +68,4 @@ updating.from '0.12', ->
           persistentRuleSet.allow o, d, t
         else
           persistentRuleSet.reject o, d, t
+  prefs.delete ddtPref
