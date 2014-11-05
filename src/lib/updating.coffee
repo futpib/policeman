@@ -13,7 +13,7 @@ exports.updating = updating = new class
   currentVersion = prefs.get 'version'
 
   versionUtils = new class
-    toIntList = (v) -> v.split('.').map(parseInt)
+    toIntList = (v) -> v.split('.').map((x) -> parseInt x)
     normalizeLengthInplace = (as, bs) ->
       [long, short] = if as.length > bs.length then [as, bs] else [bs, as]
       short.unshift 0 while long.length > short.length
