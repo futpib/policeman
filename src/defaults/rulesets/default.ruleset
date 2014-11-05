@@ -67,6 +67,8 @@ rules:
       [host] * -> lastpass:
         [contentType] SUBDOCUMENT: ACCEPT
 
-  * -> *:
-    # Custom Buttons addon invents and handles it's own scheme
-    [scheme] * -> custombutton: ACCEPT
+  * -> unknown:
+    # This allows clicking links with schemes unclassified by `requests-info`
+    # like magnet, irc, webcal, custombutton, etc
+    # by allowing any documents from such schemes.
+    [contentType] DOCUMENT: ACCEPT
