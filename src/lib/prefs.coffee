@@ -126,6 +126,9 @@ class Preferences
   mutate: (name, f) ->
     @set name, (f @get name)
 
+  delete: (name) ->
+    @_branch.deleteBranch name
+
   branch: (name) ->
     name = name + '.' unless name.endsWith('.')
     return new @::constructor @_branchName + name
@@ -190,6 +193,8 @@ class ReadOnlyPreferences extends FinalPreferencesClass
   _initDefault: ->
   set: (name) ->
     throw new ReadOnlyError "Trying to set read-only preference '#{name}'"
+  delete: (name) ->
+    throw new ReadOnlyError "Trying to delete read-only preference '#{name}'"
 
 
 exports.prefs = prefs = new FinalPreferencesClass policemanBranch
