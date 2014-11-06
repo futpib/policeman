@@ -11,20 +11,11 @@
 
 { l10n } = require 'l10n'
 
+idnService = Cc["@mozilla.org/network/idn-service;1"]
+              .getService Ci.nsIIDNService
+
 
 CHROME_DOMAIN = DomainDomainTypeRS::CHROME_DOMAIN
-
-localizeType = (t) -> l10n 'content_type.title.plural.' + t
-
-localizeDecision = (d) -> l10n if d then 'allow' else 'reject'
-
-localizeDomain = (d) ->
-  if d == CHROME_DOMAIN
-    return l10n 'preferences_chrome_domain'
-  else if not d
-    return l10n 'preferences_any_domain'
-  else
-    return d
 
 window.top.location.hash = "#user-rulesets"
 
@@ -75,12 +66,16 @@ class AddRuleWidget
 
     webHostRe = ///
       ^(
-        ([a-z0-9][a-z0-9-]*\.)+[a-z]+ # something like a domain name
-        |([0-9]{1,3}\.){3}[0-9]{1,3}  # or ip4 address
+        ([^\.]+\.)+[^\.]+ # something like an IDN or ip4 address
       )?$
     ///i
     validateHost = (textbox) ->
       str = textbox.value.toLowerCase()
+      if idnService.isACE str
+        # Doc on `nsIIDNService` says `convertToDisplayIDN` ensures that
+        # the encoding is consistent with `nsIURI.host` which is precisely
+        # what we want here
+        str = idnService.convertToDisplayIDN str, no
       return str if webHostRe.test str
       textbox.select()
       textbox.focus()
@@ -170,20 +165,31 @@ class RulesTree
 
   _onTreechildrenContextMenu: ->
 
+  localizeTypeLookup = {}
+  for t in DomainDomainTypeRS::USER_AVAILABLE_CONTENT_TYPES
+    localizeTypeLookup[t] = l10n 'content_type.title.plural.' + t
+
+  localizeDomainLookup = {}
+  localizeDomainLookup[CHROME_DOMAIN] = l10n 'preferences_chrome_domain'
+  localizeDomainLookup[''] = l10n 'preferences_any_domain'
+
+  localizeDecisionLookup = {
+    true: l10n 'allow'
+    false: l10n 'reject'
+  }
+
   update: ->
     @_rows = []
     for rule in manager.get(@_rulesetId).toTable()
       [o, d, t, dec] = rule
-      origin = localizeDomain o
-      destination = localizeDomain d
-      type = localizeType   t
-      decision = localizeDecision dec
-      if @_filter
-        filter = @_filter.toLowerCase()
-        continue unless origin.toLowerCase().contains(filter) \
-          or destination.toLowerCase().contains(filter) \
-          or type.toLowerCase().contains(filter) \
-          or decision.toLowerCase().contains(filter)
+      origin = if o of localizeDomainLookup \
+               then localizeDomainLookup[o] \
+               else o
+      destination = if d of localizeDomainLookup \
+                    then localizeDomainLookup[d] \
+                    else d
+      type = localizeTypeLookup[t]
+      decision = localizeDecisionLookup[dec]
       @_rows.push {
         decision,    0: decision
         type,        1: type
@@ -192,6 +198,14 @@ class RulesTree
         length: 4
         source: rule
       }
+
+    if @_filter
+      filter = @_filter.toLowerCase()
+      @_rows = @_rows.filter ({origin, destination, type, decision}) ->
+        return origin.toLowerCase().contains(filter) \
+               or destination.toLowerCase().contains(filter) \
+               or type.toLowerCase().contains(filter) \
+               or decision.toLowerCase().contains(filter)
 
     sortResource = @$.getAttribute 'sortResource'
     sortDirection = if 'ascending' == @$.getAttribute 'sortDirection' \

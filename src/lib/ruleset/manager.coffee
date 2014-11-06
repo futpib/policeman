@@ -53,12 +53,14 @@ prefs.define 'manager.suspended',
   default: false
 
 
-cachedRulesetConstructor = cache ((uri) -> uri), ((uri) ->
-  try
-    return file_path.toFile(uri).lastModifiedTime
-  catch e
-    return Math.random()
-), rulesetFromLocalUrl
+cachedRulesetConstructor = cache
+  hash: (uri) -> uri
+  version: (uri) ->
+    try
+      return file_path.toFile(uri).lastModifiedTime
+    catch e
+      return Math.random()
+  function: rulesetFromLocalUrl
 
 
 files = new class

@@ -42,7 +42,11 @@ exports.Observer = class Observer
     observerService.removeObserver @, @topic
 
 
-exports.cache = cache = (hash, version, f) ->
+exports.cache = cache = ({hash, version, function: f}) ->
+  if not hash
+    hash = -> JSON.stringify arguments
+  if not version
+    version = -> '' # just a constant
   versions = Object.create null
   cache_ = Object.create null
   return (args...) ->
@@ -148,3 +152,36 @@ exports.defaults = defaults = (o, k, v) ->
 
 exports.runAsync = runAsync = (f) ->
   Services.tm.currentThread.dispatch f, Ci.nsIEventTarget.DISPATCH_NORMAL
+
+
+exports.time = time = do ->
+  stack = []
+  peek = -> stack[stack.length-1]
+  push = (e) -> stack.push e
+  pop = -> stack.pop()
+
+  time_ = (note, f) -> ->
+    start = (new Date).getTime()
+    push {
+      note
+      start
+      last: start
+    }
+    result = f.apply this, arguments
+    end = (new Date).getTime()
+    runAsync -> log 'time', note, \
+                    'call to', f, \
+                    'on this = ', this, 'and arguments = ', arguments, \
+                    'took', end - start, 'ms of real time'
+    return result
+
+  time_.checkpoint = (note) ->
+    frame = peek()
+    { start, last } = frame
+    reached = (new Date).getTime()
+    runAsync -> log 'time', 'checkpoint', note, \
+                    'reached in', reached - start, \
+                    'time from last checkpoint:', reached - last
+    frame.last = reached
+
+  return time_

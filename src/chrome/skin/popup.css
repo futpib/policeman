@@ -97,6 +97,12 @@
   .policeman-popup-rule-allow {
     background: rgba(0, 255, 0, 0.1);
   }
+  .policeman-popup-rule-widget {
+    border-radius: 4px;
+  }
+  .policeman-popup-rule-widget:hover {
+    background: rgba(127, 127, 127, 0.2);
+  }
 
   #policeman-popup-rejected-requests-filters-container
   .policeman-popup-button-outer {

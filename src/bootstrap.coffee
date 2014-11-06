@@ -12,6 +12,8 @@ Cu.import 'resource://gre/modules/Services.jsm'
 Cu.import 'resource://gre/modules/devtools/Console.jsm'
 log = console.log.bind console
 
+Cu.import 'resource://gre/modules/AddonManager.jsm'
+
 onShutdown = null
 requireScope = null
 
@@ -33,6 +35,10 @@ startup = (data, reason) ->
 
   requireScope.require 'content-policy'
   requireScope.require 'ui/ui'
+
+  AddonManager.getAddonByID data.id, (addon) ->
+    { updating } = requireScope.require 'updating'
+    updating.finalize addon.version
 
 
 shutdown = (data, reason) ->

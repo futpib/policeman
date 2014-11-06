@@ -12,24 +12,26 @@ class Preferences
   PreferencesError: PreferencesError
   UndefinedPreferenceError: UndefinedPreferenceError
 
-  _supportedTypes: do ->
-    set = Object.create null
-    set.boolean = true
-    set.integer = true
-    set.string  = true
-    set.object  = true
-    return set
-
   _typePrefGetterMap:
     boolean: 'getBoolPref'
     integer: 'getIntPref'
     string:  'getCharPref'
     object:  'getCharPref'
+    unicode: 'getComplexValue'
+    uobject: 'getComplexValue'
   _typePrefSetterMap:
     boolean: 'setBoolPref'
     integer: 'setIntPref'
     string:  'setCharPref'
     object:  'setCharPref'
+    unicode: 'setComplexValue'
+    uobject: 'setComplexValue'
+  _complexTypeInterfaceMap:
+    unicode: Ci.nsISupportsString
+    uobject: Ci.nsISupportsString
+  _jsonTypes:
+    object: yes
+    uobject: yes
 
   constructor: (branch) ->
     @_nameToType = Object.create null
@@ -53,21 +55,45 @@ class Preferences
       type
       default: default_
     } = description
-    if type and not (type of @_supportedTypes)
+    if type and not (type of @_typePrefGetterMap)
       throw new PreferencesError "Unknown type '#{type}'. Try one of
-                                  #{ Object.keys(@_supportedTypes) }."
+                                  #{ Object.keys(@_typePrefGetterMap) }."
     @_nameToType[name] = type or @_inferType default_
     @_nameToDefault[name] = default_
     @_initDefault name, default_ unless @_branch.prefHasUserValue name
     return name
 
-  _initDefault: (name, value) ->
+  _getRaw: (name) ->
+    @_assertDefined name
+    type = @_nameToType[name]
+    getter = @_typePrefGetterMap[type]
+    if type of @_complexTypeInterfaceMap
+      value = @_branch[getter] name, @_complexTypeInterfaceMap[type]
+    else
+      value = @_branch[getter] name
+    return value
+
+  _setRaw: (name, value) ->
+    @_assertDefined name
     type = @_nameToType[name]
     setter = @_typePrefSetterMap[type]
 
-    value = JSON.stringify value if type == 'object'
+    if @_complexTypeInterfaceMap[type] is Ci.nsISupportsString
+      unless value instanceof Ci.nsISupportsString
+        value_ = Cc["@mozilla.org/supports-string;1"]
+                .createInstance(Ci.nsISupportsString)
+        value_.data = value
+        value = value_
 
-    @_branch[setter] name, value
+    if type of @_complexTypeInterfaceMap
+      @_branch[setter] name, @_complexTypeInterfaceMap[type], value
+    else
+      @_branch[setter] name, value
+
+  _initDefault: (name, value) ->
+    type = @_nameToType[name]
+    value = JSON.stringify value if type of @_jsonTypes
+    @_setRaw name, value
 
   _assertDefined: (name) ->
     unless name of @_nameToType
@@ -78,14 +104,13 @@ class Preferences
   get: (name) ->
     @_assertDefined name
     type = @_nameToType[name]
-    getter = @_typePrefGetterMap[type]
 
     try
-      value = @_branch[getter] name
-      if type == 'object'
+      value = @_getRaw name
+      if type of @_jsonTypes
         value = JSON.parse value
     catch e
-      log "Error getting preference '#{name}' ('#{getter}'):", e,
+      log "Error getting preference '#{name}':", e,
           "Using default value"
       value = @_default name
     return value
@@ -93,14 +118,16 @@ class Preferences
   set: (name, value) ->
     @_assertDefined name
     type = @_nameToType[name]
-    setter = @_typePrefSetterMap[type]
 
-    value = JSON.stringify value if type == 'object'
+    value = JSON.stringify value if type of @_jsonTypes
 
-    @_branch[setter] name, value
+    @_setRaw name, value
 
   mutate: (name, f) ->
     @set name, (f @get name)
+
+  delete: (name) ->
+    @_branch.deleteBranch name
 
   branch: (name) ->
     name = name + '.' unless name.endsWith('.')
@@ -166,12 +193,11 @@ class ReadOnlyPreferences extends FinalPreferencesClass
   _initDefault: ->
   set: (name) ->
     throw new ReadOnlyError "Trying to set read-only preference '#{name}'"
+  delete: (name) ->
+    throw new ReadOnlyError "Trying to delete read-only preference '#{name}'"
 
 
 exports.prefs = prefs = new FinalPreferencesClass policemanBranch
-
-prefs.define 'version',
-  default: '0.1'
 
 exports.foreign = foreign = new ReadOnlyPreferences ''
 

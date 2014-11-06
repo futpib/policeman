@@ -764,7 +764,8 @@ class RulesetEditButtons extends ContainerPopulation
       type: t
       decision
     } = description
-    hbox = createElement doc, 'hbox'
+    hbox = createElement doc, 'hbox',
+      class: 'policeman-popup-rule-widget'
 
     hbox.appendChild @_createBasicRuleWidget doc,
       origin: o
