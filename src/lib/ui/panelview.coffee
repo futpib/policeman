@@ -190,7 +190,7 @@ exports.panelview = panelview =
         @updateUI t.ownerDocument
 
 
-  onToobarbuttonCommand: (e) ->
+  onOpenEvent: (e) ->
     btn = e.target
     doc = btn.ownerDocument
     ###

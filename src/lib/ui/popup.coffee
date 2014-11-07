@@ -1014,7 +1014,7 @@ exports.popup = popup =
     allowedFilter.onSelection.add (btn) ->
       allowedList.update btn.ownerDocument
 
-  onToobarbuttonCommand: (e) ->
+  onOpenEvent: (e) ->
     btn = e.target
     doc = btn.ownerDocument
     @open doc, btn
