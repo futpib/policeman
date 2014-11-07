@@ -2,7 +2,10 @@
 
 { manager } = require 'ruleset/manager'
 { panelview } = require 'ui/panelview'
+{ toolbarbutton } = require 'ui/toolbarbutton'
 { blockedElements } = require 'blocked-elements'
+
+{ l10n } = require 'l10n'
 
 
 window.top.location.hash = "#general"
@@ -12,6 +15,30 @@ checkbox = (selector, initialState, oncommand) ->
   cb = $ selector
   cb.checked = initialState
   cb.addEventListener 'command', oncommand
+
+
+toolbarbuttonEvents = (container, eventName) ->
+  container = $ container
+
+  selectedAction = toolbarbutton.events.getAction eventName
+
+  menuitems = {}
+  for action in ['noop', 'openWidget', 'openPreferences', 'toggleSuspended']
+    menuitems["menuitem_#{action}"] =
+      label: l10n "preferences_toolbarbutton_actions.#{action}"
+      selected: action is selectedAction
+      event_command: do (action=action) -> ->
+        toolbarbutton.events.setAction eventName, action
+
+  container.appendChild createElement 'hbox',
+    align: 'center'
+    _children_:
+      label:
+        value: l10n "preferences_toolbarbutton_events.#{eventName}"
+      menulist:
+        _children_:
+          menupopup:
+            _children_: menuitems
 
 
 blockedElementHandling = (kwargs) ->
@@ -65,6 +92,10 @@ onLoad = ->
       panelview.autoreload.enable()
     else
       panelview.autoreload.disable()
+
+  toolbarbuttonEvents '#toolbarbutton-events', 'command'
+  toolbarbuttonEvents '#toolbarbutton-events', 'middleClick'
+  toolbarbuttonEvents '#toolbarbutton-events', 'mouseover'
 
   blockedElementHandling {
     type: 'image'

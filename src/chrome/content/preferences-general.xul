@@ -25,6 +25,10 @@
               label="&preferences_reload_automaticaly_panelview;"
               />
 
+    <groupbox id="toolbarbutton-events">
+      <caption label="&preferences_toolbarbutton_events;"/>
+    </groupbox>
+
     <groupbox>
       <caption label="&preferences_blocked_elements_handling;"/>
       <groupbox>
