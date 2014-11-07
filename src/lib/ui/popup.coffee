@@ -101,7 +101,10 @@ class Button
   getData: (btn) -> btn.getAttribute('data')
 
   setLabel: (btn, str) ->
-    lbl = btn.getElementsByClassName('policeman-popup-button-label')[0]
+    if btn.classList.contains 'policeman-popup-button-label'
+      lbl = btn
+    else
+      lbl = btn.getElementsByClassName('policeman-popup-button-label')[0]
     lbl.setAttribute 'value', str
 
 
