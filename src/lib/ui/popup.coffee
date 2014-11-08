@@ -101,7 +101,10 @@ class Button
   getData: (btn) -> btn.getAttribute('data')
 
   setLabel: (btn, str) ->
-    lbl = btn.getElementsByClassName('policeman-popup-button-label')[0]
+    if btn.classList.contains 'policeman-popup-button-label'
+      lbl = btn
+    else
+      lbl = btn.getElementsByClassName('policeman-popup-button-label')[0]
     lbl.setAttribute 'value', str
 
 
@@ -1011,7 +1014,7 @@ exports.popup = popup =
     allowedFilter.onSelection.add (btn) ->
       allowedList.update btn.ownerDocument
 
-  onToobarbuttonCommand: (e) ->
+  onOpenEvent: (e) ->
     btn = e.target
     doc = btn.ownerDocument
     @open doc, btn

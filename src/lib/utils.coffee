@@ -149,6 +149,11 @@ exports.defaults = defaults = (o, k, v) ->
     o[k] = v
   return o[k]
 
+exports.reverseLookup = reverseLookup = (o, v) ->
+  for k, v_ of o
+    return k if v_ is v
+  return undefined
+
 
 exports.runAsync = runAsync = (f) ->
   Services.tm.currentThread.dispatch f, Ci.nsIEventTarget.DISPATCH_NORMAL

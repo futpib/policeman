@@ -5,6 +5,7 @@
   loadSheet
   removeSheet
   Handlers
+  reverseLookup
 } = require 'utils'
 
 { manager } = require 'ruleset/manager'
@@ -16,6 +17,8 @@
 { CustomizableUI } = Cu.import "resource:///modules/CustomizableUI.jsm"
 { panelview } = require 'ui/panelview'
 { popup } = require 'ui/popup'
+
+{ prefs } = require 'prefs'
 
 { l10n } = require 'l10n'
 
@@ -42,6 +45,9 @@ exports.toolbarbutton = toolbarbutton = new class
       return panelview
     return popup
 
+  BUTTON_LEFT = 0
+  BUTTON_MIDDLE = 1
+  BUTTON_RIGHT = 2
   onBuild: (doc) ->
     btn = createElement doc, 'toolbarbutton',
       id:              @id
@@ -49,8 +55,17 @@ exports.toolbarbutton = toolbarbutton = new class
       label:           'Policeman'
       tooltiptext:     l10n 'toolbarbutton.tip'
       closemenu:       'none'
+
     btn.addEventListener 'command', (e) =>
-      @_getAreaTypeSpecificWidget().onToobarbuttonCommand e
+      @events.dispatch 'command', e
+    btn.addEventListener 'click', (e) =>
+      switch e.button
+        when BUTTON_LEFT then @events.dispatch 'leftClick', e
+        when BUTTON_MIDDLE then @events.dispatch 'middleClick', e
+        when BUTTON_RIGHT then @events.dispatch 'rightClick', e
+    btn.addEventListener 'mouseover', (e) =>
+      @events.dispatch 'mouseover', e
+
     return btn
 
   addUI: (win) ->
@@ -116,3 +131,51 @@ exports.toolbarbutton = toolbarbutton = new class
         @update tabs.getCurrent()
       ), ON_REQUEST_UPDATE_TIMEOUT
 
+  events: new class
+    actions =
+      noop: ->
+      openWidget: (e) ->
+        toolbarbutton._getAreaTypeSpecificWidget().onOpenEvent e
+      openPreferences: (e) ->
+        tabs.open 'chrome://policeman/content/preferences.xul#user-rulesets'
+      toggleSuspended: (e) ->
+        manager.toggleSuspended()
+        toolbarbutton.indicator.update()
+    _actions: actions
+
+    _eventToAction:
+      command: actions.openWidget
+      leftClick: actions.noop
+      middleClick: actions.toggleSuspended
+      rightClick: actions.noop
+      mouseover: actions.noop
+
+    _eventNameToPref: (eventName) -> "toolbarbutton.events.#{eventName}.action"
+
+    _initActionPref: (eventName, default_='noop') ->
+      prefName = @_eventNameToPref eventName
+      prefs.define prefName,
+        default: default_
+        get: (name) => @_actions[name] or @_actions.noop
+        set: (act) => (reverseLookup @_actions, act) or 'noop'
+      prefs.onChange prefName, update = =>
+        @_eventToAction[eventName] = prefs.get prefName
+      do update
+
+    constructor: ->
+      @_initActionPref 'command', 'openWidget'
+      @_initActionPref 'leftClick'
+      @_initActionPref 'middleClick', 'toggleSuspended'
+      @_initActionPref 'rightClick'
+      @_initActionPref 'mouseover'
+
+    dispatch: (eventName, e) ->
+      @_eventToAction[eventName] e
+
+    getActionsList: -> (a for a of @_actions)
+
+    getAction: (eventName) ->
+      reverseLookup actions, @_eventToAction[eventName] or @actions.noop
+
+    setAction: (eventName, actionName) ->
+      prefs.set (@_eventNameToPref eventName), @_actions[actionName] or actions.noop

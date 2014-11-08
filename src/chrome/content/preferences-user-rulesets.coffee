@@ -27,7 +27,7 @@ temporaryRuleMenu =
       selectedRows = temporaryRules.getSelectedRows()
       for i in selectedRows
         [o, d, t] = temporaryRules.getRule i
-        manager.get('user_persistent').revoke o, d, t
+        manager.get('user_temporary').revoke o, d, t
       temporaryRules.update()
     $('#temporary-rule-menu > .menu-promote').addEventListener 'command', ->
       selectedRows = temporaryRules.getSelectedRows()
