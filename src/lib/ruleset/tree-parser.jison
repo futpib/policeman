@@ -123,11 +123,10 @@ stats.reset();
 <indent>\r?\n     { indentation.blank(); }
 <indent>.         {
   this.unput(yytext);
-  let (t = indentation.yieldToken()) {
-    if (t)
-      return t;
-    this.begin('INITIAL');
-  }
+  var t = indentation.yieldToken();
+  if (t)
+    return t;
+  this.begin('INITIAL');
 }
 <indent><<EOF>>   {
   this.unput('x'); // put anything just to keep parser working
@@ -135,13 +134,12 @@ stats.reset();
 }
 
 <final_unindent>. {
-  let (t = indentation.yieldToken()) {
-    if (t) {
-      this.unput(yytext);
-      return t;
-    }
-    this.begin('INITIAL');
+  var t = indentation.yieldToken();
+  if (t) {
+    this.unput(yytext);
+    return t;
   }
+  this.begin('INITIAL');
 }
 
 \r?\n            { this.unput(yytext); this.begin('indent') }
@@ -372,10 +370,9 @@ unscope
 regexp
   : REGEXP
     {
-      let (parts = $1.split("/")) {
-        let pattern = parts[1], flags = parts[2];
-        $$ = new RegExp(pattern, flags);
-      }
+      var parts = $1.split("/");
+      var pattern = parts[1], flags = parts[2];
+      $$ = new RegExp(pattern, flags);
     }
 ;
 
