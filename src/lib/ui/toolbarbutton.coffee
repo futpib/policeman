@@ -79,34 +79,39 @@ exports.toolbarbutton = toolbarbutton = new class
       tabs.onSelect.add @_onTabSelect.bind @
       memo.onRequest.add @_onRequest.bind @
 
-    _clear: (btn) ->
-      btn.removeAttribute 'policeman-allow-ratio'
-      btn.removeAttribute 'policeman-suspended'
+    _states:
+      fallback: (btn) ->
+        btn.removeAttribute 'policeman-allow-ratio'
+        btn.removeAttribute 'policeman-suspended'
 
-    _setSuspended: (btn, suspended) ->
-      @_clear btn
-      btn.setAttribute 'policeman-suspended', 'true'
+      suspended: (btn) ->
+        @fallback btn
+        btn.setAttribute 'policeman-suspended', 'true'
 
-    _setRatio: (btn, ratio) ->
-      # make 0 and 100 less probable
-      ratio = .12 + .76 * ratio
-      # snap to 0, 25, 50, 75, 100
-      ratio = Math.floor(100 * Math.round(4 * ratio) / 4)
-      ratio = Math.max(0, Math.min(100, ratio))
-      @_clear btn
-      btn.setAttribute 'policeman-allow-ratio', ratio
+      ratioIndicator: (btn, ratio) ->
+        # make 0 and 100 less probable
+        ratio = .12 + .76 * ratio
+        # snap to 0, 25, 50, 75, 100
+        ratio = Math.floor(100 * Math.round(4 * ratio) / 4)
+        ratio = Math.max(0, Math.min(100, ratio))
+        @fallback btn
+        btn.setAttribute 'policeman-allow-ratio', ratio
 
     update: (tab=no) ->
       tab = tabs.getCurrent() unless tab
       doc = windows.getCurrent().document
       btn = doc.getElementById toolbarbutton.id
       if manager.suspended()
-        @_setSuspended btn, true
+        @_states.suspended btn
+        return
+      if  (temporary = manager.get 'user_temporary') \
+      and (temporary.isAllowedTab tabs.getCurrent())
+        @_states.suspended btn # TODO maybe another indicator?
         return
       { allowHits: allow, rejectHits: reject } = memo.getStatsByTab tab
       total = allow + reject
       ratio = if total is 0 then 1 else allow / total
-      @_setRatio btn, ratio
+      @_states.ratioIndicator btn, ratio
 
     updateTimeoutId = null
 

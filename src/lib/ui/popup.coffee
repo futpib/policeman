@@ -948,6 +948,19 @@ footerCheckButtons = new (class extends ContainerPopulation
           manager.suspend()
         else
           manager.unsuspend()
+        popup.autoreload.require(doc)
+
+    if temporary = manager.get 'user_temporary'
+      currentTab = tabs.getCurrent()
+      fragment.appendChild CheckButton::create doc,
+        label: l10n 'popup_suspend_operation_on_current_tab'
+        checked: temporary.isAllowedTab currentTab
+        click: ->
+          if CheckButton::checked @
+            temporary.allowTab currentTab
+          else
+            temporary.revokeTab currentTab
+          popup.autoreload.require(doc)
 
     doc.getElementById(@_containerId).appendChild fragment
 
