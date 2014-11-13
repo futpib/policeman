@@ -948,6 +948,7 @@ footerCheckButtons = new (class extends ContainerPopulation
           manager.suspend()
         else
           manager.unsuspend()
+        popup.autoreload.require(doc)
 
     if temporary = manager.get 'user_temporary'
       currentTab = tabs.getCurrent()
@@ -959,6 +960,7 @@ footerCheckButtons = new (class extends ContainerPopulation
             temporary.allowTab currentTab
           else
             temporary.revokeTab currentTab
+          popup.autoreload.require(doc)
 
     doc.getElementById(@_containerId).appendChild fragment
 
