@@ -1,5 +1,11 @@
 
-{ DomainDomainTypeRS, ClosuresRS } = require 'ruleset/code-ruleset'
+{
+  DomainDomainTypeRS
+  ClosuresRS
+  LookupRS
+} = require 'ruleset/code-ruleset'
+
+{ tabs } = require 'tabs'
 
 { l10n } = require 'l10n'
 
@@ -20,12 +26,22 @@ exports.temporaryRuleSet = new (class extends DomainDomainTypeRS
 
   constructor: ->
     @_closures = new ClosuresRS
+    @_tabs = new LookupRS
+    tabs.onClose.add (tab) =>
+      @_tabs.revoke tabs.getTabId tab
     super arguments...
 
   addClosure: (f) -> @_closures.add f
   revokeClosure: (f) -> @_closures.revoke f
 
-  check: ->
+  allowTab: (t) -> @_tabs.allow tabs.getTabId t
+  revokeTab: (t) -> @_tabs.revoke tabs.getTabId t
+  isAllowedTab: (t) -> @_tabs.isAllowed tabs.getTabId t
+
+  check: (origin, destination, context) ->
+    if context._tabId
+      decision = @_tabs.check context._tabId
+      return decision if typeof decision is 'boolean'
     decision = @_closures.check arguments...
     return decision if typeof decision is 'boolean'
     return super arguments...

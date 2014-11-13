@@ -949,6 +949,17 @@ footerCheckButtons = new (class extends ContainerPopulation
         else
           manager.unsuspend()
 
+    if temporary = manager.get 'user_temporary'
+      currentTab = tabs.getCurrent()
+      fragment.appendChild CheckButton::create doc,
+        label: l10n 'popup_suspend_operation_on_current_tab'
+        checked: temporary.isAllowedTab currentTab
+        click: ->
+          if CheckButton::checked @
+            temporary.allowTab currentTab
+          else
+            temporary.revokeTab currentTab
+
     doc.getElementById(@_containerId).appendChild fragment
 
 ) 'policeman-popup-footer-left'
