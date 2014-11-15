@@ -1034,7 +1034,7 @@ exports.popup = popup =
 
   open: (doc, anchor=null) ->
     panel = doc.getElementById @id
-    panel.openPopup anchor, 'bottomcenter topright', 0, 0, no, no
+    panel.openPopup anchor, 'bottomright topright', 0, 0, no, no
 
   hide: (doc) ->
     panel = doc.getElementById @id
