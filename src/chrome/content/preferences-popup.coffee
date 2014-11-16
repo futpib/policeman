@@ -19,11 +19,17 @@ checkbox = (selector, initialState, oncommand) ->
   cb.addEventListener 'command', oncommand
 
 onLoad = ->
-  checkbox '#autoreload-popup', popup.autoreload.enabled(), ->
+  checkbox '#autoreload', popup.autoreload.enabled(), ->
     if @checked
       popup.autoreload.enable()
     else
       popup.autoreload.disable()
+
+  checkbox '#show-zero-content-type-filters', popup.filters.enabledEmpty(), ->
+    if @checked
+      popup.filters.enableEmpty()
+    else
+      popup.filters.disableEmpty()
 
   groupbox = $ '#content-type-groupbox'
   for type in USER_AVAILABLE_CONTENT_TYPES

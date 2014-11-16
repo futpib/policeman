@@ -16,8 +16,12 @@
         >
     <label class="title" value="&preferences_popup;"/>
 
-    <checkbox id="autoreload-popup"
+    <checkbox id="autoreload"
               label="&preferences_reload_automaticaly_popup;"
+              />
+
+    <checkbox id="show-zero-content-type-filters"
+              label="&preferences_popup_show_zero_content_type_filters;"
               />
 
     <groupbox id="content-type-groupbox">

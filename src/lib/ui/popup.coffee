@@ -501,15 +501,17 @@ localizeContentTypeFilter = (type) ->
 localizeType = (type) ->
   return l10n 'content_type.lower.plural.' + type
 
+
 class FilterButtons extends RadioButtons
-  constructor: (containerId) ->
+  constructor: (containerId, @_decision) ->
     super containerId, CONTENT_TYPE_FILTER_NONE
-  populate: (doc, decision) ->
+
+  populate: (doc) ->
     stats = {}
     stats[CONTENT_TYPE_FILTER_OTHER] = 0
     stats[t] = 0 for t in USER_AVAILABLE_CONTENT_TYPES
-    for [o, d, c, decision_] in memo.getByTab tabs.getCurrent()
-      if  (decision_ == decision) \
+    for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
+      if  (decision == @_decision) \
       and (originSelection.filter o) \
       and (destinationSelection.filter d)
         category = categorizeRequest o, d, c
@@ -521,11 +523,15 @@ class FilterButtons extends RadioButtons
                  .concat(popup.contentTypes.enabledList()) \
                  .concat([CONTENT_TYPE_FILTER_OTHER])
       label = localizeContentTypeFilter type
-      filters.appendChild btn = @_createButton doc,
-        label: "#{label} (#{stats[type]})"
-        data: type
-        disabled: not stats[type]
-      @_select btn if @selectedData == type
+      hitCount = stats[type]
+      if (type == CONTENT_TYPE_FILTER_ALL) \
+      or popup.filters.enabledEmpty() \
+      or hitCount
+        filters.appendChild btn = @_createButton doc,
+          label: "#{label} (#{hitCount})"
+          data: type
+          disabled: not hitCount
+        @_select btn if @selectedData == type
 
     doc.getElementById(@_containerId).appendChild filters
 
@@ -536,8 +542,8 @@ rejectedFilter = new (class extends FilterButtons
       label: l10n 'popup_filter_rejected_none'
       data: CONTENT_TYPE_FILTER_NONE
     @_select none if @selectedData == CONTENT_TYPE_FILTER_NONE
-    super doc, false
-) 'policeman-popup-rejected-requests-filters-container'
+    super doc
+) 'policeman-popup-rejected-requests-filters-container', false
 
 
 allowedFilter = new (class extends FilterButtons
@@ -547,8 +553,8 @@ allowedFilter = new (class extends FilterButtons
       label: l10n 'popup_filter_allowed_none'
       data: CONTENT_TYPE_FILTER_NONE
     @_select none if @selectedData == CONTENT_TYPE_FILTER_NONE
-    super doc, true
-) 'policeman-popup-allowed-requests-filters-container'
+    super doc
+) 'policeman-popup-allowed-requests-filters-container', true
 
 
 class RequestList extends ContainerPopulation
@@ -1129,5 +1135,19 @@ exports.popup = popup =
         if @enabled t
           list.push t
       return list
+
+  filters: new class
+    SHOW_ZERO_FILTERS_PREF = 'ui.popup.filters.showZeroFilters'
+
+    _showZeroFilters: true
+
+    constructor: ->
+      prefs.define SHOW_ZERO_FILTERS_PREF, default: true
+      @_showZeroFilters = prefs.get SHOW_ZERO_FILTERS_PREF
+      prefs.onChange SHOW_ZERO_FILTERS_PREF, (value) => @_showZeroFilters = value
+
+    enabledEmpty: -> prefs.get SHOW_ZERO_FILTERS_PREF
+    enableEmpty:  -> prefs.set SHOW_ZERO_FILTERS_PREF, true
+    disableEmpty: -> prefs.set SHOW_ZERO_FILTERS_PREF, false
 
 do popup.init
