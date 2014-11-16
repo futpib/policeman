@@ -140,13 +140,14 @@ class ObservablePreferences extends Preferences
 
     @_changeHandlers = Object.create null
 
-    observer = observe: => @_observe arguments...
+    observer = observe: => @_observeChange arguments...
     @_branch.addObserver '', observer, false
     onShutdown.add => @_branch.removeObserver '', observer
 
-  _observe: (_branch, topic, name) ->
+  _observeChange: (_branch, topic, name) ->
     if name of @_changeHandlers
-      do h for h in @_changeHandlers[name]
+      value = @get name
+      h(value) for h in @_changeHandlers[name]
 
   onChange: (name, handler) ->
     if name of @_changeHandlers
