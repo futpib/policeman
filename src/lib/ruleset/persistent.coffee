@@ -45,8 +45,6 @@ if not prefs.get rpImportPref
     for [o, d] in originsDests
       continue unless o or d
       persistentRuleSet.allow o, d, persistentRuleSet.WILDCARD_TYPE
-  catch e
-    log "Error trying to import PequestPolicy rules: #{e}\n #{e.stack}."
   prefs.set rpImportPref, true
 
 
