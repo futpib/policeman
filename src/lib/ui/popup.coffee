@@ -268,8 +268,8 @@ class DomainSelectionButtons extends RadioButtons
         if not skip
           @walk pre, post, n.children
         post n
-    OMIT_DESCENDANTS_THRESHOLD = 4
-    OMIT_DESCENDANTS_DEPTH = 2 # do not omit second and higher level domains
+    OMIT_DESCENDANTS_THRESHOLD = 8
+    OMIT_DESCENDANTS_DEPTH = 2 # do not omit second and first level domains
     shouldOmitDescendants = (node, depth) ->
       (node.descendantDirectHits > OMIT_DESCENDANTS_THRESHOLD) \
       and (depth > OMIT_DESCENDANTS_DEPTH)
