@@ -15,6 +15,10 @@ Cu.import 'resource://gre/modules/XPCOMUtils.jsm'
 
 Cu.import 'resource://gre/modules/devtools/Console.jsm'
 log = console.log.bind console
+log.debug = console.debug.bind console
+log.info  = console.info.bind console
+log.warn  = console.warn.bind console
+log.error = console.error.bind console
 
 addonData = null
 onShutdown = null
