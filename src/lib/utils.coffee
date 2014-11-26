@@ -190,3 +190,16 @@ exports.time = time = do ->
     frame.last = reached
 
   return time_
+
+
+exports.WeakSet = WeakSet
+if not WeakSet # Firefox < 34
+  exports.WeakSet = WeakSet = class WeakSet
+    constructor: (iterable) ->
+      @_map = new WeakMap # Firefox >= 20
+      @add x for x in iterable if iterable
+    length: 1
+    add: (value) -> @_map.set value, true
+    clear: -> @_map.clear()
+    delete: (value) -> @_map.delete value
+    has: (value) -> @_map.has value
