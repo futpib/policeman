@@ -1,0 +1,47 @@
+
+magic: policeman_ruleset
+version: 0.1
+id: "compatibility"
+homepage: "https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#compatibility-and-workarounds"
+
+l10n:
+  en-US:
+    name: "Compatibility and Workarounds"
+    description: "Fixes a few known add-on and site compatibility issues"
+
+rules:
+  inline -> *:
+    # Jetpack-based addons use 'data:application/vnd.mozilla.xul+xml,<window/>'
+    # with an iframe for toolbar popups, let's not break that
+    [scheme] data -> *:
+      # Only allow that for chrome xul data documents
+      # Firefox won't load xul in content, so this check makes sence
+      [path] "application/vnd.mozilla.xul+xml;"* -> *:
+        [contentType] DOCUMENT: ACCEPT
+
+  * -> internal:
+    # This fixes a page with some nasty iframe-related script (an email at i.ua).
+    # I didn't understood the problem completely. The script had something about
+    # writing <iframe src="">'s contentDocument.innerHtml and setting it's size.
+    # And this rule happens to fix it.
+    [spec] * -> "about:blank":
+      [contentType] (DOCUMENT|SUBDOCUMENT): ACCEPT
+
+  internal -> web:
+    # Fixes KeeFox and probably other addons that comunicate with local services
+    # via websockets
+    [scheme] * -> ws:
+      [host] * -> (localhost|"127.0.0.1"):
+        [contentType] WEBSOCKET: ACCEPT
+
+  web -> internal:
+    # LastPass shows a popup with a chrome://lastpass iframe
+    [scheme] * -> chrome:
+      [host] * -> lastpass:
+        [contentType] SUBDOCUMENT: ACCEPT
+
+  * -> unknown:
+    # This allows clicking links with schemes unclassified by `requests-info`
+    # like magnet, irc, webcal, custombutton, etc
+    # by allowing any documents from such schemes.
+    [contentType] DOCUMENT: ACCEPT
