@@ -35,7 +35,7 @@
           <richlistbox flex="1" id="downloads-list"/>
         </vbox>
 
-        <splitter style="opacity: 0;"/>
+        <splitter style="opacity: 0;" collapse="both"/>
 
         <vbox flex="1">
           <label class="title" value="&preferences_enabled_rulesets;" crop="end"/>
