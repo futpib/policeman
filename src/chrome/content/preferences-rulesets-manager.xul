@@ -31,23 +31,21 @@
       <hbox flex="1">
         <vbox flex="1">
           <label class="title" value="&preferences_installed_rulesets;" crop="end"/>
-          <hbox>
-            <button id="install-file" label="&preferences_install_file;"/>
-            <button id="install-link" label="&preferences_install_link;"/>
-            <spacer flex="1"/>
-          </hbox>
           <richlistbox flex="1" id="installed-rulesets-list"/>
           <richlistbox flex="1" id="downloads-list"/>
         </vbox>
 
-        <splitter />
+        <splitter style="opacity: 0;"/>
 
         <vbox flex="1">
           <label class="title" value="&preferences_enabled_rulesets;" crop="end"/>
           <richlistbox flex="1" id="enabled-rulesets-list"/>
         </vbox>
       </hbox>
-      <hbox id="save-buttons-container">
+
+      <hbox>
+        <button id="install-file" label="&preferences_install_file;"/>
+        <button id="install-link" label="&preferences_install_link;"/>
         <spacer flex="1"/>
         <button id="restore"
                 label="&preferences_rulesets_manager_restore;"
