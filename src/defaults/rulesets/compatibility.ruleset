@@ -8,7 +8,7 @@ l10n:
   en-US:
     name: "Compatibility and Workarounds"
     description: "Fixes a few known add-on and site compatibility issues"
-  de-DE
+  de-DE:
     name: "Kompatibilität und Workarounds"
     description: "Behebt ein paar bekannte Addon- und Seitenkompatibilitätsprobleme"
 
