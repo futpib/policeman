@@ -19,6 +19,7 @@
 { DomainDomainTypeRS } = require 'ruleset/code-ruleset'
 
 {
+  wrapsSuperWidget
   Description
   Widget
   Button
@@ -172,9 +173,7 @@ class DomainSelectionButtons extends RadioGroup
 
       return result
 
-  RadioButton: new class extends RadioGroup::RadioButton.constructor
-    __ownElements = new WeakSet
-    __ownsElement: (elem) -> __ownElements.has elem
+  RadioButton = wrapsSuperWidget new class extends RadioGroup::RadioButton.constructor
     __unwrap: (elem) -> elem.firstChild
 
     create: (doc, descr) ->
@@ -200,9 +199,7 @@ class DomainSelectionButtons extends RadioGroup
 
       rbtn = super doc, descr
 
-      btn = createElement doc, 'hbox'
-
-      __ownElements.add btn
+      btn = RadioButton.__createOwnElement doc, 'hbox'
 
       btn.appendChild rbtn
 
@@ -223,6 +220,7 @@ class DomainSelectionButtons extends RadioGroup
             value: descr.get 'rejectHits'
 
       return btn
+  RadioButton: RadioButton
 
   constructor: ->
     super arguments...
@@ -568,13 +566,12 @@ class RulesetEditButtons extends ContainerPopulation
 
       return box
 
-  ModifiableRuleWidget: new class extends @::PassiveRuleWidget.constructor
-    __ownElements = new WeakSet
-    __ownsElement: (elem) -> __ownElements.has elem
+  ModifiableRuleWidget = wrapsSuperWidget new class extends @::PassiveRuleWidget.constructor
     __unwrap: (elem) -> elem.firstChild
 
     create: (doc, descr) ->
       {
+        container
         ruleset
         origin
         destination
@@ -584,10 +581,8 @@ class RulesetEditButtons extends ContainerPopulation
 
       rule = super arguments...
 
-      box = createElement doc, 'hbox',
+      box = ModifiableRuleWidget.__createOwnElement doc, 'hbox',
         class: 'policeman-popup-rule-widget'
-
-      __ownElements.add box
 
       box.appendChild rule
 
@@ -609,7 +604,7 @@ class RulesetEditButtons extends ContainerPopulation
             popup.autoreload.require doc
             ruleset.revoke o, d, t
             moveToRuleset[if decision then 'allow' else 'reject'] o, d, t
-            @update doc
+            @getData(box, '_container').update doc
             moveToWidget.update doc
 
       box.appendChild removeButton = Button.create doc, new Description
@@ -617,13 +612,15 @@ class RulesetEditButtons extends ContainerPopulation
         list_command: =>
           popup.autoreload.require(doc)
           ruleset.revoke o, d, t
-          @update doc
+          @getData(box, '_container').update doc
 
       return box
+  ModifiableRuleWidget: ModifiableRuleWidget
 
   CustomRuleWidget: new class extends Widget.constructor
     create: (doc, descr) ->
       {
+        container
         ruleset
         origin
         destination
@@ -633,6 +630,8 @@ class RulesetEditButtons extends ContainerPopulation
       descr.push 'list_class', 'policeman-popup-custom-rule-box'
 
       box = super arguments...
+
+      @setData box, '_container', container
 
       box.appendChild createElement doc, 'label',
         value: l10n 'popup_custom_rule.0'
@@ -647,11 +646,11 @@ class RulesetEditButtons extends ContainerPopulation
         style: 'background: ' + if manager.enabled('reject_any') \
             then positiveBackgroundColor.toCssString()
             else negativeBackgroundColor.toCssString()
-        list_command: ->
-          if 'reject' == Button.getData @, 'data'
-            @style.background = negativeBackgroundColor.toCssString()
+        list_command: (e) =>
+          if 'reject' == DataRotationButton.getData e.currentTarget, 'data'
+            e.currentTarget.style.background = negativeBackgroundColor.toCssString()
           else
-            @style.background = positiveBackgroundColor.toCssString()
+            e.currentTarget.style.background = positiveBackgroundColor.toCssString()
 
       box.appendChild createElement doc, 'label',
         value: l10n 'popup_custom_rule.1'
@@ -698,7 +697,7 @@ class RulesetEditButtons extends ContainerPopulation
           destination_ = DataRotationButton.getValue destinationBtn
           type_ = DataRotationButton.getValue typeButton
           ruleset[allowReject] origin_, destination_, type_
-          @update doc
+          @getData(box, '_container').update doc
 
       return box
 
@@ -783,6 +782,7 @@ class RulesetEditButtons extends ContainerPopulation
       class: 'thin'
 
     fragment.appendChild @CustomRuleWidget.create doc, new Description
+      container: this
       ruleset: rs
       origin: selectedOrigin
       destination: selectedDestination
@@ -839,8 +839,8 @@ footerCheckButtons = new (class extends ContainerPopulation
       id: 'policeman-popup-reload-button'
       label: l10n 'popup_reload_page'
       checked: popup.autoreload.enabled()
-      list_command: ->
-        if CheckButton.checked @
+      list_command: (e) =>
+        if CheckButton.checked e.currentTarget
           popup.autoreload.enable()
         else
           popup.autoreload.disable()
@@ -848,8 +848,8 @@ footerCheckButtons = new (class extends ContainerPopulation
     fragment.appendChild CheckButton.create doc, new Description
       label: l10n 'popup_suspend_operation'
       checked: manager.suspended()
-      list_command: ->
-        if CheckButton.checked @
+      list_command: (e) ->
+        if CheckButton.checked e.currentTarget
           manager.suspend()
         else
           manager.unsuspend()
@@ -860,8 +860,8 @@ footerCheckButtons = new (class extends ContainerPopulation
       fragment.appendChild CheckButton.create doc, new Description
         label: l10n 'popup_suspend_operation_on_current_tab'
         checked: temporary.isAllowedTab currentTab
-        list_command: ->
-          if CheckButton.checked @
+        list_command: (e) ->
+          if CheckButton.checked e.currentTarget
             temporary.allowTab currentTab
           else
             temporary.revokeTab currentTab
@@ -939,7 +939,7 @@ exports.popup = popup =
       allowedList.update btn.ownerDocument
 
   onOpenEvent: (e) ->
-    btn = e.target
+    btn = e.currentTarget
     doc = btn.ownerDocument
     @open doc, btn
 
@@ -952,13 +952,13 @@ exports.popup = popup =
     panel.hidePopup()
 
   onShowing: (e) ->
-    doc = e.target.ownerDocument
+    doc = e.currentTarget.ownerDocument
     @autoreload.onShowing doc
     @updateUI doc
     @_visible = true
 
   onHiding: (e) ->
-    doc = e.target.ownerDocument
+    doc = e.currentTarget.ownerDocument
     @cleanupUI doc
     if @autoreload.enabled() and @autoreload.required()
       tabs.reload tabs.getCurrent()

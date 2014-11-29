@@ -63,7 +63,7 @@ prototypeChain = (obj) ->
   return list
 
 
-elementMethod = em = (cls, method) -> (elem, args...) ->
+exports.elementMethod = elementMethod = em = (cls, method) -> (elem, args...) ->
   e = elem
   for proto in prototypeChain this
     if cls::__ownsElement e
@@ -75,9 +75,18 @@ elementMethod = em = (cls, method) -> (elem, args...) ->
                   of #{cls}"
 
 
-exports.Widget = Widget = new class
-  __ownElements = new WeakSet
-  __ownsElement: (elem) -> __ownElements.has elem
+exports.wrapsSuperWidget = wrapsSuperWidget = (widget) ->
+  ownElements = new WeakSet
+  proto = widget.constructor.prototype
+  proto.__ownsElement = (elem) -> ownElements.has elem
+  proto.__createOwnElement = (doc, descr) ->
+    elem = createElement arguments...
+    ownElements.add elem
+    return elem
+  return widget
+
+
+exports.Widget = Widget = wrapsSuperWidget new class
   __unwrap: (elem) -> null
 
   _elementToData: new WeakMap
@@ -115,9 +124,7 @@ exports.Widget = Widget = new class
       appendTo
     } = rawdescr = descr.raw()
 
-    elem = createElement doc, tagName
-
-    __ownElements.add elem
+    elem = Widget.__createOwnElement doc, tagName
 
     elem.id = id if id
     if list_class then elem.classList.add cls for cls in list_class
@@ -147,13 +154,12 @@ exports.Button = Button = new class extends Widget.constructor
     descr.default 'tagName', 'hbox'
     descr.push 'list_class', 'policeman-popup-button'
 
-    that = this
     if commandList = descr.get 'list_command'
-      descr.push 'event_click', ->
-        return if that.disabled this
+      descr.push 'event_click', (e) =>
+        return if this.disabled e.currentTarget
         for c in commandList
           try
-            c.apply this, arguments
+            c.apply e.currentTarget, arguments
           catch e
             log.error 'Error executing command event of Button', e
 
@@ -204,12 +210,11 @@ exports.DataRotationButton = DataRotationButton = new class extends Button.const
 
     valuesLabels = descr.get 'valuesLabels'
 
-    that = this
-    descr.unshift 'list_command', (e) ->
+    descr.unshift 'list_command', (e) =>
       if e.button == 0 # left
-        that._next this
+        @_next e.currentTarget
       else if e.button == 2 # right
-        that._prev this
+        @_prev e.currentTarget
 
     btn = super arguments...
 
@@ -266,9 +271,8 @@ exports.CheckButton = CheckButton = new class extends Button.constructor
   create: (doc, descr) ->
     descr.push 'list_class', 'policeman-popup-check-button'
 
-    that = this
-    descr.unshift 'list_command', ->
-      if that.checked this then that.uncheck this else that.check this
+    descr.unshift 'list_command', (e) =>
+      if @checked e.currentTarget then @uncheck e.currentTarget else @check e.currentTarget
 
     btn = super arguments...
 
@@ -304,8 +308,8 @@ exports.RadioGroup = class RadioGroup extends ContainerPopulation
       descr.push 'list_class', 'policeman-popup-radio-button'
 
       radioGroup = descr.get 'radioGroup'
-      descr.unshift 'list_command', ->
-        radioGroup.select @
+      descr.unshift 'list_command', (e) ->
+        radioGroup.select e.currentTarget
 
       btn = super arguments...
 
