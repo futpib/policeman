@@ -7,7 +7,10 @@ homepage: "https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-descri
 l10n:
   en-US:
     name: "Allow file -> file or web"
-    description: "Allow requests from files to files and web"
+    description: "Allow requests from local files to local files and web"
+  de-DE:
+    name: "Erlaube Datei -> Datei oder Web"
+    description: "Erlaubt Anfragen von lokalen Dateien zu lokalen Dateien und ins Web"
 
 rules:
   file -> (file|web): ACCEPT
