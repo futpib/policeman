@@ -110,8 +110,8 @@ class Preferences
       if type of @_jsonTypes
         value = JSON.parse value
     catch e
-      log "Error getting preference '#{name}':", e,
-          "Using default value"
+      log.info "Error getting preference '#{name}':", e,
+               "Using default value"
       value = @_default name
     return value
 

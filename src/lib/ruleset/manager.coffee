@@ -9,6 +9,7 @@ XMLHttpRequest = Components.Constructor("@mozilla.org/xmlextras/xmlhttprequest;1
 { temporaryRuleSet } = require 'ruleset/temporary'
 { persistentRuleSet } = require 'ruleset/persistent'
 
+{ updating } = require 'updating'
 { prefs } = require 'prefs'
 
 codeBasedRuleSets = [
@@ -18,6 +19,8 @@ codeBasedRuleSets = [
 
 embeddedRuleSets = [
   'default',
+  'compatibility',
+  'allow_from_file_to_file_and_web',
   'allow_any',
   'reject_any',
   'allow_same_site',
@@ -29,12 +32,24 @@ embeddedRuleSets = [
 prefs.define 'manager.enabledRuleSets',
   default: [
     'default',
+    'compatibility',
+    'allow_from_file_to_file_and_web',
     'user_temporary',
     'user_persistent',
     'allow_same_site',
     'allow_same_second_level_domain',
     'reject_any',
   ]
+
+updating.from '0.14', ->
+  ###
+  After 0.14 parts of 'default' ruleset were split into 'compatibility' and
+  'allow_from_file_to_file_and_web' rulesets, lets enable them, so update
+  does not break anything
+  ###
+  prefs.mutate 'manager.enabledRuleSets', (enabled) ->
+    enabled.splice 1, 0, 'compatibility', 'allow_from_file_to_file_and_web'
+    return enabled
 
 addEmbedded = (obj) ->
   for id in embeddedRuleSets

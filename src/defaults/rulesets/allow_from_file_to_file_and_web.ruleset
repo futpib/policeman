@@ -1,0 +1,13 @@
+
+magic: policeman_ruleset
+version: 0.1
+id: "allow_from_file_to_file_and_web"
+homepage: "https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#allow-from-file-to-file-or-web"
+
+l10n:
+  en-US:
+    name: "Allow file -> file or web"
+    description: "Allow requests from files to files and web"
+
+rules:
+  file -> (file|web): ACCEPT

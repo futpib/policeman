@@ -18,6 +18,17 @@
 { manager } = require 'ruleset/manager'
 { DomainDomainTypeRS } = require 'ruleset/code-ruleset'
 
+{
+  Description
+  Widget
+  Button
+  LinkButton
+  DataRotationButton
+  CheckButton
+  ContainerPopulation
+  RadioGroup
+} = require 'ui/popup-tk2'
+
 { Color } = require 'color'
 { prefs } = require 'prefs'
 
@@ -52,172 +63,7 @@ prefs.onChange NEGATIVE_COLOR_PREF, ->
   negativeBackgroundColor = prefs.get NEGATIVE_COLOR_PREF
 
 
-class Button
-  create: (doc, description) ->
-    {
-      id
-      label
-      tooltiptext
-      classList
-      disabled
-      click
-      appendTo
-      style
-    } = description
-    classList = classList or []
-
-    box = createElement doc, 'hbox',
-      class: (classList.concat ['policeman-popup-button']).join(' ')
-      disabled: if disabled then 'true' else 'false'
-    box.appendChild outerBox = createElement doc, 'hbox',
-      class: 'policeman-popup-button-outer'
-      style: style or ''
-    if id
-      box.setAttribute 'id', id
-    if click
-      box.addEventListener 'click', do (that=@) -> ->
-        return if that.disabled @
-        click.apply @, arguments
-
-    outerBox.appendChild innerBox = createElement doc, 'hbox',
-      class: 'policeman-popup-button-inner'
-
-    innerBox.appendChild lbl = createElement doc, 'label',
-      class: 'policeman-popup-button-label'
-      value: label
-      style: 'cursor: inherit;'
-    if tooltiptext
-      box.setAttribute 'tooltiptext', tooltiptext
-
-    appendTo.appendChild box if appendTo
-
-    return box
-
-  disable: (btn) -> btn.setAttribute('disabled', 'true')
-  enable: (btn) -> btn.setAttribute('disabled', 'false')
-  disabled: (btn) -> btn.getAttribute('disabled') == 'true'
-
-  setData: (btn, str) -> btn.setAttribute('data', str)
-  getData: (btn) -> btn.getAttribute('data')
-
-  setLabel: (btn, str) ->
-    if btn.classList.contains 'policeman-popup-button-label'
-      lbl = btn
-    else
-      lbl = btn.getElementsByClassName('policeman-popup-button-label')[0]
-    lbl.setAttribute 'value', str
-
-
-class LinkButton extends Button
-  create: (doc, description) ->
-    defaults description, 'style', ''
-    description.style += 'cursor: pointer;'
-    btn = super doc, description
-    reuse = not ('reuse' of description) or description.reuse
-    if description.url
-        btn.addEventListener 'click', ->
-          tabs.open description.url, reuse
-          popup.hide(doc)
-    return btn
-
-
-class DataRotationButton extends Button
-  create: (doc, description) ->
-    {
-      valuesLabels
-      click: inferiorClick
-    } = description
-    i = 0
-    defaults description, 'label', valuesLabels[i][1]
-    description.click = do (that=@) -> (e) ->
-      if e.button == 0 # left
-        i += 1
-        i = 0 if i >= valuesLabels.length
-      else if e.button == 2 # right
-        i -= 1
-        i = valuesLabels.length-1 if i < 0
-      that.setData @, valuesLabels[i][0]
-      that.setLabel @, valuesLabels[i][1]
-      inferiorClick.apply @, arguments if inferiorClick
-    defaults description, 'classList', []
-    description.classList.push 'policeman-popup-value-rotation-button'
-    btn = Button::create doc, description
-    @setData btn, valuesLabels[i][0]
-    return btn
-
-
-class RadioButton extends Button
-  create: (doc, description) ->
-    defaults description, 'classList', []
-    description.classList.push 'policeman-popup-radio-button'
-    btn = super doc, description
-    if 'data' of description
-      @setData btn, description.data
-    @unselect btn
-    return btn
-
-  select: (btn) -> btn.setAttribute('selected', 'true')
-  unselect: (btn) -> btn.setAttribute('selected', 'false')
-  selected: (btn) -> btn.getAttribute('selected') == 'true'
-
-
-class CheckButton extends Button
-  create: (doc, description) ->
-    defaults description, 'classList', []
-    description.classList.push 'policeman-popup-check-button'
-    click = description.click
-    description.click = do (that=@) -> ->
-      that.toggle @
-      click.call @, arguments
-    btn = super doc, description
-    if description.checked
-      @check btn
-    else
-      @uncheck btn
-    return btn
-
-  check: (btn) -> btn.setAttribute('checked', 'true')
-  uncheck: (btn) -> btn.setAttribute('checked', 'false')
-  checked: (btn) -> btn.getAttribute('checked') == 'true'
-  toggle: (btn) ->
-    if @checked btn
-      @uncheck btn
-    else
-      @check btn
-
-
-class ContainerPopulation
-  constructor: (@_containerId) ->
-  populate: (doc) ->
-  purge: (doc) ->
-    removeChildren doc.getElementById @_containerId
-  update: (doc) ->
-    @purge doc
-    @populate doc
-
-
-class RadioButtons extends ContainerPopulation
-  constructor: (containerId, @selectedData=null) ->
-    super containerId
-    @onSelection = new Handlers
-
-  _createButton: (doc, description) ->
-    btn = RadioButton::create doc, description
-    btn.addEventListener 'click', do (group=this) -> ->
-      return if RadioButton::disabled @
-      group._select @
-    return btn
-
-  _select: (btn) ->
-    doc = btn.ownerDocument
-    for b in doc.getElementById(@_containerId).childNodes
-      RadioButton::unselect b
-    RadioButton::select btn
-    @selectedData = RadioButton::getData btn
-    @onSelection.execute btn, @selectedData, @
-
-
-class DomainSelectionButtons extends RadioButtons
+class DomainSelectionButtons extends RadioGroup
   class DomainTree
     makeNode = (obj={}) ->
       node = {
@@ -268,8 +114,8 @@ class DomainSelectionButtons extends RadioButtons
         if not skip
           @walk pre, post, n.children
         post n
-    OMIT_DESCENDANTS_THRESHOLD = 4
-    OMIT_DESCENDANTS_DEPTH = 2 # do not omit second and higher level domains
+    OMIT_DESCENDANTS_THRESHOLD = 8
+    OMIT_DESCENDANTS_DEPTH = 2 # do not omit second and first level domains
     shouldOmitDescendants = (node, depth) ->
       (node.descendantDirectHits > OMIT_DESCENDANTS_THRESHOLD) \
       and (depth > OMIT_DESCENDANTS_DEPTH)
@@ -326,43 +172,62 @@ class DomainSelectionButtons extends RadioButtons
 
       return result
 
-  _createButton: (doc, description) ->
-    { allowHits, rejectHits } = description
-    totalHits = allowHits + rejectHits
-    allowRatio = if totalHits then allowHits/totalHits else 1
+  RadioButton: new class extends RadioGroup::RadioButton.constructor
+    __ownElements = new WeakSet
+    __ownsElement: (elem) -> __ownElements.has elem
+    __unwrap: (elem) -> elem.firstChild
 
-    defaults description, 'label', description.domain
-    defaults description, 'data', description.domain
-    defaults description, 'tooltiptext', l10n('popup_domain.tip',
-                    allowHits, rejectHits, Math.round allowRatio*100)
-    defaults description, 'style', ''
+    create: (doc, descr) ->
+      allowHits = descr.get 'allowHits'
+      rejectHits = descr.get 'rejectHits'
+      totalHits = allowHits + rejectHits
+      allowRatio = if totalHits then allowHits/totalHits else 1
 
-    description.style += "
-      background: #{
-        positiveBackgroundColor.mix(
-          negativeBackgroundColor, allowRatio
-        ).toCssString()
-      };
-      margin-left: #{ description.indentation or 0 }em;
-    "
+      descr.default 'label', descr.get 'domain'
+      descr.default 'data_domain', descr.get 'domain'
+      descr.default 'tooltiptext', l10n(
+          'popup_domain.tip', allowHits, rejectHits, Math.round allowRatio*100)
+      descr.default 'indentation', 0
 
-    btn = super doc, description
+      descr.push 'list_style', "
+        background: #{
+          positiveBackgroundColor.mix(
+            negativeBackgroundColor, allowRatio
+          ).toCssString()
+        };
+        margin-left: #{ descr.get 'indentation' }em;
+      "
 
-    btn.appendChild createElement doc, 'spacer',
-      class: 'policeman-popup-domain-button-hits-spacer'
-      flex: 1
+      rbtn = super doc, descr
 
-    btn.appendChild box = createElement doc, 'hbox',
-      class: 'policeman-popup-button-allow-hits'
-    box.appendChild createElement doc, 'label',
-      value: allowHits
+      btn = createElement doc, 'hbox'
 
-    btn.appendChild box = createElement doc, 'hbox',
-      class: 'policeman-popup-button-reject-hits'
-    box.appendChild createElement doc, 'label',
-      value: rejectHits
+      __ownElements.add btn
 
-    return btn
+      btn.appendChild rbtn
+
+      btn.appendChild createElement doc, 'spacer',
+        class: 'policeman-popup-domain-button-hits-spacer'
+        flex: 1
+
+      btn.appendChild createElement doc, 'hbox',
+        class: 'policeman-popup-button-hits policeman-popup-button-allow-hits'
+        _children_:
+          label:
+            value: descr.get 'allowHits'
+
+      btn.appendChild box = createElement doc, 'hbox',
+        class: 'policeman-popup-button-hits policeman-popup-button-reject-hits'
+        _children_:
+          label:
+            value: descr.get 'rejectHits'
+
+      return btn
+
+  constructor: ->
+    super arguments...
+    @onSelection.add (btn) =>
+      @selectedDomain = @RadioButton.getData btn, 'domain'
 
   populate: (doc) ->
     tree = new DomainTree
@@ -377,7 +242,8 @@ class DomainSelectionButtons extends RadioButtons
     selectionRestored = no
 
     anyDomainStats = tree.get ''
-    fragment.appendChild anyBtn = @_createButton doc,
+    fragment.appendChild anyBtn = @RadioButton.create doc, new Description
+      radioGroup: this
       label: l10n 'popup_any_domain'
       domain: ''
       allowHits: anyDomainStats.allowHits
@@ -385,41 +251,43 @@ class DomainSelectionButtons extends RadioButtons
 
     for [indentation, domain, allowHits, rejectHits] in tree.getHitDomains()
       continue if domain == CHROME_DOMAIN
-      fragment.appendChild btn = @_createButton doc, {
+      fragment.appendChild btn = @RadioButton.create doc, new Description {
+        radioGroup: this,
         domain, allowHits, rejectHits, indentation,
       }
-      if (not selectionRestored) and (@selectedData == domain)
-        @_select btn
+      if (not selectionRestored) and (@selectedDomain == domain)
+        @select btn
         selectionRestored = true
 
     chromeDomainStats = tree.get CHROME_DOMAIN
     if chromeDomainStats
-      fragment.appendChild btn = @_createButton doc,
+      fragment.appendChild btn = @RadioButton.create doc, new Description
+        radioGroup: this
         label: @_chromeDomainLabel
         domain: CHROME_DOMAIN
         allowHits: chromeDomainStats.allowHits
         rejectHits: chromeDomainStats.rejectHits
-      if (not selectionRestored) and (@selectedData == CHROME_DOMAIN)
-        @_select btn
+      if (not selectionRestored) and (@selectedDomain == CHROME_DOMAIN)
+        @select btn
         selectionRestored = true
 
     if not selectionRestored
-      @_select anyBtn
+      @select anyBtn
 
-    doc.getElementById(@_containerId).appendChild fragment
+    @getContainer(doc).appendChild fragment
 
   filter: (requestInfo) ->
     if requestInfo.schemeType == 'web'
-      if not @selectedData
+      if not @selectedDomain
         yes
-      else if @selectedData == CHROME_DOMAIN
+      else if @selectedDomain == CHROME_DOMAIN
         no
       else
-        isSuperdomain @selectedData, requestInfo.host
+        isSuperdomain @selectedDomain, requestInfo.host
     else if requestInfo.schemeType == 'internal'
-      if not @selectedData
+      if not @selectedDomain
         no
-      else if @selectedData == CHROME_DOMAIN
+      else if @selectedDomain == CHROME_DOMAIN
         yes
       else
         no
@@ -440,12 +308,12 @@ originSelection = new (class extends DomainSelectionButtons
 
   populate: (doc) ->
     location = tabs.getCurrent().linkedBrowser.contentWindow.location
-    @selectedData = location.hostname
+    @selectedDomain = location.hostname
     super doc
 
   _chromeDomainLabel: l10n 'popup_chrome_origin'
 
-) 'policeman-popup-origins-container'
+) new Description containerId: 'policeman-popup-origins-container'
 
 destinationSelection = new (class extends DomainSelectionButtons
   _chooseDomain: (o, d, c, decision) ->
@@ -461,7 +329,7 @@ destinationSelection = new (class extends DomainSelectionButtons
 
   _chromeDomainLabel: l10n 'popup_chrome_destination'
 
-) 'policeman-popup-destinations-container'
+) new Description containerId: 'policeman-popup-destinations-container'
 
 
 localizeOrigin = (o) ->
@@ -502,9 +370,12 @@ localizeType = (type) ->
   return l10n 'content_type.lower.plural.' + type
 
 
-class FilterButtons extends RadioButtons
-  constructor: (containerId, @_decision) ->
-    super containerId, CONTENT_TYPE_FILTER_NONE
+class FilterButtons extends RadioGroup
+  constructor: (descr) ->
+    @_decision = descr.get 'decision'
+    super arguments...
+    @onSelection.add (btn) =>
+      @selectedFilter = @RadioButton.getData btn, 'filter'
 
   populate: (doc) ->
     stats = {}
@@ -527,127 +398,140 @@ class FilterButtons extends RadioButtons
       if (type == CONTENT_TYPE_FILTER_ALL) \
       or popup.filters.enabledEmpty() \
       or hitCount
-        filters.appendChild btn = @_createButton doc,
+        filters.appendChild btn = @RadioButton.create doc, new Description
+          radioGroup: this
           label: "#{label} (#{hitCount})"
-          data: type
+          data_filter: type
           disabled: not hitCount
-        @_select btn if @selectedData == type
+          list_command: do (type=type) -> ->
+            for rulesetEdit in [temporaryRulesetEdit, persistentRulesetEdit]
+              RulesetEditButtons::CustomRuleWidget.setType \
+                  rulesetEdit.getCustomRuleWidget(doc), type
+        @select btn if @selectedFilter == type
 
-    doc.getElementById(@_containerId).appendChild filters
+    @getContainer(doc).appendChild filters
 
 rejectedFilter = new (class extends FilterButtons
   populate: (doc) ->
-    filters = doc.getElementById @_containerId
-    filters.appendChild none = @_createButton doc,
+    @getContainer(doc).appendChild none = @RadioButton.create doc, new Description
+      radioGroup: this
       label: l10n 'popup_filter_rejected_none'
-      data: CONTENT_TYPE_FILTER_NONE
-    @_select none if @selectedData == CONTENT_TYPE_FILTER_NONE
+      data_filter: CONTENT_TYPE_FILTER_NONE
     super doc
-) 'policeman-popup-rejected-requests-filters-container', false
+    @select none if (@selectedFilter == CONTENT_TYPE_FILTER_NONE) \
+                 or (not @getSelectedBtn doc)
+) new Description
+  containerId: 'policeman-popup-rejected-requests-filters-container'
+  decision: false
 
 
 allowedFilter = new (class extends FilterButtons
   populate: (doc) ->
-    filters = doc.getElementById @_containerId
-    filters.appendChild none = @_createButton doc,
+    @getContainer(doc).appendChild none = @RadioButton.create doc, new Description
+      radioGroup: this
       label: l10n 'popup_filter_allowed_none'
-      data: CONTENT_TYPE_FILTER_NONE
-    @_select none if @selectedData == CONTENT_TYPE_FILTER_NONE
+      data_filter: CONTENT_TYPE_FILTER_NONE
     super doc
-) 'policeman-popup-allowed-requests-filters-container', true
+    @select none if (@selectedFilter == CONTENT_TYPE_FILTER_NONE) \
+                 or (not @getSelectedBtn doc)
+) new Description
+  containerId: 'policeman-popup-allowed-requests-filters-container'
+  decision: true
 
 
 class RequestList extends ContainerPopulation
-  createItem: (doc, description) ->
-    {
-      origin
-      destination
-      context
-      decision
-    } = description
+  RequestWidget: new class extends Widget.constructor
+    contextPropertyToTitle =
+      nodeName: 'request_context_node'
+      contentType: 'request_context_content_type'
+      mime: 'request_context_mime_type'
+      id: 'request_context_id'
+      className: 'request_context_class_name'
+    for p, t of contextPropertyToTitle
+      contextPropertyToTitle[p] = l10n t
 
-    originLbl = createElement doc, 'label',
-      class: 'text-link policeman-popup-request-label policeman-popup-request-origin-label'
-      value: if origin.schemeType == 'web' \
-          then origin.host else origin.prePath
-      tooltiptext: origin.spec
-      href: origin.spec
+    create: (doc, descr) ->
+      descr.set 'tagName', 'hbox'
+      descr.push 'list_class', 'policeman-popup-request'
 
-    contextSummary = ""
-    if context.nodeName
-      contextSummary += \
-        "#{ l10n('request_context_node') } #{ context.nodeName }\n"
-    if context.contentType
-      contextSummary += \
-        "#{ l10n 'request_context_content_type' } #{ context.contentType }\n"
-    if context.mime
-      contextSummary += \
-        "#{ l10n 'request_context_mime_type' } #{ context.mime }\n"
-    if context.id
-      contextSummary += \
-        "#{ l10n 'request_context_id' } #{ context.id }\n"
-    if context.className
-      contextSummary += \
-        "#{ l10n 'request_context_class_name' } #{ context.className }\n"
-    arrowLbl = createElement doc, 'label',
-      class: 'policeman-popup-request-label policeman-popup-request-arrow-label'
-      value: l10n if decision then 'popup_arrow' else 'popup_arrow_with_stroke'
-      tooltiptext: contextSummary
+      box = super arguments...
 
-    destLbl = createElement doc, 'label',
-      class: 'text-link policeman-popup-request-label policeman-popup-request-destination-label'
-      value: destination.spec
-      tooltiptext: destination.spec
-      href: destination.spec
-      crop: 'center'
-      flex: 1
+      {
+        origin
+        destination
+        context
+        decision
+      } = descr.raw()
 
-    box = createElement doc, 'hbox',
-      class: 'policeman-popup-request'
-      flex: 1
+      box.appendChild originLabel = createElement doc, 'label',
+        class: 'text-link policeman-popup-request-label policeman-popup-request-origin-label'
+        value: if origin.schemeType == 'web' \
+            then origin.host else origin.prePath
+        tooltiptext: origin.spec
+        href: origin.spec
 
-    box.appendChild originLbl
-    box.appendChild arrowLbl
-    box.appendChild destLbl
+      contextSummary = ""
+      for property, title of contextPropertyToTitle
+        if value = context[property]
+          contextSummary += "#{ title } #{ value }\n"
 
-    return box
+      box.appendChild arrowLabel = createElement doc, 'label',
+        class: 'policeman-popup-request-label policeman-popup-request-arrow-label'
+        value: l10n if decision then 'popup_arrow' else 'popup_arrow_with_stroke'
+        tooltiptext: contextSummary
+
+      box.appendChild destLabel = createElement doc, 'label',
+        class: 'text-link policeman-popup-request-label policeman-popup-request-destination-label'
+        value: destination.spec
+        tooltiptext: destination.spec
+        href: destination.spec
+        crop: 'center'
+        flex: 1
+
+      return box
 
   requests: -> throw new Error "Subclass should supply 'requests' method."
 
   populate: (doc) ->
     fragment = doc.createDocumentFragment()
     for [o, d, c, decision] in @requests()
-      fragment.appendChild @createItem doc,
+      fragment.appendChild @RequestWidget.create doc, new Description
         origin: o
         destination: d
         context: c
         decision: decision
-    doc.getElementById(@_containerId).appendChild fragment
+    @getContainer(doc).appendChild fragment
 
 class FilteredRequestList extends RequestList
-  constructor: (containerId, @filterButtons) ->
-    super containerId
+  constructor: (descr) ->
+    @filterButtons = descr.get 'filterButtons'
+    super arguments...
   requests: ->
     requests = memo.getByTab(tabs.getCurrent()).filter ([o, d, c]) ->
       (originSelection.filter o) \
       and (destinationSelection.filter d)
-    return requests if @filterButtons.selectedData == CONTENT_TYPE_FILTER_ALL
+    return requests if @filterButtons.selectedFilter == CONTENT_TYPE_FILTER_ALL
     return requests.filter ([o, d, c, decision]) =>
-      @filterButtons.selectedData == categorizeRequest(o, d, c)
+      @filterButtons.selectedFilter == categorizeRequest(o, d, c)
 
 allowedList = new (class extends FilteredRequestList
   requests: ->
     super().filter ([o,d,c,decision]) -> decision is true
-) 'policeman-popup-allowed-requests-container', allowedFilter
+) new Description
+  containerId: 'policeman-popup-allowed-requests-container'
+  filterButtons: allowedFilter
 
 rejectedList = new (class extends FilteredRequestList
   requests: ->
     super().filter ([o,d,c,decision]) -> decision is false
-) 'policeman-popup-rejected-requests-container', rejectedFilter
+) new Description
+  containerId: 'policeman-popup-rejected-requests-container'
+  filterButtons: rejectedFilter
 
 class RulesetEditButtons extends ContainerPopulation
-  constructor: (containerId, @_rulesetId) ->
-    super containerId
+  constructor: (descr) ->
+    @_rulesetId = descr.get 'rulesetId'
+    super arguments...
 
   localizeDomain = (d) -> if d == CHROME_DOMAIN
         l10n 'popup_rule_chrome_domain'
@@ -656,170 +540,178 @@ class RulesetEditButtons extends ContainerPopulation
       else
         d
 
-  _createBasicRuleWidget: (doc, description) ->
-    {
-      tooltiptext
-      classList
-      origin
-      destination
-      decision
-      type
-    } = description
-    classList = classList or []
+  PassiveRuleWidget: new class extends Widget.constructor
+    create: (doc, descr) ->
+      {
+        tooltiptext
+        origin
+        destination
+        type
+        decision
+      } = descr.raw()
 
-    origin = localizeDomain origin
-    destination = localizeDomain destination
+      descr.push 'list_class', 'policeman-popup-rule'
+      descr.push 'list_class', 'policeman-popup-rule-' + if decision \
+        then 'allow' \
+        else 'reject'
 
-    box = createElement doc, 'vbox',
-      class: classList.join(' ') \
-        + ' policeman-popup-rule' \
-        + (if decision then ' policeman-popup-rule-allow' else '') \
-        + (if decision == false then ' policeman-popup-rule-reject' else '')
-    if tooltiptext
-      box.setAttribute 'tooltiptext', tooltiptext
+      descr.set 'tagName', 'hbox'
 
-    subbox = createElement doc, 'vbox'
+      box = super arguments...
 
-    lbl = createElement doc, 'label',
-      class: 'policeman-popup-rule-label'
-      value: l10n "popup_#{if decision then 'allow' else 'reject'}_rule", origin, destination, localizeType type
+      if tooltiptext
+        box.setAttribute 'tooltiptext', tooltiptext
 
-    subbox.appendChild lbl
-    box.appendChild subbox
+      box.appendChild label = createElement doc, 'label',
+        class: 'policeman-popup-rule-label'
+        value: l10n "popup_#{if decision then 'allow' else 'reject'}_rule", origin, destination, localizeType type
 
-    return box
+      return box
 
-  _createCustomRuleWidget: (doc, description) ->
-    {
-      ruleset
-      origin
-      destination
-    } = description
+  ModifiableRuleWidget: new class extends @::PassiveRuleWidget.constructor
+    __ownElements = new WeakSet
+    __ownsElement: (elem) -> __ownElements.has elem
+    __unwrap: (elem) -> elem.firstChild
 
-    customRuleBox = createElement doc, 'hbox',
-      class: 'policeman-popup-custom-rule-box'
+    create: (doc, descr) ->
+      {
+        ruleset
+        origin
+        destination
+        type
+        decision
+      } = descr.raw()
 
-    customRuleBox.appendChild createElement doc, 'label',
-      value: l10n 'popup_custom_rule.0'
-      class: 'policeman-popup-label-aligned-like-button'
+      rule = super arguments...
 
-    allow = ['allow', l10n 'popup_custom_rule.allow']
-    reject = ['reject', l10n 'popup_custom_rule.reject']
-    customRuleBox.appendChild allowRejectBtn = DataRotationButton::create doc,
-      valuesLabels: if manager.enabled('reject_any') \
-          then [allow, reject] \ # whitelist mode
-          else [reject, allow]   # blacklist mode
-      style: 'background: ' + if manager.enabled('reject_any') \
-          then positiveBackgroundColor.toCssString()
-          else negativeBackgroundColor.toCssString()
-      click: ->
-        if 'reject' == Button::getData @
-          @style.background = negativeBackgroundColor.toCssString()
-        else
-          @style.background = positiveBackgroundColor.toCssString()
+      box = createElement doc, 'hbox',
+        class: 'policeman-popup-rule-widget'
 
-    customRuleBox.appendChild createElement doc, 'label',
-      value: l10n 'popup_custom_rule.1'
-      class: 'policeman-popup-label-aligned-like-button'
+      __ownElements.add box
 
-    customRuleBox.appendChild typeBtn = DataRotationButton::create doc,
-      valuesLabels: ([t, l10n('popup_custom_rule.2') + ' ' + localizeType(t)] \
-              for t in popup.contentTypes.enabledList())
+      box.appendChild rule
 
-    customRuleBox.appendChild createElement doc, 'label',
-      value: l10n 'popup_custom_rule.3'
-      class: 'policeman-popup-label-aligned-like-button'
+      box.appendChild createElement doc, 'spacer',
+        flex: 1
 
-    customRuleBox.appendChild originBtn = DataRotationButton::create doc,
-      valuesLabels: ([o, localizeOrigin o] \
-                     for o in superdomains(origin, 2).concat(''))
-      tooltiptext: l10n 'popup_domain_rotation_button.tip'
+      if ruleset.id == 'user_persistent'
+        moveToRuleset = manager.get 'user_temporary'
+        moveToWidget = temporaryRulesetEdit
+        moveButtonLabel = l10n 'popup_persistent_rule_to_temporary'
+      else
+        moveToRuleset = manager.get 'user_persistent'
+        moveToWidget = persistentRulesetEdit
+        moveButtonLabel = l10n 'popup_temporary_rule_to_persistent'
+      if moveToRuleset
+        box.appendChild moveToOtherButton = Button.create doc, new Description
+          label: moveButtonLabel
+          list_command: =>
+            popup.autoreload.require doc
+            ruleset.revoke o, d, t
+            moveToRuleset[if decision then 'allow' else 'reject'] o, d, t
+            @update doc
+            moveToWidget.update doc
 
-    customRuleBox.appendChild createElement doc, 'label',
-      value: l10n 'popup_custom_rule.4'
-      class: 'policeman-popup-label-aligned-like-button'
-
-    customRuleBox.appendChild destinationBtn = DataRotationButton::create doc,
-      valuesLabels: ([d, localizeDestination d] \
-                     for d in superdomains(destination, 2).concat(''))
-      tooltiptext: l10n 'popup_domain_rotation_button.tip'
-
-    customRuleBox.appendChild createElement doc, 'label',
-      value: l10n 'popup_custom_rule.5'
-      class: 'policeman-popup-label-aligned-like-button'
-
-    customRuleBox.appendChild createElement doc, 'spacer',
-      flex: 1
-      orient: 'vertical'
-
-    customRuleBox.appendChild Button::create doc,
-      label: l10n 'popup_add_rule'
-      click: =>
-        popup.autoreload.require(doc)
-        allowReject = DataRotationButton::getData allowRejectBtn
-        origin_ = DataRotationButton::getData originBtn
-        destination_ = DataRotationButton::getData destinationBtn
-        type_ = DataRotationButton::getData typeBtn
-        ruleset[allowReject] origin_, destination_, type_
-        @update doc
-
-    return customRuleBox
-
-  _createRuleWidget: (doc, description) ->
-    {
-      ruleset: rs
-      origin: o
-      destination: d
-      type: t
-      decision
-    } = description
-    hbox = createElement doc, 'hbox',
-      class: 'policeman-popup-rule-widget'
-
-    hbox.appendChild @_createBasicRuleWidget doc,
-      origin: o
-      destination: d
-      type: t
-      decision: decision
-
-    hbox.appendChild createElement doc, 'spacer',
-      flex: 1
-      orient: 'vertical'
-
-    # "Move to another ruleset" button
-    if @_rulesetId == 'user_persistent'
-      anotherRs = manager.get 'user_temporary'
-      anotherWidget = temporaryRulesetEdit
-      label = l10n 'popup_persistent_rule_to_temporary'
-    else
-      anotherRs = manager.get 'user_persistent'
-      anotherWidget = persistentRulesetEdit
-      label = l10n 'popup_temporary_rule_to_persistent'
-    if anotherRs
-      hbox.appendChild Button::create doc,
-        label: label
-        click: =>
+      box.appendChild removeButton = Button.create doc, new Description
+        label: l10n 'popup_delete_rule'
+        list_command: =>
           popup.autoreload.require(doc)
-          rs.revoke o, d, t
-          anotherRs[if decision then 'allow' else 'reject'] o, d, t
+          ruleset.revoke o, d, t
           @update doc
-          anotherWidget.update doc
 
-    # "Remove" button
-    hbox.appendChild Button::create doc,
-      label: l10n 'popup_delete_rule'
-      click: =>
-        popup.autoreload.require(doc)
-        rs.revoke o, d, t
-        @update doc
-    return hbox
+      return box
+
+  CustomRuleWidget: new class extends Widget.constructor
+    create: (doc, descr) ->
+      {
+        ruleset
+        origin
+        destination
+      } = descr.raw()
+
+      descr.set 'tagName', 'hbox'
+      descr.push 'list_class', 'policeman-popup-custom-rule-box'
+
+      box = super arguments...
+
+      box.appendChild createElement doc, 'label',
+        value: l10n 'popup_custom_rule.0'
+        class: 'policeman-popup-label-aligned-like-button'
+
+      allow = ['allow', l10n 'popup_custom_rule.allow']
+      reject = ['reject', l10n 'popup_custom_rule.reject']
+      box.appendChild allowRejectBtn = DataRotationButton.create doc, new Description
+        valuesLabels: if manager.enabled('reject_any') \
+            then [allow, reject] \ # whitelist mode
+            else [reject, allow]   # blacklist mode
+        style: 'background: ' + if manager.enabled('reject_any') \
+            then positiveBackgroundColor.toCssString()
+            else negativeBackgroundColor.toCssString()
+        list_command: ->
+          if 'reject' == Button.getData @, 'data'
+            @style.background = negativeBackgroundColor.toCssString()
+          else
+            @style.background = positiveBackgroundColor.toCssString()
+
+      box.appendChild createElement doc, 'label',
+        value: l10n 'popup_custom_rule.1'
+        class: 'policeman-popup-label-aligned-like-button'
+
+      box.appendChild typeButton = DataRotationButton.create doc, new Description
+        valuesLabels: ([t, l10n('popup_custom_rule.2') + ' ' + localizeType(t)] \
+                for t in popup.contentTypes.enabledList())
+
+      @setData box, '_typeButton', typeButton
+
+      box.appendChild createElement doc, 'label',
+        value: l10n 'popup_custom_rule.3'
+        class: 'policeman-popup-label-aligned-like-button'
+
+      box.appendChild originBtn = DataRotationButton.create doc, new Description
+        valuesLabels: ([o, localizeOrigin o] \
+                      for o in superdomains(origin, 2).concat(''))
+        tooltiptext: l10n 'popup_domain_rotation_button.tip'
+
+      box.appendChild createElement doc, 'label',
+        value: l10n 'popup_custom_rule.4'
+        class: 'policeman-popup-label-aligned-like-button'
+
+      box.appendChild destinationBtn = DataRotationButton.create doc, new Description
+        valuesLabels: ([d, localizeDestination d] \
+                      for d in superdomains(destination, 2).concat(''))
+        tooltiptext: l10n 'popup_domain_rotation_button.tip'
+
+      box.appendChild createElement doc, 'label',
+        value: l10n 'popup_custom_rule.5'
+        class: 'policeman-popup-label-aligned-like-button'
+
+      box.appendChild createElement doc, 'spacer',
+        flex: 1
+        orient: 'vertical'
+
+      box.appendChild Button.create doc, new Description
+        label: l10n 'popup_add_rule'
+        list_command: =>
+          popup.autoreload.require(doc)
+          allowReject = DataRotationButton.getValue allowRejectBtn
+          origin_ = DataRotationButton.getValue originBtn
+          destination_ = DataRotationButton.getValue destinationBtn
+          type_ = DataRotationButton.getValue typeButton
+          ruleset[allowReject] origin_, destination_, type_
+          @update doc
+
+      return box
+
+    setType: (widget, type) ->
+      typeButton = @getData widget, '_typeButton'
+      DataRotationButton.setValue typeButton, type
 
   populate: (doc) ->
     rs = manager.get @_rulesetId
     return if not rs
 
-    selectedOrigin = originSelection.selectedData
-    selectedDestination = destinationSelection.selectedData
+    selectedOrigin = originSelection.selectedDomain
+    selectedDestination = destinationSelection.selectedDomain
 
     fragment = doc.createDocumentFragment()
 
@@ -834,7 +726,7 @@ class RulesetEditButtons extends ContainerPopulation
         for t in enabledTypes
           decision = rs.lookup o, d, t
           if decision isnt null
-            rules.appendChild @_createRuleWidget doc,
+            rules.appendChild @ModifiableRuleWidget.create doc, new Description
               ruleset: rs
               origin: o
               destination: d
@@ -877,7 +769,7 @@ class RulesetEditButtons extends ContainerPopulation
       for x in rulesList
         continue unless x
         [origin, destination, type, decision] = x
-        rules.appendChild @_createRuleWidget doc, {
+        rules.appendChild @ModifiableRuleWidget.create doc, new Description {
           ruleset: rs
           origin
           destination
@@ -890,12 +782,15 @@ class RulesetEditButtons extends ContainerPopulation
     fragment.appendChild createElement doc, 'separator',
       class: 'thin'
 
-    fragment.appendChild @_createCustomRuleWidget doc,
+    fragment.appendChild @CustomRuleWidget.create doc, new Description
       ruleset: rs
       origin: selectedOrigin
       destination: selectedDestination
 
-    doc.getElementById(@_containerId).appendChild fragment
+    @getContainer(doc).appendChild fragment
+
+  getCustomRuleWidget: (doc) ->
+    return @getContainer(doc).getElementsByClassName('policeman-popup-custom-rule-box')[0]
 
 
 temporaryRulesetEdit = new (class extends RulesetEditButtons
@@ -909,9 +804,9 @@ temporaryRulesetEdit = new (class extends RulesetEditButtons
 
     container = doc.getElementById('policeman-popup-temporary-ruleset-purge-container')
     if not rs.isEmpty()
-      container.appendChild Button::create doc,
+      container.appendChild Button.create doc, new Description
         label: l10n 'popup_revoke_all_temporary'
-        click: =>
+        list_command: =>
           popup.autoreload.require(doc)
           rs.revokeAll()
           @update doc
@@ -922,35 +817,39 @@ temporaryRulesetEdit = new (class extends RulesetEditButtons
     container = doc.getElementById('policeman-popup-temporary-ruleset-purge-container')
     removeChildren container
 
-) 'policeman-popup-temporary-edit-container', 'user_temporary'
+) new Description
+  containerId: 'policeman-popup-temporary-edit-container'
+  rulesetId: 'user_temporary'
 
 persistentRulesetEdit = new (class extends RulesetEditButtons
   populate: (doc) ->
     super doc
     doc.getElementById('policeman-popup-persistent-ruleset-container') \
             .hidden = not manager.enabled @_rulesetId
-) 'policeman-popup-persistent-edit-container', 'user_persistent'
+) new Description
+  containerId: 'policeman-popup-persistent-edit-container'
+  rulesetId: 'user_persistent'
 
 
 footerCheckButtons = new (class extends ContainerPopulation
   populate: (doc) ->
     fragment = doc.createDocumentFragment()
 
-    fragment.appendChild CheckButton::create doc,
+    fragment.appendChild CheckButton.create doc, new Description
       id: 'policeman-popup-reload-button'
       label: l10n 'popup_reload_page'
       checked: popup.autoreload.enabled()
-      click: ->
-        if CheckButton::checked @
+      list_command: ->
+        if CheckButton.checked @
           popup.autoreload.enable()
         else
           popup.autoreload.disable()
 
-    fragment.appendChild CheckButton::create doc,
+    fragment.appendChild CheckButton.create doc, new Description
       label: l10n 'popup_suspend_operation'
       checked: manager.suspended()
-      click: ->
-        if CheckButton::checked @
+      list_command: ->
+        if CheckButton.checked @
           manager.suspend()
         else
           manager.unsuspend()
@@ -958,38 +857,44 @@ footerCheckButtons = new (class extends ContainerPopulation
 
     if temporary = manager.get 'user_temporary'
       currentTab = tabs.getCurrent()
-      fragment.appendChild CheckButton::create doc,
+      fragment.appendChild CheckButton.create doc, new Description
         label: l10n 'popup_suspend_operation_on_current_tab'
         checked: temporary.isAllowedTab currentTab
-        click: ->
-          if CheckButton::checked @
+        list_command: ->
+          if CheckButton.checked @
             temporary.allowTab currentTab
           else
             temporary.revokeTab currentTab
           popup.autoreload.require(doc)
 
-    doc.getElementById(@_containerId).appendChild fragment
+    @getContainer(doc).appendChild fragment
 
-) 'policeman-popup-footer-left'
+) new Description containerId: 'policeman-popup-footer-left'
+
+
+PopupLinkButton = new class extends LinkButton.constructor
+  create: (doc, descr) ->
+    descr.push 'list_command', -> popup.hide doc
+    return super arguments...
 
 
 footerLinkButtons = new (class extends ContainerPopulation
   populate: (doc) ->
     fragment = doc.createDocumentFragment()
 
-    fragment.appendChild LinkButton::create doc,
+    fragment.appendChild PopupLinkButton.create doc, new Description
       label: l10n 'popup_open_help'
       reuse: true
       url: 'https://github.com/futpib/policeman/wiki/Help'
 
-    fragment.appendChild LinkButton::create doc,
+    fragment.appendChild PopupLinkButton.create doc, new Description
       label: l10n 'popup_open_preferences'
       reuse: true
       url: 'chrome://policeman/content/preferences.xul#user-rulesets'
 
-    doc.getElementById(@_containerId).appendChild fragment
+    @getContainer(doc).appendChild fragment
 
-) 'policeman-popup-footer-right'
+) new Description containerId: 'policeman-popup-footer-right'
 
 
 statusIndicator =

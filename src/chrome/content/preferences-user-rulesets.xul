@@ -102,7 +102,7 @@
       </tree>
     </vbox>
 
-    <splitter collapse="both"/>
+    <splitter style="opacity: 0;" collapse="both"/>
 
     <vbox flex="1">
       <label class="title" value="&preferences_persistent_rules;" crop="end"/>
