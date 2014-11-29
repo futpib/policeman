@@ -23,7 +23,8 @@ toolbarbuttonEvents = (container, eventName) ->
   selectedAction = toolbarbutton.events.getAction eventName
 
   menuitems = {}
-  for action in ['noop', 'openWidget', 'openPreferences', 'toggleSuspended']
+  for action in ['noop', 'openWidget', 'openPreferences', 'toggleSuspended',
+                 'toggleTabSuspended', 'removeTemporaryRules']
     menuitems["menuitem_#{action}"] =
       label: l10n "preferences_toolbarbutton_actions.#{action}"
       selected: action is selectedAction

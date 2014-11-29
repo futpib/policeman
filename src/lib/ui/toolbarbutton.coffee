@@ -146,6 +146,17 @@ exports.toolbarbutton = toolbarbutton = new class
       toggleSuspended: (e) ->
         manager.toggleSuspended()
         toolbarbutton.indicator.update()
+      toggleTabSuspended: (e) ->
+        if (temporary = manager.get 'user_temporary')
+          tab = tabs.getCurrent()
+          if temporary.isAllowedTab tab
+            temporary.revokeTab tab
+          else
+            temporary.allowTab tab
+          toolbarbutton.indicator.update()
+      removeTemporaryRules: (e) ->
+        if (temporary = manager.get 'user_temporary')
+          temporary.revokeAll()
     _actions: actions
 
     _eventToAction:
