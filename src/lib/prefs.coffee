@@ -156,7 +156,7 @@ class ObservablePreferences extends Preferences
       @_changeHandlers[name] = [handler]
 
 
-FinalPreferencesClass = class HookedPreferences extends ObservablePreferences
+class HookedPreferences extends ObservablePreferences
   constructor: ->
     super arguments...
 
@@ -185,6 +185,20 @@ FinalPreferencesClass = class HookedPreferences extends ObservablePreferences
     hook = @_setterHook name
     value = hook value
     super name, value
+
+
+FinalPreferencesClass = class SynchronizablePreferences extends HookedPreferences
+  _SYNC_BRANCH: "services.sync.prefs.sync"
+
+  constructor: ->
+    super arguments...
+    @_syncPrefs = new HookedPreferences @_SYNC_BRANCH + '.' + @_branchName
+
+  define: (name, description={}) ->
+    super arguments...
+    if description.sync
+      @_syncPrefs.define name,
+        default: true
 
 
 exports.ReadOnlyError = class ReadOnlyError extends PreferencesError
