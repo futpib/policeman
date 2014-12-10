@@ -29,7 +29,7 @@ embeddedRuleSets = [
   'onion_sandbox',
 ].concat codeBasedRuleSets
 
-prefs.define 'manager.enabledRuleSets',
+prefs.define ENABLED_IDS_PREF = 'manager.enabledRuleSets',
   default: [
     'default',
     'compatibility',
@@ -40,6 +40,10 @@ prefs.define 'manager.enabledRuleSets',
     'allow_same_second_level_domain',
     'reject_any',
   ]
+  # filter for known ids (unknown ids may appear as a result of synchronization)
+  get: (list) -> list.filter (id) -> (id in embeddedRuleSets) \
+                      or (id of (prefs.get INSTALLED_PATH_BY_ID_PREF))
+  sync: true
 
 updating.from '0.14', ->
   ###
@@ -47,7 +51,7 @@ updating.from '0.14', ->
   'allow_from_file_to_file_and_web' rulesets, lets enable them, so update
   does not break anything
   ###
-  prefs.mutate 'manager.enabledRuleSets', (enabled) ->
+  prefs.mutate ENABLED_IDS_PREF, (enabled) ->
     enabled.splice 1, 0, 'compatibility', 'allow_from_file_to_file_and_web'
     return enabled
 
@@ -60,12 +64,13 @@ addEmbedded = (obj) ->
         obj[id] = file_path.toString file_path.join file_path.defaults, 'rulesets', "#{id}.ruleset"
   return obj
 
-prefs.define 'manager.installedPathsByIds',
+prefs.define INSTALLED_PATH_BY_ID_PREF = 'manager.installedPathsByIds',
   default: {}
   get: (o) -> addEmbedded o
 
-prefs.define 'manager.suspended',
+prefs.define SUSPENDED_PREF = 'manager.suspended',
   default: false
+  sync: true
 
 
 cachedRulesetConstructor = cache
@@ -313,26 +318,26 @@ class SanityCheckedSnapshot extends Snapshot
 class SuspendableManager extends Manager
   constructor: ->
     super arguments...
-    @_suspended = prefs.get 'manager.suspended'
-    prefs.onChange 'manager.suspended', =>
-      @_suspended = prefs.get 'manager.suspended'
+    @_suspended = prefs.get SUSPENDED_PREF
+    prefs.onChange SUSPENDED_PREF, =>
+      @_suspended = prefs.get SUSPENDED_PREF
 
   check: ->
     return true if @_suspended
     return super arguments...
 
   suspended: -> @_suspended
-  toggleSuspended: -> prefs.set 'manager.suspended', not @_suspended
-  suspend: -> prefs.set 'manager.suspended', true
-  unsuspend: -> prefs.set 'manager.suspended', false
+  toggleSuspended: -> prefs.set SUSPENDED_PREF, not @_suspended
+  suspend: -> prefs.set SUSPENDED_PREF, true
+  unsuspend: -> prefs.set SUSPENDED_PREF, false
 
 
 class SavableSnapshotableManager extends SuspendableManager
   constructor: ->
-    super (prefs.get 'manager.installedPathsByIds'), (prefs.get 'manager.enabledRuleSets')
+    super (prefs.get INSTALLED_PATH_BY_ID_PREF), (prefs.get ENABLED_IDS_PREF)
 
-    prefs.onChange 'manager.installedPathsByIds', @_onInstalledPrefChange.bind @
-    prefs.onChange 'manager.enabledRuleSets', @_onEnabledPrefChange.bind @
+    prefs.onChange INSTALLED_PATH_BY_ID_PREF, @_onInstalledPrefChange.bind @
+    prefs.onChange ENABLED_IDS_PREF, @_onEnabledPrefChange.bind @
 
   _loadInstalledIds: (newInstalledUrlById) ->
     for id, url of newInstalledUrlById
@@ -350,14 +355,14 @@ class SavableSnapshotableManager extends SuspendableManager
         @disable id
 
   _onInstalledPrefChange: ->
-    @_loadInstalledIds prefs.get 'manager.installedPathsByIds'
+    @_loadInstalledIds prefs.get INSTALLED_PATH_BY_ID_PREF
 
   _onEnabledPrefChange: ->
-    @_loadEnabledIds prefs.get 'manager.enabledRuleSets'
+    @_loadEnabledIds prefs.get ENABLED_IDS_PREF
 
   save: ->
-    prefs.set 'manager.enabledRuleSets', @_enabledRuleSetsIds
-    prefs.set 'manager.installedPathsByIds', @_installedPathsByIds
+    prefs.set ENABLED_IDS_PREF, @_enabledRuleSetsIds
+    prefs.set INSTALLED_PATH_BY_ID_PREF, @_installedPathsByIds
 
   # this is for ui to play with and then load when user hits "Save" or smth
   snapshot: -> new SanityCheckedSnapshot @
