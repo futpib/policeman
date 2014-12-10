@@ -24,6 +24,7 @@ onShutdown.add persistentRuleSet.save.bind persistentRuleSet
 
 prefs.define rpImportPref = 'ruleset.persistent.requestpolicy.triedImport',
   default: false
+  sync: true
 
 if not prefs.get rpImportPref
   foreign.define rpOriginsPref = 'extensions.requestpolicy.allowedOrigins',

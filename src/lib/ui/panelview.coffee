@@ -47,6 +47,7 @@ prefs.onChange NEGATIVE_BG_PREF, ->
 
 prefs.define AUTORELOAD_PREF = 'ui.panelview.autoReloadPageOnHiding',
   default: false
+  sync: true
 
 
 class ContainerPopulation

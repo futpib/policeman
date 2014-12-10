@@ -916,6 +916,7 @@ statusIndicator =
 
 prefs.define AUTORELOAD_PREF = 'ui.popup.autoReloadPageOnHiding',
   default: false
+  sync: true
 
 exports.popup = popup =
   id: 'policeman-popup'
@@ -1033,6 +1034,7 @@ exports.popup = popup =
         get: (enabled) ->
           enabled['_ANY_'] = yes
           return enabled
+        sync: true
       @_enabled = prefs.get ENABLED_CONTENT_TYPES_PREF
       onShutdown.add => prefs.set ENABLED_CONTENT_TYPES_PREF, @_enabled
 
@@ -1054,7 +1056,9 @@ exports.popup = popup =
     _showZeroFilters: true
 
     constructor: ->
-      prefs.define SHOW_ZERO_FILTERS_PREF, default: true
+      prefs.define SHOW_ZERO_FILTERS_PREF,
+        default: true
+        sync: true
       @_showZeroFilters = prefs.get SHOW_ZERO_FILTERS_PREF
       prefs.onChange SHOW_ZERO_FILTERS_PREF, (value) => @_showZeroFilters = value
 

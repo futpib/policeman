@@ -229,6 +229,7 @@ exports.blockedElements = blockedElements = new class
       set: (cls) ->
         str = handlerClassToPref.get(cls)
         return str
+      sync: true
 
   _initHandlerPref: (name, filter) ->
     defHandlerPref name

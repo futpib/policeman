@@ -43,6 +43,7 @@ exports.SavableRS = class SavableRS extends ModifiableRS
       prefs.define @_pref,
         type: 'uobject'
         default: @_marshal()
+        sync: true
       do @load
       prefs.onChange @_pref, @load.bind @
   _marshal: -> throw new Error "Subclass should supply '_marshal' method"

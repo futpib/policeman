@@ -174,6 +174,7 @@ exports.toolbarbutton = toolbarbutton = new class
         default: default_
         get: (name) => @_actions[name] or @_actions.noop
         set: (act) => (reverseLookup @_actions, act) or 'noop'
+        sync: true
       prefs.onChange prefName, update = =>
         @_eventToAction[eventName] = prefs.get prefName
       do update
