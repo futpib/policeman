@@ -882,6 +882,13 @@ footerLinkButtons = new (class extends ContainerPopulation
   populate: (doc) ->
     fragment = doc.createDocumentFragment()
 
+    fragment.appendChild createElement doc, 'label',
+      id: 'policeman-popup-label-version-number'
+      class: 'policeman-popup-label-aligned-like-button'
+      value: addonData.version
+      flex: 1
+      crop: 'end'
+
     fragment.appendChild PopupLinkButton.create doc, new Description
       label: l10n 'popup_open_help'
       reuse: true

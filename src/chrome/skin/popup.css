@@ -123,4 +123,8 @@
   .policeman-popup-button {
     background: rgba(0, 255, 0, 0.1);
   }
+
+  #policeman-popup-label-version-number {
+    opacity: .5;
+  }
 }
