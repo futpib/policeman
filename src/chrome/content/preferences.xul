@@ -18,6 +18,7 @@
   <hbox flex="1">
     <vbox id="sidebar">
       <label class="title" value="&policeman_preferences;"/>
+      <label id="version-number" />
 
       <separator/>
 

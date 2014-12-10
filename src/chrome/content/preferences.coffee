@@ -20,3 +20,5 @@ onLoad = ->
   window.addEventListener 'hashchange', onHashChange
   do onHashChange
 
+  $('#version-number').value = addonData.version
+

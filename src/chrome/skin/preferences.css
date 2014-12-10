@@ -8,6 +8,11 @@
   margin-left: 0;
 }
 
+#version-number {
+  opacity: .5;
+  margin-left: 0;
+}
+
 a {
   margin-top: .5em;
   font-size: 1.2em;
