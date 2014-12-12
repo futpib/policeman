@@ -62,8 +62,6 @@ objectFilter = new class ObjectFilter extends Filter
 
 
 class BlockedElementHandler
-  _elementToData: new WeakMap
-
   _ATTRIBUTE_PREFIX: '__attribute_'
   _backupAttribute: (elem, attr) ->
     @setData elem, @_ATTRIBUTE_PREFIX + attr, (elem.getAttribute attr) or ''
@@ -103,7 +101,8 @@ class BlockedElementHandler
   _getAllByTabId: (tabId) -> (@_tabIdToBlockedElements[tabId] or []).slice()
 
   constructor: (@filter) ->
-    @_tabIdToBlockedElements = Object.create null
+    @_elementToData = new WeakMap
+    @_tabIdToBlockedElements = Object.create null # TODO go weak
     tabs.onClose.add (t) => @_removeAllByTabId tabs.getTabId t
 
   process: (elem, origin, destination, context, decision) ->
