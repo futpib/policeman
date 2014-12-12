@@ -41,8 +41,9 @@ prefs.define ENABLED_IDS_PREF = 'manager.enabledRuleSets',
     'reject_any',
   ]
   # filter for known ids (unknown ids may appear as a result of synchronization)
-  get: (list) -> list.filter (id) -> (id in embeddedRuleSets) \
-                      or (id of (prefs.get INSTALLED_PATH_BY_ID_PREF))
+  get: (list) ->
+    installed = prefs.get INSTALLED_PATH_BY_ID_PREF
+    return list.filter (id) -> id of installed
   sync: true
 
 updating.from '0.14', ->
