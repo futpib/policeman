@@ -205,7 +205,13 @@ exports.LinkButton = LinkButton = new class extends Button.constructor
 
     reuse = descr.get 'reuse'
     if url = descr.get 'url'
-      descr.unshift 'list_command', -> tabs.open url, reuse
+      descr.unshift 'list_command', ->
+        window = this.ownerDocument.defaultView
+        # delay it until after all other commands are already executed
+        timeout = window.setTimeout (->
+          tabs.open url, reuse
+          window.clearTimeout timeout
+        ), 1
 
     return super arguments...
 
