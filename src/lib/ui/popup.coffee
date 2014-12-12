@@ -241,7 +241,7 @@ class DomainSelectionButtons extends RadioGroup
 
     anyDomainStats = tree.get ''
     fragment.appendChild anyBtn = @RadioButton.create doc, new Description
-      radioGroup: this
+      container: this
       label: l10n 'popup_any_domain'
       domain: ''
       allowHits: anyDomainStats.allowHits
@@ -250,7 +250,7 @@ class DomainSelectionButtons extends RadioGroup
     for [indentation, domain, allowHits, rejectHits] in tree.getHitDomains()
       continue if domain == CHROME_DOMAIN
       fragment.appendChild btn = @RadioButton.create doc, new Description {
-        radioGroup: this,
+        container: this,
         domain, allowHits, rejectHits, indentation,
       }
       if (not selectionRestored) and (@selectedDomain == domain)
@@ -260,7 +260,7 @@ class DomainSelectionButtons extends RadioGroup
     chromeDomainStats = tree.get CHROME_DOMAIN
     if chromeDomainStats
       fragment.appendChild btn = @RadioButton.create doc, new Description
-        radioGroup: this
+        container: this
         label: @_chromeDomainLabel
         domain: CHROME_DOMAIN
         allowHits: chromeDomainStats.allowHits
@@ -272,7 +272,7 @@ class DomainSelectionButtons extends RadioGroup
     if not selectionRestored
       @select anyBtn
 
-    @getContainer(doc).appendChild fragment
+    @getContainerElement(doc).appendChild fragment
 
   filter: (requestInfo) ->
     if requestInfo.schemeType == 'web'
@@ -397,7 +397,7 @@ class FilterButtons extends RadioGroup
       or popup.filters.enabledEmpty() \
       or hitCount
         filters.appendChild btn = @RadioButton.create doc, new Description
-          radioGroup: this
+          container: this
           label: "#{label} (#{hitCount})"
           data_filter: type
           disabled: not hitCount
@@ -407,12 +407,12 @@ class FilterButtons extends RadioGroup
                   rulesetEdit.getCustomRuleWidget(doc), type
         @select btn if @selectedFilter == type
 
-    @getContainer(doc).appendChild filters
+    @getContainerElement(doc).appendChild filters
 
 rejectedFilter = new (class extends FilterButtons
   populate: (doc) ->
-    @getContainer(doc).appendChild none = @RadioButton.create doc, new Description
-      radioGroup: this
+    @getContainerElement(doc).appendChild none = @RadioButton.create doc, new Description
+      container: this
       label: l10n 'popup_filter_rejected_none'
       data_filter: CONTENT_TYPE_FILTER_NONE
     super doc
@@ -425,8 +425,8 @@ rejectedFilter = new (class extends FilterButtons
 
 allowedFilter = new (class extends FilterButtons
   populate: (doc) ->
-    @getContainer(doc).appendChild none = @RadioButton.create doc, new Description
-      radioGroup: this
+    @getContainerElement(doc).appendChild none = @RadioButton.create doc, new Description
+      container: this
       label: l10n 'popup_filter_allowed_none'
       data_filter: CONTENT_TYPE_FILTER_NONE
     super doc
@@ -494,11 +494,12 @@ class RequestList extends ContainerPopulation
     fragment = doc.createDocumentFragment()
     for [o, d, c, decision] in @requests()
       fragment.appendChild @RequestWidget.create doc, new Description
+        container: this
         origin: o
         destination: d
         context: c
         decision: decision
-    @getContainer(doc).appendChild fragment
+    @getContainerElement(doc).appendChild fragment
 
 class FilteredRequestList extends RequestList
   constructor: (descr) ->
@@ -571,12 +572,13 @@ class RulesetEditButtons extends ContainerPopulation
 
     create: (doc, descr) ->
       {
-        container
         ruleset
         origin
         destination
         type
         decision
+
+        container
       } = descr.raw()
 
       rule = super arguments...
@@ -599,20 +601,22 @@ class RulesetEditButtons extends ContainerPopulation
         moveButtonLabel = l10n 'popup_temporary_rule_to_persistent'
       if moveToRuleset
         box.appendChild moveToOtherButton = Button.create doc, new Description
+          container: container
           label: moveButtonLabel
           list_command: =>
             popup.autoreload.require doc
-            ruleset.revoke o, d, t
-            moveToRuleset[if decision then 'allow' else 'reject'] o, d, t
-            @getData(box, '_container').update doc
+            ruleset.revoke origin, destination, type
+            moveToRuleset[if decision then 'allow' else 'reject'] origin, destination, type
+            @getContainer(box).update doc
             moveToWidget.update doc
 
       box.appendChild removeButton = Button.create doc, new Description
+        container: container
         label: l10n 'popup_delete_rule'
         list_command: =>
           popup.autoreload.require(doc)
-          ruleset.revoke o, d, t
-          @getData(box, '_container').update doc
+          ruleset.revoke origin, destination, type
+          @getContainer(box).update doc
 
       return box
   ModifiableRuleWidget: ModifiableRuleWidget
@@ -620,18 +624,17 @@ class RulesetEditButtons extends ContainerPopulation
   CustomRuleWidget: new class extends Widget.constructor
     create: (doc, descr) ->
       {
-        container
         ruleset
         origin
         destination
+
+        container
       } = descr.raw()
 
       descr.set 'tagName', 'hbox'
       descr.push 'list_class', 'policeman-popup-custom-rule-box'
 
       box = super arguments...
-
-      @setData box, '_container', container
 
       box.appendChild createElement doc, 'label',
         value: l10n 'popup_custom_rule.0'
@@ -689,6 +692,7 @@ class RulesetEditButtons extends ContainerPopulation
         orient: 'vertical'
 
       box.appendChild Button.create doc, new Description
+        container: container
         label: l10n 'popup_add_rule'
         list_command: =>
           popup.autoreload.require(doc)
@@ -697,7 +701,7 @@ class RulesetEditButtons extends ContainerPopulation
           destination_ = DataRotationButton.getValue destinationBtn
           type_ = DataRotationButton.getValue typeButton
           ruleset[allowReject] origin_, destination_, type_
-          @getData(box, '_container').update doc
+          @getContainer(box).update doc
 
       return box
 
@@ -726,6 +730,7 @@ class RulesetEditButtons extends ContainerPopulation
           decision = rs.lookup o, d, t
           if decision isnt null
             rules.appendChild @ModifiableRuleWidget.create doc, new Description
+              container: this
               ruleset: rs
               origin: o
               destination: d
@@ -769,6 +774,7 @@ class RulesetEditButtons extends ContainerPopulation
         continue unless x
         [origin, destination, type, decision] = x
         rules.appendChild @ModifiableRuleWidget.create doc, new Description {
+          container: this
           ruleset: rs
           origin
           destination
@@ -787,10 +793,10 @@ class RulesetEditButtons extends ContainerPopulation
       origin: selectedOrigin
       destination: selectedDestination
 
-    @getContainer(doc).appendChild fragment
+    @getContainerElement(doc).appendChild fragment
 
   getCustomRuleWidget: (doc) ->
-    return @getContainer(doc).getElementsByClassName('policeman-popup-custom-rule-box')[0]
+    return @getContainerElement(doc).getElementsByClassName('policeman-popup-custom-rule-box')[0]
 
 
 temporaryRulesetEdit = new (class extends RulesetEditButtons
@@ -867,7 +873,7 @@ footerCheckButtons = new (class extends ContainerPopulation
             temporary.revokeTab currentTab
           popup.autoreload.require(doc)
 
-    @getContainer(doc).appendChild fragment
+    @getContainerElement(doc).appendChild fragment
 
 ) new Description containerId: 'policeman-popup-footer-left'
 
@@ -899,7 +905,7 @@ footerLinkButtons = new (class extends ContainerPopulation
       reuse: true
       url: 'chrome://policeman/content/preferences.xul#user-rulesets'
 
-    @getContainer(doc).appendChild fragment
+    @getContainerElement(doc).appendChild fragment
 
 ) new Description containerId: 'policeman-popup-footer-right'
 
@@ -1057,7 +1063,7 @@ exports.popup = popup =
 
     constructor: ->
       prefs.define SHOW_ZERO_FILTERS_PREF,
-        default: true
+        default: false
         sync: true
       @_showZeroFilters = prefs.get SHOW_ZERO_FILTERS_PREF
       prefs.onChange SHOW_ZERO_FILTERS_PREF, (value) => @_showZeroFilters = value
