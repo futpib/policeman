@@ -89,7 +89,7 @@ files = new class
 
   scope = OS.Path.join OS.Constants.Path.profileDir, 'policeman', 'rulesets'
   acquire: (path) ->
-    if scope != OS.Path.dirname path
+    if (OS.Path.normalize scope) != (OS.Path.dirname OS.Path.normalize path)
       throw new Error "#{JSON.stringify path} is out of
           #{JSON.stringify scope} directory"
     defaults refCountByPath, path, 0
