@@ -88,7 +88,9 @@ class BlockedElementHandler
       @_elementToData.set elem, data
     data[name] = value
   getData: (elem, name) ->
-    (@_elementToData.get elem)[name]
+    return if data = (@_elementToData.get elem) \
+              then data[name] \
+              else undefined
   removeData: (elem, name) ->
     delete (@_elementToData.get elem)[name]
 
