@@ -563,7 +563,10 @@ class RulesetEditButtons extends ContainerPopulation
 
       box.appendChild label = createElement doc, 'label',
         class: 'policeman-popup-rule-label'
-        value: l10n "popup_#{if decision then 'allow' else 'reject'}_rule", origin, destination, localizeType type
+        value: l10n "popup_#{if decision then 'allow' else 'reject'}_rule",
+                  (localizeDomain origin),
+                  (localizeDomain destination),
+                  (localizeType type)
 
       return box
 
