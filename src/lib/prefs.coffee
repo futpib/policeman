@@ -144,6 +144,14 @@ class ObservablePreferences extends Preferences
     @_branch.addObserver '', observer, false
     onShutdown.add => @_branch.removeObserver '', observer
 
+  define: (name, description={}) ->
+    {
+      onChange
+    } = description
+    result = super arguments...
+    @onChange name, onChange
+    return result
+
   _observeChange: (_branch, topic, name) ->
     if name of @_changeHandlers
       value = @get name
