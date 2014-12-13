@@ -8,6 +8,7 @@ Cu.import "resource://gre/modules/NetUtil.jsm"
   isDead
   superdomains
   isSuperdomain
+  mutateAttribute
 } = require 'utils'
 { tabs } = require 'tabs'
 
@@ -39,6 +40,7 @@ class Filter
            and context._tabId
 
 imageFilter = new class ImageFilter extends Filter
+  TOOLTIP_TEXT_KEY: 'blocked_image.tip'
   isImage = (elem) -> elem.nodeName == 'IMG'
   shouldProcess: (elem, origin, destination, context, decision) ->
     return super(arguments...) \
@@ -47,12 +49,14 @@ imageFilter = new class ImageFilter extends Filter
            and not (elem.clientWidth == elem.clientHeight == 1)
 
 frameFilter = new class FrameFilter extends Filter
+  TOOLTIP_TEXT_KEY: 'blocked_frame.tip'
   isFrame = (elem) -> elem.nodeName in ['IFRAME', 'FRAME']
   shouldProcess: (elem, origin, destination, context, decision) ->
     return super(arguments...) \
            and isFrame(elem)
 
 objectFilter = new class ObjectFilter extends Filter
+  TOOLTIP_TEXT_KEY: 'blocked_object.tip'
   isObject = (elem) -> elem.nodeName in ['OBJECT', 'EMBED']
   shouldProcess: (elem, origin, destination, context, decision) ->
     return super(arguments...) \
@@ -174,6 +178,12 @@ class Placeholder extends BlockedElementHandler
     @setData elem, 'contentType', context.contentType
 
     @_backupAttribute elem, 'title'
+    mutateAttribute elem, 'title', (title) =>
+      tip = l10n @filter.TOOLTIP_TEXT_KEY, destination.host
+      if title \
+        then title + '\n' + tip \
+        else tip
+
     @_backupAttribute elem, 'style'
     elem.style.boxShadow = 'inset 0px 0px 0px 1px #fcc'
     elem.style.backgroundRepeat = 'no-repeat'
