@@ -149,7 +149,7 @@ class ObservablePreferences extends Preferences
       onChange
     } = description
     result = super arguments...
-    @onChange name, onChange
+    @onChange name, onChange if onChange
     return result
 
   _observeChange: (_branch, topic, name) ->
