@@ -155,9 +155,16 @@ class ObservablePreferences extends Preferences
   _observeChange: (_branch, topic, name) ->
     if name of @_changeHandlers
       value = @get name
-      h(value) for h in @_changeHandlers[name]
+      for h in @_changeHandlers[name]
+        try
+          h(value)
+        catch e
+          log.error 'Error executing onChange handler for preference',
+                    name, ':', e
 
   onChange: (name, handler) ->
+    if typeof handler != 'function'
+      throw new Error 'Handler has to be a function'
     if name of @_changeHandlers
       @_changeHandlers[name].push handler
     else
