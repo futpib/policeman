@@ -4,6 +4,8 @@
 
 { RuleSet } = require 'ruleset/base'
 
+{ setTimeout, clearTimeout } = Cu.import "resource://gre/modules/Timer.jsm"
+
 
 # Rulesets for easy modification by ui.
 
@@ -51,20 +53,77 @@ exports.SavableRS = class SavableRS extends ModifiableRS
   save: -> prefs.set @_pref, @_marshal() if @_pref
   load: -> @_unmarshal prefs.get @_pref if @_pref
 
-exports.LookupRS = class LookupRS extends SavableRS
+
+exports.AutosavableRS = class AutosavableRS extends SavableRS
+  minToMs = (n) -> n * 60 * 1000
+  msToMin = (n) -> Math.round n / (60 * 1000)
+
+  MINIMUM_INTERVAL_MINUTES = 2
+  prefs.define SAVE_INTERVAL_PREF = 'ruleset.autosave.checkIntervalMinutes',
+    default: 7
+    get: (minutes) ->
+      if minutes < MINIMUM_INTERVAL_MINUTES
+        throw new Error 'Autosave interval too low'
+      return minutes
+    onChange: (minutes) =>
+      @::_SAVE_INTERVAL_MINUTES = minutes
+
+  @::_SAVE_INTERVAL_MINUTES = prefs.get SAVE_INTERVAL_PREF
+
+  marksForAutosave: (f) -> ->
+    @markForAutosave()
+    return f.apply @, arguments
+
+  proto = @::
+  superProto = Object.getPrototypeOf proto
+
+  markForAutosave: ->
+    @_hasUnsavedChanges = true
+
+  for modOp in [
+      'allow',
+      'reject',
+      'revoke',
+      'revokeAll',
+    ]
+    superOp = superProto[modOp]
+    proto[modOp] = proto.marksForAutosave superOp
+
+  constructor: ->
+    super arguments...
+    if @_pref
+      @_hasUnsavedChanges = false
+      weakThat = Cu.getWeakReference this
+      timeout = setTimeout (callback = ->
+        clearTimeout timeout
+        if that = weakThat.get()
+          that._autosave()
+          timeout = setTimeout callback, minToMs that._SAVE_INTERVAL_MINUTES
+      ), minToMs @_SAVE_INTERVAL_MINUTES
+
+  _autosave: ->
+    if @_hasUnsavedChanges
+      @save arguments...
+      @_hasUnsavedChanges = false
+
+  load: ->
+    super arguments...
+    @_hasUnsavedChanges = false
+
+exports.LookupRS = class LookupRS extends AutosavableRS
   constructor: (pref) ->
     @revokeAll()
     super pref
   _marshal: -> @_lookup
   _unmarshal: (o) -> @_lookup = o
-  revokeAll: -> @_lookup = Object.create null
+  revokeAll: @::marksForAutosave -> @_lookup = Object.create null
   isEmpty: -> not Object.keys(@_lookup).length
-  allow: (x) -> @_lookup[x] = true
+  allow: @::marksForAutosave (x) -> @_lookup[x] = true
   isAllowed: (x) -> !! @_lookup[x]
-  reject: (x) -> @_lookup[x] = false
+  reject: @::marksForAutosave (x) -> @_lookup[x] = false
   isRejected: (x) -> (x of @_lookup) and (not @_lookup[x])
   has: (x) -> x of @_lookup
-  revoke: (x) -> delete @_lookup[x]
+  revoke: @::marksForAutosave (x) -> delete @_lookup[x]
 
 exports.DeepLookupRS = class DeepLookupRS extends LookupRS
   depthLoop_ = (iter, after) -> (keys) ->
@@ -103,14 +162,14 @@ exports.DeepLookupRS = class DeepLookupRS extends LookupRS
       delete lookup[k] if not keys.length
       revoke_ keys, v
       delete lookup[k] if not (typeof v is 'object' and Object.keys(v).length)
-  revoke: (keys) -> revoke_ keys.slice(), @_lookup
+  revoke: @::marksForAutosave (keys) -> revoke_ keys.slice(), @_lookup
 
   loopSet_ = (val) -> depthLoop_ (l, k, eta) ->
     defaults l, k, if eta then Object.create(null) else val
     depthLoop_.continue
 
-  allow: loopSet_ true
-  reject: loopSet_ false
+  allow: @::marksForAutosave loopSet_ true
+  reject: @::marksForAutosave loopSet_ false
 
   loopLookup_ = (val) -> depthLoop_ \
     ((l, k) -> if k of l then depthLoop_.continue else false), \
