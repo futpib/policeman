@@ -79,9 +79,11 @@ class DomainSelectionButtons extends RadioGroup
       for k, v of obj
         node[k] = v
       return node
+
     constructor: ->
       # noname root domain
       @root = makeNode {label:''}
+
     hit: (domain, decision) ->
       tree = [@root]
       labels = if domain then domain.split('.').concat '' else ['']
@@ -105,6 +107,7 @@ class DomainSelectionButtons extends RadioGroup
               ancestor.descendantDirectHits += 1
           target.directHits += 1
       return
+
     noop = ->
     walkIn: (in_, tree=[@root]) ->
       for n in tree
@@ -115,11 +118,36 @@ class DomainSelectionButtons extends RadioGroup
         if not skip
           @walk pre, post, n.children
         post n
+
+    extractSndLvl = (label) ->
+      sup = superdomains label, 2
+      return sup[sup.length - 1]
+    SECONDLEVEL_ROOT_WHITELIST = Object.create null
+    SECONDLEVEL_ROOT_WHITELIST[domain] = true for domain in [
+      'ac.uk'
+      'co.uk'
+      'gov.uk'
+      'judiciary.uk'
+      'ltd.uk'
+      'me.uk'
+      'mod.uk'
+      'net.uk'
+      'nhs.uk'
+      'nic.uk'
+      'org.uk'
+      'parliament.uk'
+      'plc.uk'
+      'police.uk'
+      'sch.uk'
+    ]
     OMIT_DESCENDANTS_THRESHOLD = 8
     OMIT_DESCENDANTS_DEPTH = 2 # do not omit second and first level domains
     shouldOmitDescendants = (node, depth) ->
       (node.descendantDirectHits > OMIT_DESCENDANTS_THRESHOLD) \
-      and (depth > OMIT_DESCENDANTS_DEPTH)
+      and (depth > OMIT_DESCENDANTS_DEPTH) \
+      and (not (depth == 3) or \ # depth of 3 implies not being whitelisted
+           not (extractSndLvl node.label) of SECONDLEVEL_ROOT_WHITELIST)
+
     get: (domain) ->
       labels = if domain then domain.split('.').concat '' else ['']
       tree = [@root]
@@ -128,6 +156,7 @@ class DomainSelectionButtons extends RadioGroup
         return undefined if not target
         tree = target.children
       return target
+
     getHitDomains: ->
       reducedTree = [root = makeNode {domain: '', hits: @root.hits}]
 
