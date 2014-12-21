@@ -194,8 +194,6 @@ class Placeholder extends BlockedElementHandler
   _filteredRestore: (elem) ->
     super arguments...
 
-    return unless @isBlocked elem
-
     @removeData elem, 'host'
     @removeData elem, 'contentType'
 
@@ -212,7 +210,6 @@ class Remover extends BlockedElementHandler
 
   _filteredRestore: (elem) ->
     super arguments...
-    return unless @isBlocked elem
     @_restoreAttribute elem, 'style'
 
 
