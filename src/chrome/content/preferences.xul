@@ -6,9 +6,9 @@
       xmlns:html="http://www.w3.org/1999/xhtml"
       title="&policeman_preferences_page;">
 
-  <script src="xul-page-common.js"
+  <script src="chrome://policeman/content/xul-page-common.js"
           type="application/javascript"/>
-  <script src="preferences.js"
+  <script src="chrome://policeman/content/preferences.js"
           type="application/javascript"/>
 
   <html:head>
@@ -18,7 +18,7 @@
   <hbox flex="1">
     <vbox id="sidebar">
       <label class="title" value="&policeman_preferences;"/>
-      <label id="version-number" />
+      <label id="version-number"/>
 
       <separator/>
 

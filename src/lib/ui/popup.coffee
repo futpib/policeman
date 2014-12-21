@@ -30,6 +30,8 @@
   RadioGroup
 } = require 'ui/popup-tk2'
 
+{ aboutPages } = require 'ui/about-policeman'
+
 { Color } = require 'color'
 { prefs } = require 'prefs'
 
@@ -935,7 +937,7 @@ footerLinkButtons = new (class extends ContainerPopulation
     fragment.appendChild PopupLinkButton.create doc, new Description
       label: l10n 'popup_open_preferences'
       reuse: true
-      url: 'chrome://policeman/content/preferences.xul#user-rulesets'
+      url: aboutPages.PREFERENCES_USER
 
     @getContainerElement(doc).appendChild fragment
 

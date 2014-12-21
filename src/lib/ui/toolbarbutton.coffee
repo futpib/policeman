@@ -17,6 +17,7 @@
 { CustomizableUI } = Cu.import "resource:///modules/CustomizableUI.jsm"
 { panelview } = require 'ui/panelview'
 { popup } = require 'ui/popup'
+{ aboutPages } = require 'ui/about-policeman'
 
 { prefs } = require 'prefs'
 
@@ -142,7 +143,7 @@ exports.toolbarbutton = toolbarbutton = new class
       openWidget: (e) ->
         toolbarbutton._getAreaTypeSpecificWidget().onOpenEvent e
       openPreferences: (e) ->
-        tabs.open 'chrome://policeman/content/preferences.xul#user-rulesets'
+        tabs.open aboutPages.PREFERENCES_USER
       toggleSuspended: (e) ->
         manager.toggleSuspended()
         toolbarbutton.indicator.update()
