@@ -55,7 +55,8 @@
 
       <separator/>
 
-      <html:a class="text-link"
+      <html:a id="help-link"
+              class="text-link"
               href="https://github.com/futpib/policeman/wiki/Help"
               target="_blank"
               style="display: block;">

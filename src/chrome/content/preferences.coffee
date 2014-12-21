@@ -22,3 +22,7 @@ onLoad = ->
 
   $('#version-number').value = addonData.version
 
+  $('#help-link').addEventListener 'click', (e) ->
+    e.preventDefault()
+    tabs.open e.currentTarget.href
+
