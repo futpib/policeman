@@ -185,10 +185,15 @@ class Placeholder extends BlockedElementHandler
         else tip
 
     @_backupAttribute elem, 'style'
+
+    computedStyle = elem.ownerDocument.defaultView.getComputedStyle elem
+
     elem.style.boxShadow = 'inset 0px 0px 0px 1px #fcc'
     elem.style.backgroundRepeat = 'no-repeat'
     elem.style.backgroundPosition = 'center center'
     elem.style.backgroundImage = "url('#{ BACKGROUND_IMAGE }')"
+    if 'inline' == computedStyle.getPropertyValue 'display'
+      elem.style.display = 'inline-block'
     elem.style.minWidth = elem.style.minHeight = '32px'
 
   _filteredRestore: (elem) ->
