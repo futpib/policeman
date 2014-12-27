@@ -7,12 +7,13 @@ catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
 { cache } = require 'request-cache'
 { blockedElements } = require 'blocked-elements'
 {
+  Handlers
   runAsync
 } = require 'utils'
 
 registrar = Cm.QueryInterface Ci.nsIComponentRegistrar
 
-policy =
+exports.policy = policy =
   classDescription: "Policeman Content Policy Component"
   classID: Components.ID "{9208dac0-38ad-4bce-a0b5-f7c6ba9b0f7a}"
   contractID: "@futpib.addons.mozilla.org/policeman-content-policy;1"
@@ -42,6 +43,8 @@ policy =
     # This needs to run asynchronously, see ff bug 753687
     runAsync (=> registrar.unregisterFactory @classID, @)
 
+  onRequest: new Handlers
+
   # nsIContentPolicy interface implementation
   shouldLoad: (contentType, destUri, originUri, \
                context, mime, extra, principal) ->
@@ -55,8 +58,11 @@ policy =
     if null == (decision = cache.lookup os, ds, cs)
       decision = manager.check origin, dest, ctx
       cache.add os, ds, cs, decision
+
     memo.add origin, dest, ctx, decision
     blockedElements.process origin, dest, ctx, decision
+
+    @onRequest.execute origin, dest, ctx, decision
 
     if decision
       return Ci.nsIContentPolicy.ACCEPT

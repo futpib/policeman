@@ -3,9 +3,6 @@
 { windows } = require 'windows'
 { tabs } = require 'tabs'
 { OriginInfo, DestInfo, getWindowFromRequestContext } = require 'request-info'
-{
-  Handlers
-} = require 'utils'
 
 
 ###
@@ -31,15 +28,12 @@ exports.memo = memo = new class
   constructor: ->
     tabs.onClose.add @removeRequestsMadeByTab.bind @
 
-  onRequest: new Handlers
-
   removeRequestsMadeByTab: (tab) ->
     tabId = tabs.getTabId tab
     delete @_tabIdToArray[tabId]
     delete @_tabIdToStats[tabId]
 
   add: (origin, dest, context, decision) ->
-    @onRequest.execute origin, dest, context, decision
     i = context._tabId
     return if not i
     if context.contentType == 'DOCUMENT'

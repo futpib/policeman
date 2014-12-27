@@ -10,6 +10,7 @@
 
 { manager } = require 'ruleset/manager'
 { memo } = require 'request-memo'
+{ policy } = require 'content-policy'
 
 { windows } = require 'windows'
 { tabs } = require 'tabs'
@@ -78,7 +79,7 @@ exports.toolbarbutton = toolbarbutton = new class
   indicator: new class
     constructor: ->
       tabs.onSelect.add @_onTabSelect.bind @
-      memo.onRequest.add @_onRequest.bind @
+      policy.onRequest.add @_onRequest.bind @
 
     _states:
       fallback: (btn) ->
