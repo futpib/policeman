@@ -38,8 +38,12 @@ exports.memo = memo = new class
   add: (origin, dest, context, decision) ->
     i = context._tabId
     return if not i
-    if context.contentType == 'DOCUMENT'
-      # Page reload or navigated to another document
+    if context.contentType == 'DOCUMENT' \
+    and not ( # conditions for no real page reload follow
+      dest.scheme == 'javascript' \ # href="javascript:..."
+      or origin.spec == dest.spec   # href="#hash"
+    )
+      # Page reload or navigated to another document, reset the data
       @_tabIdToRequests[i] = []
       @_tabIdToStats[i] = new Stats
       # Not to record the document request itself seems reasonable
