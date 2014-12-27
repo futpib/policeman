@@ -683,11 +683,11 @@ class RulesetEditButtons extends ContainerPopulation
         style: 'background: ' + if manager.enabled('reject_any') \
             then positiveBackgroundColor.toCssString()
             else negativeBackgroundColor.toCssString()
-        list_command: (e) =>
-          if 'reject' == DataRotationButton.getData e.currentTarget, 'data'
-            e.currentTarget.style.background = negativeBackgroundColor.toCssString()
+        list_command: =>
+          if 'reject' == DataRotationButton.getValue allowRejectBtn
+            allowRejectBtn.style.background = negativeBackgroundColor.toCssString()
           else
-            e.currentTarget.style.background = positiveBackgroundColor.toCssString()
+            allowRejectBtn.style.background = positiveBackgroundColor.toCssString()
 
       box.appendChild createElement doc, 'label',
         value: l10n 'popup_custom_rule.1'
