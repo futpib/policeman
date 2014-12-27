@@ -21,16 +21,18 @@ exports.memo = memo = new class
         @rejectHits += 1
 
   # tabId -> array of 4-arrays [origin, dest, context, decision]
-  _tabIdToArray: Object.create null
+  _tabIdToRequests: Object.create null
+
   # tabId -> Stats
   _tabIdToStats: Object.create null
+  _contentWindowToStats: new WeakMap
 
   constructor: ->
     tabs.onClose.add @removeRequestsMadeByTab.bind @
 
   removeRequestsMadeByTab: (tab) ->
     tabId = tabs.getTabId tab
-    delete @_tabIdToArray[tabId]
+    delete @_tabIdToRequests[tabId]
     delete @_tabIdToStats[tabId]
 
   add: (origin, dest, context, decision) ->
@@ -38,18 +40,18 @@ exports.memo = memo = new class
     return if not i
     if context.contentType == 'DOCUMENT'
       # Page reload or navigated to another document
-      @_tabIdToArray[i] = []
+      @_tabIdToRequests[i] = []
       @_tabIdToStats[i] = new Stats
       # Not to record the document request itself seems reasonable
       return
-    unless i of @_tabIdToArray
-      @_tabIdToArray[i] = []
+    unless i of @_tabIdToRequests
+      @_tabIdToRequests[i] = []
       @_tabIdToStats[i] = new Stats
-    @_tabIdToArray[i].push [origin, dest, context, decision]
+    @_tabIdToRequests[i].push [origin, dest, context, decision]
     @_tabIdToStats[i].hit origin, dest, context, decision
 
   getByTabId: (tabId) ->
-    return @_tabIdToArray[tabId] or []
+    return @_tabIdToRequests[tabId] or []
   getStatsByTabId: (tabId) ->
     return @_tabIdToStats[tabId] or new Stats
 
@@ -62,6 +64,6 @@ exports.memo = memo = new class
     [].concat (@getByTabId tabs.getTabId tab for tab in win.gBrowser.tabs)...
 
   getAll: ->
-    [].concat (quads for tab, quads of _tabIdToArray)...
+    [].concat (quads for tab, quads of _tabIdToRequests)...
 
 
