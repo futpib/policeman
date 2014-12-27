@@ -3,19 +3,22 @@
 { tabs } = require 'tabs'
 
 class UriInfo
-  components: [
-    'scheme',
-    'schemeType',
-    'username',
-    'password',
-    'userPass',
-    'host',
-    'port',
-    'hostPort',
-    'prePath',
-    'path',
-    'spec',
-  ]
+  _componentsWithoutRefMap:
+    'scheme'  : 'scheme'
+    'username': 'username'
+    'password': 'password'
+    'userPass': 'userPass'
+    'host'    : 'host'
+    'port'    : 'port'
+    'hostPort': 'hostPort'
+    'prePath' : 'prePath'
+    'path'    : 'path'
+    'spec'    : 'spec'
+
+  _componentsWithRefMap:
+    'ref' : 'ref'
+    'path': 'pathRef'
+    'spec': 'specRef'
 
   schemeClassification = Object.create null
   schemeClass = (cls, schemes) -> schemeClassification[s] = cls for s in schemes
@@ -48,26 +51,31 @@ class UriInfo
       return
 
     if uri
-      uri = uri.cloneIgnoringRef()
-    else
-      uri = {}
+      uriWithRef = uri
+      uri = uriWithRef.cloneIgnoringRef()
 
-    @copyComponents uri
+    uri ?= {}
+    uriWithRef ?= {}
 
-  copyComponents: (uri) ->
-    (
-      @[k] = \
+    @copyComponents uri, uriWithRef
+
+  copyHelper = (from, to, map) =>
+    for f, t of map
+      to[t] = \
         try
-          uri[k] or '' # may throw if such component is inapplicable to uri
+          from[f] or '' # may throw if such component is inapplicable to uri
         catch
           ''
-    ) for k in @components
+  copyComponents: (uri, uriWithRef) ->
+    copyHelper uri, this, @_componentsWithoutRefMap
+    copyHelper uriWithRef, this, @_componentsWithRefMap
     @schemeType = @classifyScheme(@scheme) or ''
 
-  stringify: -> @spec
+  stringify: -> @specRef
   parse: (str) ->
-    uri = path.toURI str
-    @copyComponents uri
+    uriWithRef = path.toURI str
+    uri = uriWithRef.cloneIgnoringRef()
+    @copyComponents uri, uriWithRef
 
 
 exports.OriginInfo = class OriginInfo extends UriInfo
@@ -135,20 +143,19 @@ exports.ContextInfo = class ContextInfo
     if context
       if context instanceof Ci.nsIDOMWindow
         @nodeName = '#window'
+        @_window = context
       else if context instanceof Ci.nsIDOMNode
         @nodeName = context.nodeName.toLowerCase()
-      try
-        element = context.QueryInterface Ci.nsIDOMElement
-        @_element = element
-        @className = element.className
-        @classList = makeClassList @className or ''
-        @id = element.id
-      catch e
-        unless e instanceof Ci.nsIException \
-        and    e.result == Cr.NS_ERROR_NO_INTERFACE
-          throw e
+        @_node = context
+        if context instanceof Ci.nsIDOMElement
+          @_element = context
+          @className = context.className
+          @classList = makeClassList @className or ''
+          @id = context.id
+        else if context instanceof Ci.nsIDOMDocument
+          @_document = context
 
-    @_tabId = '' # intended for internal use. Is not persistent between restarts
+    @_tabId = ''
     tab = tabs.getWindowOwner getWindowFromRequestContext context
     if tab
       @_tabId = tabs.getTabId tab
