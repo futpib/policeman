@@ -4,7 +4,6 @@
 { DomainDomainTypeRS } = require 'ruleset/code-ruleset'
 { tabs } = require 'tabs'
 {
-  createElement
   removeChildren
   mutateAttribute
 } = require 'utils'
@@ -15,7 +14,10 @@ idnService = Cc["@mozilla.org/network/idn-service;1"]
               .getService Ci.nsIIDNService
 
 
-CHROME_DOMAIN = DomainDomainTypeRS::CHROME_DOMAIN
+{
+  CHROME_DOMAIN
+  USER_AVAILABLE_CONTENT_TYPES
+} = DomainDomainTypeRS::
 
 
 temporaryRuleMenu =
@@ -54,42 +56,50 @@ persistentRuleMenu =
 
 
 class AddRuleWidget
-  constructor: (@_idPrefix, @_rulesetId, @_onAdd) ->
+  constructor: (@_containerSelector, @_rulesetId) ->
 
   init: ->
-    @_decisionList = $ "##{ @_idPrefix }-decision"
-    @_typeList = $ "##{ @_idPrefix }-type"
-    @_originTextbox = $ "##{ @_idPrefix }-origin-domain"
-    @_destinationTextbox = $ "##{ @_idPrefix }-destination-domain"
+    container = $ @_containerSelector
 
-    webHostRe = ///
-      ^(
-        ([^\.]+\.)+[^\.]+ # something like an IDN or ip4 address
-      )?$
-    ///i
-    validateHost = (textbox) ->
-      str = textbox.value.toLowerCase()
-      if idnService.isACE str
-        # Doc on `nsIIDNService` says `convertToDisplayIDN` ensures that
-        # the encoding is consistent with `nsIURI.host` which is precisely
-        # what we want here
-        str = idnService.convertToDisplayIDN str, no
-      return str if webHostRe.test str
-      textbox.select()
-      textbox.focus()
-      return null
+    container.appendChild box = createElement 'hbox',
+      align: 'center'
+      flex: 1
 
-    add = =>
-      allowReject = @_decisionList.selectedItem.value
-      type = @_typeList.selectedItem.value
-      origin = validateHost @_originTextbox
-      destination = validateHost @_destinationTextbox
-      return if origin is null or destination is null
-      manager.get(@_rulesetId)[allowReject](origin, destination, type)
-      @_onAdd()
+    box.appendChild @_decisionList = createElement 'menulist',
+      _children_:
+        menupopup: {}
 
-    @_addButton = $ "##{ @_idPrefix }-button"
-    @_addButton.addEventListener 'command', add
+    for decision in ['allow', 'reject']
+      @_decisionList.menupopup.appendChild createElement 'menuitem',
+        label: l10n "preferences_custom_rule.#{decision}"
+        value: decision
+    @_decisionList.selectedIndex = 0
+
+    box.appendChild @_typeList = createElement 'menulist',
+      _children_:
+        menupopup: {}
+
+    for type in USER_AVAILABLE_CONTENT_TYPES
+      @_typeList.menupopup.appendChild createElement 'menuitem',
+        label: l10n "content_type.title.plural.#{type}"
+        value: type
+    @_typeList.selectedIndex = 0
+
+    box.appendChild @_originTextbox = createElement 'textbox',
+      placeholder: l10n "origin_domain"
+      class: "compact"
+      flex: 1
+
+    box.appendChild @_destinationTextbox = createElement 'textbox',
+      placeholder: l10n "destination_domain"
+      class: "compact"
+      flex: 1
+
+    box.appendChild @_addButton = createElement 'button',
+      label: l10n "preferences_custom_rule.add"
+      icon: "add"
+
+    @_addButton.addEventListener 'command', @_addButtonClick.bind this
 
     addOnEnterPress = (event) ->
       if event.keyCode == 13 # Enter
@@ -97,11 +107,44 @@ class AddRuleWidget
     @_originTextbox.addEventListener 'keypress', addOnEnterPress
     @_destinationTextbox.addEventListener 'keypress', addOnEnterPress
 
+  WEB_HOST_RE = ///
+    ^(
+      ([^\.]+\.)+[^\.]+ # something like an IDN or ip4 address
+    )?$
+  ///i
 
-addTemporaryRuleWidget = new AddRuleWidget 'add-temporary-rule', 'user_temporary', ->
-  temporaryRules.update()
-addPersistentRuleWidget = new AddRuleWidget 'add-persistent-rule', 'user_persistent', ->
-  persistentRules.update()
+  _validateHost: (textbox) ->
+    str = textbox.value.toLowerCase()
+    if idnService.isACE str
+      # Doc on `nsIIDNService` says `convertToDisplayIDN` ensures that
+      # the encoding is consistent with `nsIURI.host` which is precisely
+      # what we want here
+      str = idnService.convertToDisplayIDN str, no
+    return str if WEB_HOST_RE.test str
+    textbox.select()
+    textbox.focus()
+    return null
+
+  _addButtonClick: ->
+    allowReject = @_decisionList.selectedItem.value
+    type = @_typeList.selectedItem.value
+    origin = @_validateHost @_originTextbox
+    destination = @_validateHost @_destinationTextbox
+    return if origin is null or destination is null
+    manager.get(@_rulesetId)[allowReject](origin, destination, type)
+
+
+addTemporaryRuleWidget = new (class extends AddRuleWidget
+  _addButtonClick: ->
+    super arguments...
+    temporaryRules.update()
+) '#add-temporary-rule-container', 'user_temporary'
+
+addPersistentRuleWidget = new (class extends AddRuleWidget
+  _addButtonClick: ->
+    super arguments...
+    persistentRules.update()
+) '#add-persistent-rule-container', 'user_persistent'
 
 
 class RulesTree
@@ -110,8 +153,42 @@ class RulesTree
   constructor: (@_selector, @_searchSelector, @_rulesetId) ->
 
   init: ->
-    @$ = $ @_selector
     @_searchBox = $ @_searchSelector
+
+    container = $ @_selector
+    container.appendChild @$ = createElement 'tree',
+      flex: 1
+      enableColumnDrag: "true"
+      persist: "sortDirection sortResource"
+      sortDirection: "ascending"
+      sortResource: "description"
+
+    @$.appendChild treecols = createElement 'treecols'
+    @$.appendChild createElement 'treechildren'
+
+    appendTreecol = (description) ->
+      {
+        label
+        sortResource
+      } = description
+      treecols.appendChild createElement 'treecol',
+        label: l10n label
+        sortResource: sortResource
+        persist: 'width ordinal hidden'
+        flex: 1
+
+    appendTreecol
+      label: 'decision'
+      sortResource: 'decision'
+    appendTreecol
+      label: 'content_type'
+      sortResource: 'type'
+    appendTreecol
+      label: 'origin_domain'
+      sortResource: 'origin'
+    appendTreecol
+      label: 'destination_domain'
+      sortResource: 'destination'
 
     that = this
     @$.addEventListener 'contextmenu', (event) ->
