@@ -8,9 +8,6 @@
 { l10n } = require 'l10n'
 
 
-window.top.location.hash = "#popup"
-
-
 USER_AVAILABLE_CONTENT_TYPES = DomainDomainTypeRS::USER_AVAILABLE_CONTENT_TYPES
 
 checkbox = (selector, initialState, oncommand) ->

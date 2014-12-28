@@ -18,7 +18,7 @@ aboutPolicemanModule =
   classID: Components.ID "{725c902f-c265-42d2-b757-bb402ab18fe2}"
   contractID: "@mozilla.org/network/protocol/about;1?what=policeman"
 
-  ABOUT_PAGE_URL: "chrome://policeman/content/preferences.xul"
+  ABOUT_PAGE_URL: "chrome://policeman/content/preferences/index.xul"
 
   init: ->
     try

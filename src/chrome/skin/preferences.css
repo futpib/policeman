@@ -14,7 +14,6 @@
 }
 
 a {
-  margin-top: .5em;
   font-size: 1.2em;
   display: block;
 /*   color: -moz-nativehyperlinktext; */
@@ -24,6 +23,23 @@ a {
 
 a:hover {
   text-decoration: underline;
+}
+
+#sidebar a {
+  display: block;
+}
+
+#sidebar ol {
+  list-style-type: none;
+  margin: 0;
+}
+
+#sidebar ol > li {
+  margin-bottom: .5em;
+}
+
+#subpref-links-list {
+  padding-left: 0;
 }
 
 richlistbox {

@@ -5,9 +5,9 @@
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       xmlns:html="http://www.w3.org/1999/xhtml">
 
-  <script src="xul-page-common.js"
+  <script src="chrome://policeman/content/xul-page-common.js"
           type="application/javascript"/>
-  <script src="preferences-rulesets-manager.js"
+  <script src="rulesets-manager.js"
           type="application/javascript"/>
 
   <popupset>

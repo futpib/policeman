@@ -17,8 +17,6 @@ idnService = Cc["@mozilla.org/network/idn-service;1"]
 
 CHROME_DOMAIN = DomainDomainTypeRS::CHROME_DOMAIN
 
-window.top.location.hash = "#user-rulesets"
-
 
 temporaryRuleMenu =
   init: ->

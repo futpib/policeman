@@ -20,9 +20,6 @@ filepicker = Cc["@mozilla.org/filepicker;1"]
 filepicker.init(window, l10n('install_file_dialog'), Ci.nsIFilePicker.modeOpen)
 
 
-window.top.location.hash = "#rulesets-manager"
-
-
 RULESET_CONTENT_TYPE = 'application/x-policeman-ruleset'
 
 

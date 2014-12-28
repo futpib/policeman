@@ -8,9 +8,6 @@
 { l10n } = require 'l10n'
 
 
-window.top.location.hash = "#general"
-
-
 checkbox = (selector, initialState, oncommand) ->
   cb = $ selector
   cb.checked = initialState

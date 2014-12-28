@@ -1,0 +1,193 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://policeman/skin/preferences.css" type="text/css"?>
+<!DOCTYPE page SYSTEM "chrome://policeman/locale/">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      xmlns:html="http://www.w3.org/1999/xhtml">
+
+  <script src="chrome://policeman/content/xul-page-common.js"
+          type="application/javascript"/>
+  <script src="user-rulesets.js"
+          type="application/javascript"/>
+
+  <popupset>
+    <menupopup id="temporary-rule-menu">
+      <menuitem class="menu-promote" label="&preferences_promote_rule_to_rersistent;"/>
+      <menuitem class="menu-remove" label="&preferences_remove_rule;"/>
+    </menupopup>
+    <menupopup id="persistent-rule-menu">
+      <menuitem class="menu-remove" label="&preferences_remove_rule;"/>
+    </menupopup>
+  </popupset>
+
+  <hbox id="subpref-container" flex="1">
+    <vbox flex="1">
+      <hbox flex="1">
+        <vbox flex="1">
+          <label class="title" value="&preferences_temporary_rules;" crop="end"/>
+          <hbox align="center">
+            <label value="Search:"/>
+            <textbox id="temporary-rules-search-box"
+                    class="compact"
+                    type="search"
+                    flex="1"/>
+          </hbox>
+          <hbox align="center">
+            <menulist id="add-temporary-rule-decision">
+              <menupopup>
+                <menuitem label="&preferences_custom_rule.allow;" value="allow"/>
+                <menuitem label="&preferences_custom_rule.reject;" value="reject"/>
+              </menupopup>
+            </menulist>
+            <menulist id="add-temporary-rule-type">
+              <menupopup>
+                <menuitem label="&content_type.title.plural._ANY_;" value="_ANY_"/>
+                <menuitem label="&content_type.title.plural.IMAGE;" value="IMAGE"/>
+                <menuitem label="&content_type.title.plural.MEDIA;" value="MEDIA"/>
+                <menuitem label="&content_type.title.plural.STYLESHEET;" value="STYLESHEET"/>
+                <menuitem label="&content_type.title.plural.FONT;" value="FONT"/>
+                <menuitem label="&content_type.title.plural.SCRIPT;" value="SCRIPT"/>
+                <menuitem label="&content_type.title.plural.OBJECT;" value="OBJECT"/>
+                <menuitem label="&content_type.title.plural.SUBDOCUMENT;" value="SUBDOCUMENT"/>
+                <menuitem label="&content_type.title.plural.XMLHTTPREQUEST;" value="XMLHTTPREQUEST"/>
+                <menuitem label="&content_type.title.plural.WEBSOCKET;" value="WEBSOCKET"/>
+                <menuitem label="&content_type.title.plural.DTD;" value="DTD"/>
+                <menuitem label="&content_type.title.plural.PING;" value="PING"/>
+                <menuitem label="&content_type.title.plural.OTHER;" value="OTHER"/>
+              </menupopup>
+            </menulist>
+            <textbox id="add-temporary-rule-origin-domain"
+                    placeholder="&origin_domain;"
+                    class="compact"
+                    flex="1"/>
+            <textbox id="add-temporary-rule-destination-domain"
+                    placeholder="&destination_domain;"
+                    class="compact"
+                    flex="1"/>
+            <button id="add-temporary-rule-button"
+                    label="&preferences_custom_rule.add;"
+                    icon="add"/>
+          </hbox>
+          <tree id="temporary-rules"
+                flex="1"
+                enableColumnDrag="true"
+                persist="sortDirection sortResource"
+                sortDirection="ascending"
+                sortResource="description"
+                >
+            <treecols>
+              <treecol sortResource="decision"
+                      label="&decision;"
+                      persist="width ordinal hidden"
+                      flex="1"
+                      />
+              <splitter class="tree-splitter"/>
+              <treecol sortResource="type"
+                      label="&content_type;"
+                      persist="width ordinal hidden"
+                      flex="1"
+                      />
+              <splitter class="tree-splitter"/>
+              <treecol sortResource="origin"
+                      label="&origin_domain;"
+                      persist="width ordinal hidden"
+                      flex="1"
+                      />
+              <splitter class="tree-splitter"/>
+              <treecol sortResource="destination"
+                      label="&destination_domain;"
+                      persist="width ordinal hidden"
+                      flex="1"
+                      />
+            </treecols>
+            <treechildren/>
+          </tree>
+        </vbox>
+
+        <splitter style="opacity: 0;" collapse="both"/>
+
+        <vbox flex="1">
+          <label class="title" value="&preferences_persistent_rules;" crop="end"/>
+          <hbox align="center">
+            <label value="Search:"/>
+            <textbox id="persistent-rules-search-box"
+                    class="compact"
+                    type="search"
+                    flex="1"/>
+          </hbox>
+          <hbox align="center">
+            <menulist id="add-persistent-rule-decision">
+              <menupopup>
+                <menuitem label="&preferences_custom_rule.allow;" value="allow"/>
+                <menuitem label="&preferences_custom_rule.reject;" value="reject"/>
+              </menupopup>
+            </menulist>
+            <menulist id="add-persistent-rule-type">
+              <menupopup>
+                <menuitem label="&content_type.title.plural._ANY_;" value="_ANY_"/>
+                <menuitem label="&content_type.title.plural.IMAGE;" value="IMAGE"/>
+                <menuitem label="&content_type.title.plural.MEDIA;" value="MEDIA"/>
+                <menuitem label="&content_type.title.plural.STYLESHEET;" value="STYLESHEET"/>
+                <menuitem label="&content_type.title.plural.FONT;" value="FONT"/>
+                <menuitem label="&content_type.title.plural.SCRIPT;" value="SCRIPT"/>
+                <menuitem label="&content_type.title.plural.OBJECT;" value="OBJECT"/>
+                <menuitem label="&content_type.title.plural.SUBDOCUMENT;" value="SUBDOCUMENT"/>
+                <menuitem label="&content_type.title.plural.XMLHTTPREQUEST;" value="XMLHTTPREQUEST"/>
+                <menuitem label="&content_type.title.plural.WEBSOCKET;" value="WEBSOCKET"/>
+                <menuitem label="&content_type.title.plural.DTD;" value="DTD"/>
+                <menuitem label="&content_type.title.plural.PING;" value="PING"/>
+                <menuitem label="&content_type.title.plural.OTHER;" value="OTHER"/>
+              </menupopup>
+            </menulist>
+            <textbox id="add-persistent-rule-origin-domain"
+                    placeholder="&origin_domain;"
+                    class="compact"
+                    flex="1"/>
+            <textbox id="add-persistent-rule-destination-domain"
+                    placeholder="&destination_domain;"
+                    class="compact"
+                    flex="1"/>
+            <button id="add-persistent-rule-button"
+                    label="&preferences_custom_rule.add;"
+                    icon="add"/>
+          </hbox>
+          <tree id="persistent-rules"
+                flex="1"
+                enableColumnDrag="true"
+                persist="sortDirection sortResource"
+                sortDirection="ascending"
+                sortResource="description"
+                >
+            <treecols>
+              <treecol sortResource="decision"
+                      label="&decision;"
+                      persist="width ordinal hidden"
+                      flex="1"
+                      />
+              <splitter class="tree-splitter"/>
+              <treecol sortResource="type"
+                      label="&content_type;"
+                      persist="width ordinal hidden"
+                      flex="1"
+                      />
+              <splitter class="tree-splitter"/>
+              <treecol sortResource="origin"
+                      label="&origin_domain;"
+                      persist="width ordinal hidden"
+                      flex="1"
+                      />
+              <splitter class="tree-splitter"/>
+              <treecol sortResource="destination"
+                      label="&destination_domain;"
+                      persist="width ordinal hidden"
+                      flex="1"
+                      />
+            </treecols>
+            <treechildren/>
+          </tree>
+        </vbox>
+      </hbox>
+    </vbox>
+  </hbox>
+
+</page>
