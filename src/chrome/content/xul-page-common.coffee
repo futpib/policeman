@@ -19,6 +19,7 @@ Cu.import 'resource://gre/modules/devtools/Console.jsm'
 log = console.log.bind console
 
 $ = (s) -> document.querySelector s
+$$ = (s) -> document.querySelectorAll s
 
 {
   addonData
