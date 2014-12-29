@@ -26,7 +26,7 @@
         <vbox flex="1">
           <label class="title" value="&preferences_temporary_rules;" crop="end"/>
           <hbox align="center">
-            <label value="Search:"/>
+            <label value="&preferences_search;"/>
             <textbox id="temporary-rules-search-box"
                     class="compact"
                     type="search"
@@ -46,7 +46,7 @@
         <vbox flex="1">
           <label class="title" value="&preferences_persistent_rules;" crop="end"/>
           <hbox align="center">
-            <label value="Search:"/>
+            <label value="&preferences_search;"/>
             <textbox id="persistent-rules-search-box"
                     class="compact"
                     type="search"
