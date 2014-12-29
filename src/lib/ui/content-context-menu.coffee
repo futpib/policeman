@@ -40,7 +40,8 @@ exports.contentContextMenu = contentContextMenu =
       removeNode menu
 
   populateMenu: (doc) ->
-    elem = doc.popupNode
+    popup = doc.getElementById 'contentAreaContextMenu'
+    elem = popup.triggerNode or doc.popupNode or doc.defaultView.gContextMenu.target
 
     temp = manager.get 'user_temporary'
     pers = manager.get 'user_persistent'

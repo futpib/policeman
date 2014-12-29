@@ -10,6 +10,15 @@ l10n:
   de-DE:
     name: "Tor Isolation"
     description: "Blockiert .onion -> Web und Web -> .onion"
+  fa-IR:
+    name: "Tor جداسازی"
+    description: "رد .onion -> وب و وب -> .onion"
+  ru-RU:
+    name: "Tor-изоляция"
+    description: "Запрещает запросы от .onion ресурсов во внешний интернет и от внешнего веб-содержимого к .onion"
+  fr-FR:
+    name: "Isolation Tor"
+    description: "Refuser les requetes depuis .onion -> web et web -> .onion"
 
 rules:
   web -> web:

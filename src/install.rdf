@@ -4,11 +4,11 @@
 
   <Description about="urn:mozilla:install-manifest">
     <em:id>policeman@futpib.addons.mozilla.org</em:id>
-    <em:version>0.14</em:version>
+    <em:version>0.16.1</em:version>
     <em:type>2</em:type>
     <em:bootstrap>true</em:bootstrap>
     <em:optionsType>3</em:optionsType>
-    <em:optionsURL>chrome://policeman/content/preferences.xul</em:optionsURL>
+    <em:optionsURL>about:policeman</em:optionsURL>
     <em:name>Policeman</em:name>
 
     <!-- Firefox -->

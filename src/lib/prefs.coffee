@@ -144,19 +144,34 @@ class ObservablePreferences extends Preferences
     @_branch.addObserver '', observer, false
     onShutdown.add => @_branch.removeObserver '', observer
 
+  define: (name, description={}) ->
+    {
+      onChange
+    } = description
+    result = super arguments...
+    @onChange name, onChange if onChange
+    return result
+
   _observeChange: (_branch, topic, name) ->
     if name of @_changeHandlers
       value = @get name
-      h(value) for h in @_changeHandlers[name]
+      for h in @_changeHandlers[name]
+        try
+          h(value)
+        catch e
+          log.error 'Error executing onChange handler for preference',
+                    name, ':', e
 
   onChange: (name, handler) ->
+    if typeof handler != 'function'
+      throw new Error 'Handler has to be a function'
     if name of @_changeHandlers
       @_changeHandlers[name].push handler
     else
       @_changeHandlers[name] = [handler]
 
 
-FinalPreferencesClass = class HookedPreferences extends ObservablePreferences
+class HookedPreferences extends ObservablePreferences
   constructor: ->
     super arguments...
 
@@ -185,6 +200,20 @@ FinalPreferencesClass = class HookedPreferences extends ObservablePreferences
     hook = @_setterHook name
     value = hook value
     super name, value
+
+
+FinalPreferencesClass = class SynchronizablePreferences extends HookedPreferences
+  _SYNC_BRANCH: "services.sync.prefs.sync"
+
+  constructor: ->
+    super arguments...
+    @_syncPrefs = new HookedPreferences @_SYNC_BRANCH + '.' + @_branchName
+
+  define: (name, description={}) ->
+    super arguments...
+    if description.sync
+      @_syncPrefs.define name,
+        default: true
 
 
 exports.ReadOnlyError = class ReadOnlyError extends PreferencesError

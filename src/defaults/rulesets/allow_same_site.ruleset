@@ -14,6 +14,17 @@ l10n:
     name: "Gleiche Seite"
     description: "Erlaubt Anfragen zur selben Domain und Unterdomains"
     warnOnDisable: "TODO"
+  fa-IR:
+    name: "همان سایت"
+    description: "اجازه درخواست ها به همان دامنه و زیردامنه ها"
+    warnOnDisable: "TODO"
+  ru-RU:
+    name: "Тот же сайт"
+    description: "Разрешает запросы к тому же домену и субдоменам"
+    warnOnDisable: "TODO"
+  en-US:
+    name: "Meme site"
+    description: "Autoriser les requetes vers le meme domaine ou sous domaine"
 
 rules:
   web -> web:

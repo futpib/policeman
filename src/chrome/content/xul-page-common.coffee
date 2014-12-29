@@ -19,8 +19,12 @@ Cu.import 'resource://gre/modules/devtools/Console.jsm'
 log = console.log.bind console
 
 $ = (s) -> document.querySelector s
+$$ = (s) -> document.querySelectorAll s
 
-{ createElement: _createElement } = require 'utils'
+{
+  addonData
+  createElement: _createElement
+} = require 'utils'
 createElement = ->
   return _createElement document, arguments...
 

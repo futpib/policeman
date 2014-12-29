@@ -203,3 +203,6 @@ if not WeakSet # Firefox < 34
     clear: -> @_map.clear()
     delete: (value) -> @_map.delete value
     has: (value) -> @_map.has value
+
+
+exports.addonData = addonData

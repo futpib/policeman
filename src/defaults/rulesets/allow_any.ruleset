@@ -11,6 +11,15 @@ l10n:
   de-DE:
     name: "Erlaube alle Anfragen"
     description: "Erlaubt alle Anfragen"
+  fa-IR:
+    name: "اجازه هر درخواست"
+    description: "هر درخواست وبی اجازه داده میشود"
+  ru-RU:
+    name: "Разрешить все запросы"
+    description: "Разрешает все запросы"
+  fr-FR:
+    name: "Autoriser toutes les requetes"
+    description: "Autoriser toutes les requetes"
 
 rules:
   -> : ACCEPT

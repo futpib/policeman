@@ -32,6 +32,7 @@ exports.l10n = (s, args...) ->
     try
       return bundle.formatStringFromName s, args, args.length
     catch e
-      msg = "l10n #{s}, #{JSON.stringify args}: error: #{e}"
-      log msg
+      msg = "l10n #{s}, #{JSON.stringify args} failed,
+             check browser console for exact reason"
+      log "l10n", s, args, 'failed with the following error:', e
       return msg

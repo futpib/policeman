@@ -10,6 +10,7 @@
 
 { manager } = require 'ruleset/manager'
 { memo } = require 'request-memo'
+{ policy } = require 'content-policy'
 
 { windows } = require 'windows'
 { tabs } = require 'tabs'
@@ -17,6 +18,7 @@
 { CustomizableUI } = Cu.import "resource:///modules/CustomizableUI.jsm"
 { panelview } = require 'ui/panelview'
 { popup } = require 'ui/popup'
+{ aboutPages } = require 'ui/about-policeman'
 
 { prefs } = require 'prefs'
 
@@ -77,7 +79,7 @@ exports.toolbarbutton = toolbarbutton = new class
   indicator: new class
     constructor: ->
       tabs.onSelect.add @_onTabSelect.bind @
-      memo.onRequest.add @_onRequest.bind @
+      policy.onRequest.add @_onRequest.bind @
 
     _states:
       fallback: (btn) ->
@@ -142,7 +144,7 @@ exports.toolbarbutton = toolbarbutton = new class
       openWidget: (e) ->
         toolbarbutton._getAreaTypeSpecificWidget().onOpenEvent e
       openPreferences: (e) ->
-        tabs.open 'chrome://policeman/content/preferences.xul#user-rulesets'
+        tabs.open aboutPages.PREFERENCES_USER
       toggleSuspended: (e) ->
         manager.toggleSuspended()
         toolbarbutton.indicator.update()
@@ -174,6 +176,7 @@ exports.toolbarbutton = toolbarbutton = new class
         default: default_
         get: (name) => @_actions[name] or @_actions.noop
         set: (act) => (reverseLookup @_actions, act) or 'noop'
+        sync: true
       prefs.onChange prefName, update = =>
         @_eventToAction[eventName] = prefs.get prefName
       do update

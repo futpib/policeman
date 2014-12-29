@@ -10,6 +10,15 @@ l10n:
   de-DE:
     name: "I2P Isolation"
     description: "Blockiert .i2p -> Web und Web -> .i2p"
+  fa-IR:
+    name: "I2P جداسازی"
+    description: "رد .i2p -> وب و وب -> .i2p"
+  ru-RU:
+    name: "I2P-изоляция"
+    description: "Запрещает запросы от .i2p ресурсов во внешний интернет и от внешних веб-ресусов к .i2p"
+  fr-FR:
+    name: "Isolation I2P"
+    description: "Refuser les requetes depuis .i2p -> web et web -> .i2p"
 
 rules:
   web -> web:

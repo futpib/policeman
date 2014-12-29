@@ -122,6 +122,8 @@ exports.Widget = Widget = wrapsSuperWidget new class
       style
 
       appendTo
+
+      container
     } = rawdescr = descr.raw()
 
     elem = Widget.__createOwnElement doc, tagName
@@ -146,7 +148,11 @@ exports.Widget = Widget = wrapsSuperWidget new class
 
     if appendTo then appendTo.appendChild elem
 
+    if container then @setData elem, '_container', container
+
     return elem
+
+  getContainer: (elem) -> @getData elem, '_container'
 
 
 exports.Button = Button = new class extends Widget.constructor
@@ -199,7 +205,13 @@ exports.LinkButton = LinkButton = new class extends Button.constructor
 
     reuse = descr.get 'reuse'
     if url = descr.get 'url'
-      descr.unshift 'list_command', -> tabs.open url, reuse
+      descr.unshift 'list_command', ->
+        window = this.ownerDocument.defaultView
+        # delay it until after all other commands are already executed
+        timeout = window.setTimeout (->
+          tabs.open url, reuse
+          window.clearTimeout timeout
+        ), 1
 
     return super arguments...
 
@@ -292,11 +304,11 @@ exports.ContainerPopulation = class ContainerPopulation
   constructor: (@_descr) ->
     @_containerId = @_descr.get 'containerId'
 
-  getContainer: (doc) -> doc.getElementById @_containerId
+  getContainerElement: (doc) -> doc.getElementById @_containerId
 
   populate: (doc) ->
   purge: (doc) ->
-    removeChildren @getContainer doc
+    removeChildren @getContainerElement doc
   update: (doc) ->
     @purge doc
     @populate doc
@@ -307,7 +319,7 @@ exports.RadioGroup = class RadioGroup extends ContainerPopulation
     create: (doc, descr) ->
       descr.push 'list_class', 'policeman-popup-radio-button'
 
-      radioGroup = descr.get 'radioGroup'
+      radioGroup = descr.get 'container'
       descr.unshift 'list_command', (e) ->
         radioGroup.select e.currentTarget
 
@@ -327,13 +339,13 @@ exports.RadioGroup = class RadioGroup extends ContainerPopulation
   select: (btn) ->
     return if @RadioButton._selected btn
     doc = btn.ownerDocument
-    for b in @getContainer(doc).childNodes
+    for b in @getContainerElement(doc).childNodes
       @RadioButton._unselect b
     @RadioButton._select btn
     @onSelection.execute btn, @
 
   getSelectedBtn: (doc) ->
-    for b in @getContainer(doc).childNodes
+    for b in @getContainerElement(doc).childNodes
       return b if @RadioButton._selected b
     return undefined
 

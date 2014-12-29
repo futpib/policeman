@@ -11,6 +11,15 @@ l10n:
   de-DE:
     name: "Gleiche Second-level Domain"
     description: "Erlaubt Anfragen zur selben Second-level Domain"
+  fa-IR:
+    name: "دامنه سطح دوم همان سایت"
+    description: "اجازه درخواست ها به دامنه سطح دوم همان سایت"
+  ru-RU:
+    name: "Те же домены второго уровня"
+    description: "Разрешает запросы к тем же доменам второго уровня"
+  fr-FR:
+    name: "Meme domaine de deuxième niveau"
+    description: "Autoriser les requetes vers le meme domaine de deuxième niveau"
 
 rules:
   web -> web:

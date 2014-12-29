@@ -8,6 +8,7 @@ Cu.import "resource://gre/modules/NetUtil.jsm"
   isDead
   superdomains
   isSuperdomain
+  mutateAttribute
 } = require 'utils'
 { tabs } = require 'tabs'
 
@@ -37,57 +38,63 @@ class Filter
            and origin.schemeType == origin.schemeType == 'web' \
            and context._element \
            and context._tabId
-  mayHaveBeenBlocked: -> true
 
 imageFilter = new class ImageFilter extends Filter
+  TOOLTIP_TEXT_KEY: 'blocked_image.tip'
   isImage = (elem) -> elem.nodeName == 'IMG'
   shouldProcess: (elem, origin, destination, context, decision) ->
     return super(arguments...) \
            and isImage(elem) \
            # filter off 1px counter images
            and not (elem.clientWidth == elem.clientHeight == 1)
-  mayHaveBeenBlocked: isImage
 
 frameFilter = new class FrameFilter extends Filter
+  TOOLTIP_TEXT_KEY: 'blocked_frame.tip'
   isFrame = (elem) -> elem.nodeName in ['IFRAME', 'FRAME']
   shouldProcess: (elem, origin, destination, context, decision) ->
     return super(arguments...) \
            and isFrame(elem)
-  mayHaveBeenBlocked: isFrame
 
 objectFilter = new class ObjectFilter extends Filter
+  TOOLTIP_TEXT_KEY: 'blocked_object.tip'
   isObject = (elem) -> elem.nodeName in ['OBJECT', 'EMBED']
   shouldProcess: (elem, origin, destination, context, decision) ->
     return super(arguments...) \
            and isObject(elem) \
            # do not process OBJECT_SUBREQUESTs
            and context.contentType == 'OBJECT'
-  mayHaveBeenBlocked: isObject
 
 
 class BlockedElementHandler
+  _ATTRIBUTE_PREFIX: '__attribute_'
   _backupAttribute: (elem, attr) ->
-    elem.setAttribute 'policeman-original-' + attr, (elem.getAttribute attr) or ''
+    @setData elem, @_ATTRIBUTE_PREFIX + attr, (elem.getAttribute attr) or ''
   _restoreAttribute: (elem, attr) ->
-    elem.setAttribute attr, elem.getAttribute 'policeman-original-' + attr
-    elem.removeAttribute 'policeman-original-' + attr
+    elem.setAttribute attr, @getData elem, @_ATTRIBUTE_PREFIX + attr
+    @removeData elem, @_ATTRIBUTE_PREFIX + attr
 
-  _processedFlagAttribute: undefined # to be defined by inferior classes
+  _PROCESSED_PREFIX: '__processed_'
+  _processedTagName: undefined # to be defined by inferior classes
   isBlocked: (elem) ->
-    return @filter.mayHaveBeenBlocked(elem) \
-           and 'true' == elem.getAttribute(
-                                'policeman-blocked-' + @_processedFlagAttribute)
+    return @getData elem, @_PROCESSED_PREFIX + @_processedTagName
   tagAsProcessed: (elem) ->
-    elem.setAttribute 'policeman-blocked-' + @_processedFlagAttribute, 'true'
+    @setData elem, @_PROCESSED_PREFIX + @_processedTagName, true
   removeProcessedTag: (elem) ->
-    elem.removeAttribute 'policeman-blocked-' + @_processedFlagAttribute
+    @removeData elem, @_PROCESSED_PREFIX + @_processedTagName
 
   setData: (elem, name, value) ->
-    elem.setAttribute 'policeman-data-' + name, value
+    if @_elementToData.has elem
+      data = @_elementToData.get elem
+    else
+      data = Object.create null
+      @_elementToData.set elem, data
+    data[name] = value
   getData: (elem, name) ->
-    elem.getAttribute 'policeman-data-' + name
+    return if data = (@_elementToData.get elem) \
+              then data[name] \
+              else undefined
   removeData: (elem, name) ->
-    elem.removeAttribute 'policeman-data-' + name
+    delete (@_elementToData.get elem)[name]
 
   _addElemByTabId: (tabId, elem) ->
     defaults @_tabIdToBlockedElements, tabId, []
@@ -98,7 +105,8 @@ class BlockedElementHandler
   _getAllByTabId: (tabId) -> (@_tabIdToBlockedElements[tabId] or []).slice()
 
   constructor: (@filter) ->
-    @_tabIdToBlockedElements = Object.create null
+    @_elementToData = new WeakMap
+    @_tabIdToBlockedElements = Object.create null # TODO go weak
     tabs.onClose.add (t) => @_removeAllByTabId tabs.getTabId t
 
   process: (elem, origin, destination, context, decision) ->
@@ -161,7 +169,7 @@ class Passer
   restore: ->
 
 class Placeholder extends BlockedElementHandler
-  _processedFlagAttribute: 'placeholder'
+  _processedTagName: 'placeholder'
 
   _filteredProcess: (elem, origin, destination, context) ->
     super arguments...
@@ -170,17 +178,26 @@ class Placeholder extends BlockedElementHandler
     @setData elem, 'contentType', context.contentType
 
     @_backupAttribute elem, 'title'
+    mutateAttribute elem, 'title', (title) =>
+      tip = l10n @filter.TOOLTIP_TEXT_KEY, destination.host
+      if title \
+        then title + '\n' + tip \
+        else tip
+
     @_backupAttribute elem, 'style'
+
+    computedStyle = elem.ownerDocument.defaultView.getComputedStyle elem
+
     elem.style.boxShadow = 'inset 0px 0px 0px 1px #fcc'
     elem.style.backgroundRepeat = 'no-repeat'
     elem.style.backgroundPosition = 'center center'
     elem.style.backgroundImage = "url('#{ BACKGROUND_IMAGE }')"
+    if 'inline' == computedStyle.getPropertyValue 'display'
+      elem.style.display = 'inline-block'
     elem.style.minWidth = elem.style.minHeight = '32px'
 
   _filteredRestore: (elem) ->
     super arguments...
-
-    return unless @isBlocked elem
 
     @removeData elem, 'host'
     @removeData elem, 'contentType'
@@ -189,7 +206,7 @@ class Placeholder extends BlockedElementHandler
     @_restoreAttribute elem, 'style'
 
 class Remover extends BlockedElementHandler
-  _processedFlagAttribute: 'removed'
+  _processedTagName: 'removed'
 
   _filteredProcess: (elem, origin, destination, context) ->
     super arguments...
@@ -198,7 +215,6 @@ class Remover extends BlockedElementHandler
 
   _filteredRestore: (elem) ->
     super arguments...
-    return unless @isBlocked elem
     @_restoreAttribute elem, 'style'
 
 
@@ -226,6 +242,7 @@ exports.blockedElements = blockedElements = new class
       set: (cls) ->
         str = handlerClassToPref.get(cls)
         return str
+      sync: true
 
   _initHandlerPref: (name, filter) ->
     defHandlerPref name

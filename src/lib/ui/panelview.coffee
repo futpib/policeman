@@ -16,6 +16,8 @@
 } = require 'utils'
 { overlayQueue } = require 'ui/overlay-queue'
 
+{ aboutPages } = require 'ui/about-policeman'
+
 { Color } = require 'color'
 { prefs } = require 'prefs'
 
@@ -47,6 +49,7 @@ prefs.onChange NEGATIVE_BG_PREF, ->
 
 prefs.define AUTORELOAD_PREF = 'ui.panelview.autoReloadPageOnHiding',
   default: false
+  sync: true
 
 
 class ContainerPopulation
@@ -171,7 +174,7 @@ preferencesButton =
   setup: (doc) ->
     btn = doc.getElementById @id
     btn.addEventListener 'command', ->
-      tabs.open 'chrome://policeman/content/preferences.xul#user-rulesets'
+      tabs.open aboutPages.PREFERENCES_USER
 
 
 exports.panelview = panelview =

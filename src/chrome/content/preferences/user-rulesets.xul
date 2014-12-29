@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://policeman/skin/preferences.css" type="text/css"?>
+<!DOCTYPE page SYSTEM "chrome://policeman/locale/">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      xmlns:html="http://www.w3.org/1999/xhtml">
+
+  <script src="chrome://policeman/content/xul-page-common.js"
+          type="application/javascript"/>
+  <script src="user-rulesets.js"
+          type="application/javascript"/>
+
+  <popupset>
+    <menupopup id="temporary-rule-menu">
+      <menuitem class="menu-promote" label="&preferences_promote_rule_to_rersistent;"/>
+      <menuitem class="menu-remove" label="&preferences_remove_rule;"/>
+    </menupopup>
+    <menupopup id="persistent-rule-menu">
+      <menuitem class="menu-remove" label="&preferences_remove_rule;"/>
+    </menupopup>
+  </popupset>
+
+  <hbox id="subpref-container" flex="1">
+    <vbox flex="1">
+      <hbox flex="1">
+        <vbox flex="1">
+          <label class="title" value="&preferences_temporary_rules;" crop="end"/>
+          <hbox align="center">
+            <label value="&preferences_search;"/>
+            <textbox id="temporary-rules-search-box"
+                    class="compact"
+                    type="search"
+                    flex="1"/>
+          </hbox>
+          <hbox id="add-temporary-rule-container" >
+            <!-- script inserts a widget for creating new temporary rule here -->
+          </hbox>
+          <vbox id="temporary-rules"
+                flex="1">
+            <!-- script inserts a tree with temporary rules here -->
+          </vbox>
+        </vbox>
+
+        <splitter style="opacity: 0;" collapse="both"/>
+
+        <vbox flex="1">
+          <label class="title" value="&preferences_persistent_rules;" crop="end"/>
+          <hbox align="center">
+            <label value="&preferences_search;"/>
+            <textbox id="persistent-rules-search-box"
+                    class="compact"
+                    type="search"
+                    flex="1"/>
+          </hbox>
+          <hbox id="add-persistent-rule-container" >
+            <!-- script inserts a widget for creating new persistent rule here -->
+          </hbox>
+          <vbox id="persistent-rules"
+                flex="1">
+            <!-- script inserts a tree with persistent rules here -->
+          </vbox>
+        </vbox>
+      </hbox>
+    </vbox>
+  </hbox>
+
+</page>
