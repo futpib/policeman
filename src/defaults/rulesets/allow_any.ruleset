@@ -17,6 +17,9 @@ l10n:
   ru-RU:
     name: "Разрешить все запросы"
     description: "Разрешает все запросы"
+  fr-FR:
+    name: "Autoriser toutes les requetes"
+    description: "Autoriser toutes les requetes"
 
 rules:
   -> : ACCEPT

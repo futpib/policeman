@@ -17,6 +17,9 @@ l10n:
   ru-RU:
     name: "Те же домены второго уровня"
     description: "Разрешает запросы к тем же доменам второго уровня"
+  fr-FR:
+    name: "Meme domaine de deuxième niveau"
+    description: "Autoriser les requetes vers le meme domaine de deuxième niveau"
 
 rules:
   web -> web:
