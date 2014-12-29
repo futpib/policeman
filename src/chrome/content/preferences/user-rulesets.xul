@@ -22,8 +22,14 @@
 
   <hbox id="subpref-container" flex="1">
     <vbox flex="1">
+      <vbox id="user-rulesets-diabled-container"
+            hidden="true"
+            flex="1">
+        <label value="&preferences_user_rulesets_disabled;"/>
+      </vbox>
       <hbox flex="1">
-        <vbox flex="1">
+        <vbox id="temporary-rules-container"
+              flex="1">
           <label class="title" value="&preferences_temporary_rules;" crop="end"/>
           <hbox align="center">
             <label value="&preferences_search;"/>
@@ -43,7 +49,8 @@
 
         <splitter style="opacity: 0;" collapse="both"/>
 
-        <vbox flex="1">
+        <vbox id="persistent-rules-container"
+              flex="1">
           <label class="title" value="&preferences_persistent_rules;" crop="end"/>
           <hbox align="center">
             <label value="&preferences_search;"/>

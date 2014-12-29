@@ -1,5 +1,8 @@
 
+
 { tabs } = require 'tabs'
+
+{ manager } = require 'ruleset/manager'
 
 
 class SubpageLink
@@ -38,3 +41,6 @@ onLoad = ->
     e.preventDefault()
     tabs.open e.currentTarget.href
 
+  if not (manager.enabled('user_persistent') or manager.enabled('user_temporary'))
+    for elem in $$ '.user-rulesets-preferences'
+      elem.hidden = yes

@@ -316,9 +316,20 @@ temporaryRules = new (class extends RulesTree
 
 
 onLoad = ->
-  temporaryRules.init()
-  persistentRules.init()
-  temporaryRuleMenu.init()
-  persistentRuleMenu.init()
-  addTemporaryRuleWidget.init()
-  addPersistentRuleWidget.init()
+  if manager.enabled 'user_temporary'
+    temporaryRules.init()
+    temporaryRuleMenu.init()
+    addTemporaryRuleWidget.init()
+  else
+    $('#temporary-rules-container').hidden = yes
+
+  if manager.enabled 'user_persistent'
+    persistentRules.init()
+    persistentRuleMenu.init()
+    addPersistentRuleWidget.init()
+  else
+    $('#persistent-rules-container').hidden = yes
+
+  if $('#temporary-rules-container').hidden \
+  and $('#persistent-rules-container').hidden
+    $('#user-rulesets-diabled-container').hidden = no
