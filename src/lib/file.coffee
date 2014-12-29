@@ -8,6 +8,8 @@ scriptableStream = Cc["@mozilla.org/scriptableinputstream;1"]
     .getService Ci.nsIScriptableInputStream
 directoryService = Cc["@mozilla.org/file/directory_service;1"]
     .getService Ci.nsIProperties
+utf8Converter = Cc["@mozilla.org/intl/utf8converterservice;1"]
+    .getService Ci.nsIUTF8ConverterService
 
 exports.path = path = new class
   join: (base, paths...) -> # preserves base type, assumes paths are just strings
@@ -96,6 +98,7 @@ exports.file =
     input = channel.open()
     scriptableStream.init input
     str = scriptableStream.read input.available()
+    str = utf8Converter.convertURISpecToUTF8 str, "UTF-8"
     scriptableStream.close()
     input.close()
     return str

@@ -49,7 +49,7 @@
               &preferences_rulesets_manager;
             </html:a>
           </html:li>
-          <html:li>
+          <html:li class="user-rulesets-preferences">
             <html:a class="text-link"
                     href="chrome://policeman/content/preferences/user-rulesets.xul"
                     style="display: block;"
