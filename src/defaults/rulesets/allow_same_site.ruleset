@@ -18,6 +18,10 @@ l10n:
     name: "همان سایت"
     description: "اجازه درخواست ها به همان دامنه و زیردامنه ها"
     warnOnDisable: "TODO"
+  ru-RU:
+    name: "Тот же сайт"
+    description: "Разрешает запросы к тому же домену и субдоменам"
+    warnOnDisable: "TODO"
 
 rules:
   web -> web:

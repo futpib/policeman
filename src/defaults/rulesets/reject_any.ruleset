@@ -14,6 +14,9 @@ l10n:
   fa-IR:
     name: "رد هر درخواستی"
     description: "هر در خواست وبی مسدود میشود"
+  ru-RU:
+    name: "Запретить любые запросы"
+    description: "Запрещает любые запросы"
 
 rules:
   -> : REJECT

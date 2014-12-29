@@ -13,6 +13,9 @@ l10n:
   fa-IR:
     name: "Tor جداسازی"
     description: "رد .onion -> وب و وب -> .onion"
+  ru-RU:
+    name: "Tor-изоляция"
+    description: "Запрещает запросы от .onion ресурсов во внешний интернет и от внешнего веб-содержимого к .onion"
 
 rules:
   web -> web:
