@@ -11,6 +11,9 @@ l10n:
   de-DE:
     name: "Standard"
     description: "Erlaubt interne Anfragen und Navigation"
+  fa-IR:
+    name: "پیش فرض"
+    description: "اجازه درخواست های داخلی و هدایتگر مرورگر"
 
 rules:
   # Essentials

@@ -10,6 +10,9 @@ l10n:
   de-DE:
     name: "I2P Isolation"
     description: "Blockiert .i2p -> Web und Web -> .i2p"
+  fa-IR:
+    name: "I2P جداسازی"
+    description: "رد .i2p -> وب و وب -> .i2p"
 
 rules:
   web -> web:

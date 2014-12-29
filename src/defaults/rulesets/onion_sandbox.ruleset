@@ -10,6 +10,9 @@ l10n:
   de-DE:
     name: "Tor Isolation"
     description: "Blockiert .onion -> Web und Web -> .onion"
+  fa-IR:
+    name: "Tor جداسازی"
+    description: "رد .onion -> وب و وب -> .onion"
 
 rules:
   web -> web:

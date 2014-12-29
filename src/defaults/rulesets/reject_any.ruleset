@@ -11,6 +11,9 @@ l10n:
   de-DE:
     name: "Blockiere alle Anfragen"
     description: "Blockiert alle Anfragen"
+  fa-IR:
+    name: "رد هر درخواستی"
+    description: "هر در خواست وبی مسدود میشود"
 
 rules:
   -> : REJECT

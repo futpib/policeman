@@ -11,6 +11,9 @@ l10n:
   de-DE:
     name: "Kompatibilität und Workarounds"
     description: "Behebt ein paar bekannte Addon- und Seitenkompatibilitätsprobleme"
+  fa-IR:
+    name: "سازگاری و راه حل ها"
+    description: "حل مشکل سازگاری تعدادی افزونه شناخته شده و سایت ها"
 
 rules:
   inline -> *:

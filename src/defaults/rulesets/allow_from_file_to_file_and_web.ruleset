@@ -11,6 +11,9 @@ l10n:
   de-DE:
     name: "Erlaube Datei -> Datei oder Web"
     description: "Erlaubt Anfragen von lokalen Dateien zu lokalen Dateien und ins Web"
+  fa-IR:
+    name: "اجازه فایل -> به فایل یا وب"
+    description: "اجازه درخواست ها از فایل های محلی به فایل های محلی و وب"
 
 rules:
   file -> (file|web): ACCEPT

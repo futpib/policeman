@@ -11,6 +11,9 @@ l10n:
   de-DE:
     name: "Erlaube alle Anfragen"
     description: "Erlaubt alle Anfragen"
+  fa-IR:
+    name: "اجازه هر درخواست"
+    description: "هر درخواست وبی اجازه داده میشود"
 
 rules:
   -> : ACCEPT
