@@ -7,6 +7,8 @@
 
   <script src="chrome://policeman/content/xul-page-common.js"
           type="application/javascript"/>
+  <script src="user-rulesets-toolkit.js"
+          type="application/javascript"/>
   <script src="user-rulesets.js"
           type="application/javascript"/>
 
