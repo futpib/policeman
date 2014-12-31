@@ -3,19 +3,35 @@
 source_root="src"
 build_root="build"
 
+do_build=true
+do_pack=false
+do_svg=true
 
-all () {
-  clean && gen && echo "Done all" || exit 1
+
+build () {
+  clean || return 1
+
+  if [ "$do_build" = true ]; then
+    generate || return 1
+  fi
+
+  if [ "$do_pack" = true ]; then
+    pack || return 1
+  fi
+
+  echo "Done all"
 }
 
-gen () {
+generate () {
   copy && \
   make_coffee && \
   make_jison && \
   manifest_locales && \
-  properties && \
-  svg || \
-  exit 1
+  properties || return 1
+
+  if [ "$do_svg" = true ]; then
+    svg || return 1
+  fi
 }
 
 copy () {
@@ -29,7 +45,7 @@ make_coffee () {
   do
     coffee -cbp $f | tee ${f/%.coffee/.js} >/dev/null
     coffee_status=${PIPESTATUS[0]}
-    [ 0 -ne $coffee_status ] && exit $coffee_status
+    [ 0 -ne $coffee_status ] && return $coffee_status
     rm $f
   done
 }
@@ -39,7 +55,7 @@ make_jison () {
   jison_files="$(find $build_root -type f -name '*.jison')"
   for f in $jison_files
   do
-    jison -o ${f/%.jison/.js} ${f} || exit 1
+    jison -o ${f/%.jison/.js} ${f} || return 1
     rm $f
   done
 }
@@ -108,26 +124,89 @@ properties () {
 }
 
 pack () {
-  all
   echo "Packaging..."
   pushd $build_root >/dev/null
-  zip -qr Policeman.xpi * || exit 1
+  zip -qr Policeman.xpi * || return 1
   popd >/dev/null
 }
 
 clean () {
   echo "Performing clean..."
-  rm -rf $build_root
+  if [ "$do_svg" = false ]; then # keep icons
+    find "$build_root" -type f -not -name '*.png' -print0 | xargs -0 rm
+  else
+    rm -rf $build_root
+  fi
 }
 
-case "$1" in
-"clean")
-    clean || exit 1
-    ;;
-"pack")
-    pack || exit 1
-    ;;
-*)
-    all || exit 1
-    ;;
-esac
+print_help () {
+cat << _EOF_
+Build script for Policeman Firefox add-on
+Usage: $0 [OPTION]...
+  -c, --clean-only      Clean build directory and exit
+  -i, --keep-icons      Do not rasterize svg icons (assuming png icons exist in
+                        build directory)
+  -p, --pack            Pack add-on into an xpi file in the build directory
+  -s, --source-dir=DIR  Set source directory (default: ./src)
+  -b, --build-dir       Set build directory (default: ./build)
+  -h, --help            display this help and exit
+
+This script depends at least on the following tools:
+  coffee                CoffeeScript compiler
+  jison                 Jison compiler
+  inkscape              Vector graphics editor (for svg icons rasterization)
+  zip                   Zip compression utility (for packaging on xpi file)
+_EOF_
+}
+
+main () {
+  args=$(getopt -o hcips:b: \
+                -l help,clean-only,keep-icons,pack,source-dir:,build-dir: \
+                -- "$@")
+  eval set -- "$args"
+
+  while [ ! -z "$1" ]
+  do
+    case "$1" in
+      -c|--clean-only)
+        do_build=false
+        shift
+      ;;
+      -i|--keep-icons)
+        do_svg=false
+        shift
+      ;;
+      -p|--pack)
+        do_pack=true
+        shift
+      ;;
+      -s|--source-dir)
+        source_root="$2"
+        shift 2
+      ;;
+      -b|--build-dir)
+        build_root="$2"
+        shift 2
+      ;;
+      -h|--help)
+        print_help
+        shift
+        return 0
+      ;;
+      --)
+        shift
+        break
+      ;;
+      *)
+        echo "Something wrong with arguments"
+        print_help
+        return 1
+      ;;
+    esac
+  done
+
+  build || return 1
+}
+
+main "$@"
+exit "$?"
