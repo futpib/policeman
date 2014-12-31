@@ -34,8 +34,12 @@ a:hover {
   margin: 0;
 }
 
-#sidebar ol > li {
+#sidebar ol a {
   margin-bottom: .5em;
+}
+
+#sidebar ol ol {
+  padding-left: 1em;
 }
 
 #subpref-links-list {

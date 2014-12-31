@@ -276,3 +276,33 @@ class RulesTree
       isContainer: (row) -> no
     @$.view = @_treeView
 
+
+class DeepLookupRSFileFormat # export/import format definition
+  versionToClass = Object.create null
+  latestVersion = undefined
+  register = (formatClass) ->
+    versionToClass[formatClass::version] = formatClass
+    latestVersion = formatClass::version
+  getFormatByVersion = (version) -> new versionToClass[version]
+
+  class FileFormat
+    magic: 'policeman rules dump'
+    version: undefined
+    parse: (obj) -> # table (as defined by DomainDomainTypeRS::toTable)
+    stringify: (table) -> # string
+
+  register class FileFormat1 extends FileFormat
+    version: '1'
+    parse: (obj) -> obj.table
+    stringify: (table) ->
+      return JSON.stringify {
+        magic: @magic
+        version: @version
+        table: table
+      }
+
+  stringify: (table) -> getFormatByVersion(latestVersion).stringify arguments...
+  parse: (string) ->
+    obj = JSON.parse string
+    format = getFormatByVersion obj.version
+    return format.parse obj

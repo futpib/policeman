@@ -44,3 +44,7 @@ onLoad = ->
   if not (manager.enabled('user_persistent') or manager.enabled('user_temporary'))
     for elem in $$ '.user-rulesets-preferences'
       elem.hidden = yes
+
+  if not manager.enabled 'user_persistent'
+    for elem in $$ '.persistent-ruleset-preferences'
+      elem.hidden = yes
