@@ -28,6 +28,7 @@
   CheckButton
   ContainerPopulation
   RadioGroup
+  elementMethod: em
 } = require 'ui/popup-tk2'
 
 { aboutPages } = require 'ui/about-policeman'
@@ -739,7 +740,7 @@ class RulesetEditButtons extends ContainerPopulation
 
       return box
 
-    setType: (widget, type) ->
+    setType: em @, (widget, type) ->
       typeButton = @getData widget, '_typeButton'
       DataRotationButton.setValue typeButton, type
 
