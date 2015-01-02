@@ -122,11 +122,8 @@ class DomainSelectionButtons extends RadioGroup
           @walk pre, post, n.children
         post n
 
-    extractSndLvl = (label) ->
-      sup = superdomains label, 2
-      return sup[sup.length - 1]
-    SECONDLEVEL_ROOT_WHITELIST = Object.create null
-    SECONDLEVEL_ROOT_WHITELIST[domain] = true for domain in [
+    DISTINGUISH_BLACKLIST = Object.create null
+    DISTINGUISH_BLACKLIST[domain] = yes for domain in [
       'ac.uk'
       'co.uk'
       'gov.uk'
@@ -143,13 +140,15 @@ class DomainSelectionButtons extends RadioGroup
       'police.uk'
       'sch.uk'
     ]
-    OMIT_DESCENDANTS_THRESHOLD = 8
-    OMIT_DESCENDANTS_DEPTH = 2 # do not omit second and first level domains
-    shouldOmitDescendants = (node, depth) ->
-      (node.descendantDirectHits > OMIT_DESCENDANTS_THRESHOLD) \
-      and (depth > OMIT_DESCENDANTS_DEPTH) \
-      and (not (depth == 3) or \ # depth of 3 implies not being whitelisted
-           not (extractSndLvl node.label) of SECONDLEVEL_ROOT_WHITELIST)
+    DISTINGUISH_THRESHOLD = 5
+    DISTINGUISH_DEPTH = 2 # do not distinguish first level domains
+    shouldDistinguish = (node) ->
+      # decides which domains get dedicated buttons in domains tree
+      return node.directHits or (
+        (node.descendantDirectHits > DISTINGUISH_THRESHOLD) \
+        and (node.depth > DISTINGUISH_DEPTH) \
+        and not (node.domain of DISTINGUISH_BLACKLIST)
+      )
 
     get: (domain) ->
       labels = if domain then domain.split('.').concat '' else ['']
@@ -160,33 +159,32 @@ class DomainSelectionButtons extends RadioGroup
         tree = target.children
       return target
 
-    getHitDomains: ->
+    getReducedTree: ->
       reducedTree = [root = makeNode {domain: '', hits: @root.hits}]
 
       nodesStack = [root]
       labels = []
       @walk ((node) ->
         labels.unshift node.label
-        depth = labels.length
-        omit = shouldOmitDescendants node, depth
-        if node.directHits or omit
-          rnode = makeNode {
-            domain: labels.join('.').slice(0, -1) # slice off trailing '.'
-            hits: node.hits
-            allowHits: node.allowHits
-            rejectHits: node.rejectHits
-          }
-          nodesStack[0].children.push rnode
-          nodesStack.unshift rnode if not omit
-        return omit
+        node.depth = labels.length
+        node.domain = labels.join('.').slice(0, -1) # slice off trailing '.'
+        if shouldDistinguish node
+          node.shouldDistinguish = yes
+          nodesStack[0].children.push node
+          nodesStack.unshift node
+        return false
       ), ((node) ->
-        depth = labels.length
-        if node.directHits and not shouldOmitDescendants node, depth
+        if node.shouldDistinguish
           nodesStack.shift()
         labels.shift()
       )
 
       @walkIn ((n) -> n.children.sort (a, b) -> b.hits - a.hits), reducedTree
+
+      return reducedTree
+
+    getHitDomains: ->
+      [root] = reducedTree = @getReducedTree()
 
       result = []
       indentation = 0
@@ -205,7 +203,7 @@ class DomainSelectionButtons extends RadioGroup
 
       return result
 
-  RadioButton = wrapsSuperWidget new class extends RadioGroup::RadioButton.constructor
+  DomainRadioButton = wrapsSuperWidget new class extends RadioGroup::RadioButton.constructor
     __unwrap: (elem) -> elem.firstChild
 
     create: (doc, descr) ->
@@ -231,7 +229,7 @@ class DomainSelectionButtons extends RadioGroup
 
       rbtn = super doc, descr
 
-      btn = RadioButton.__createOwnElement doc, 'hbox'
+      btn = DomainRadioButton.__createOwnElement doc, 'hbox'
 
       btn.appendChild rbtn
 
@@ -252,12 +250,72 @@ class DomainSelectionButtons extends RadioGroup
             value: descr.get 'rejectHits'
 
       return btn
-  RadioButton: RadioButton
+
+  DomainTreeItem = wrapsSuperWidget new class extends DomainRadioButton.constructor
+    unwrapMap = new WeakMap
+    __unwrap: (elem) -> unwrapMap.get elem
+
+    _CHIDREN_VISIBLE: 0
+    _CHIDREN_HIDDEN: 1
+
+    _CHILDREN_VISIBLE_MARKER: l10n 'popup_children_visible_marker'
+    _CHILDREN_HIDDEN_MARKER:  l10n 'popup_children_hidden_marker'
+
+    create: (doc, descr) ->
+      rbtn = super arguments...
+      rbtn.flex = 1
+      item = DomainTreeItem.__createOwnElement doc, 'vbox'
+      unwrapMap.set item, rbtn
+
+      item.appendChild headerRow = createElement doc, 'hbox',
+        class: 'policeman-popup-domain-tree-item-header'
+        flex: 1
+
+      if descr.get 'isLeaf'
+        # append something that take as much space as toggleChildrenBtn
+        headerRow.appendChild placeholder = Button.create doc, new Description
+          label: @_CHILDREN_VISIBLE_MARKER
+          list_style: 'opacity: 0;'
+      else
+        item.appendChild childrenBox = createElement doc, 'vbox',
+          class: 'policeman-popup-domain-tree-item-children-container'
+
+        @_setChildrenBox item, childrenBox
+
+        headerRow.appendChild toggleChildrenBtn = \
+                DataRotationButton.create doc, new Description
+          list_class: 'policeman-popup-domain-tree-item-children-toggle-button'
+          valuesLabels: [[@_CHIDREN_VISIBLE, @_CHILDREN_VISIBLE_MARKER],
+                        [@_CHIDREN_HIDDEN,  @_CHILDREN_HIDDEN_MARKER]]
+          list_command: (e) =>
+            switch DataRotationButton.getValue toggleChildrenBtn
+              when @_CHIDREN_VISIBLE
+                childrenBox.hidden = no
+              when @_CHIDREN_HIDDEN
+                childrenBox.hidden = yes
+
+        if descr.get 'childrenHidden'
+          childrenBox.hidden = yes
+          DataRotationButton.setValue toggleChildrenBtn, @_CHIDREN_HIDDEN
+
+      headerRow.appendChild rbtn
+
+      return item
+
+    _setChildrenBox: em @, (item, box) -> @setData item, '_childrenBox', box
+    _getChildrenBox: em @, (item) -> @getData item, '_childrenBox'
+
+    appendChild: em @, (item, child) ->
+      box = @_getChildrenBox item
+      box.appendChild child
+  RadioButton: DomainTreeItem
 
   constructor: ->
     super arguments...
     @onSelection.add (btn) =>
       @selectedDomain = @RadioButton.getData btn, 'domain'
+
+  HIDE_CHILDREN_THRESHOLD = 5
 
   populate: (doc) ->
     tree = new DomainTree
@@ -267,44 +325,47 @@ class DomainSelectionButtons extends RadioGroup
       continue if not domain
       tree.hit domain, decision
 
-    fragment = doc.createDocumentFragment()
-
-    selectionRestored = no
+    [root] = tree.getReducedTree()
 
     anyDomainStats = tree.get ''
-    fragment.appendChild anyBtn = @RadioButton.create doc, new Description
+    rootItem = @RadioButton.create doc, new Description
       container: this
       label: l10n 'popup_any_domain'
       domain: ''
       allowHits: anyDomainStats.allowHits
       rejectHits: anyDomainStats.rejectHits
 
-    for [indentation, domain, allowHits, rejectHits] in tree.getHitDomains()
-      continue if domain == CHROME_DOMAIN
-      fragment.appendChild btn = @RadioButton.create doc, new Description {
-        container: this,
-        domain, allowHits, rejectHits, indentation,
-      }
-      if (not selectionRestored) and (@selectedDomain == domain)
-        @select btn
-        selectionRestored = true
+    selectionRestored = no
 
-    chromeDomainStats = tree.get CHROME_DOMAIN
-    if chromeDomainStats
-      fragment.appendChild btn = @RadioButton.create doc, new Description
+    itemStack = [rootItem]
+    DomainTree::walk ((node) =>
+      currentDescription = new Description
         container: this
-        label: @_chromeDomainLabel
-        domain: CHROME_DOMAIN
-        allowHits: chromeDomainStats.allowHits
-        rejectHits: chromeDomainStats.rejectHits
-      if (not selectionRestored) and (@selectedDomain == CHROME_DOMAIN)
-        @select btn
-        selectionRestored = true
+        domain: node.domain
+        allowHits: node.allowHits
+        rejectHits: node.rejectHits
+        isLeaf: not (node.children and node.children.length)
+      if node.domain == CHROME_DOMAIN
+        currentDescription.set 'label', @_chromeDomainLabel
+      if node.children.length > HIDE_CHILDREN_THRESHOLD
+        currentDescription.set 'childrenHidden', yes
 
-    if not selectionRestored
-      @select anyBtn
+      currentItem = @RadioButton.create doc, currentDescription
+      @RadioButton.appendChild itemStack[0], currentItem
 
-    @getContainerElement(doc).appendChild fragment
+      if (not selectionRestored) and (@selectedDomain == domain)
+        @select currentItem
+        selectionRestored = yes
+
+      itemStack.unshift currentItem
+      return false
+    ), ((node) =>
+      itemStack.shift()
+    ), root.children
+
+    @select rootItem unless selectionRestored
+
+    @getContainerElement(doc).appendChild rootItem
 
   filter: (requestInfo) ->
     if requestInfo.schemeType == 'web'

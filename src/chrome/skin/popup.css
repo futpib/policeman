@@ -127,4 +127,8 @@
   #policeman-popup-label-version-number {
     opacity: .5;
   }
+
+  .policeman-popup-domain-tree-item-children-container {
+    padding-left: 1em;
+  }
 }
