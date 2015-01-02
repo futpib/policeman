@@ -275,6 +275,7 @@ class DomainSelectionButtons extends RadioGroup
         # append something that take as much space as toggleChildrenBtn
         headerRow.appendChild placeholder = Button.create doc, new Description
           label: @_CHILDREN_VISIBLE_MARKER
+          list_class: 'policeman-popup-domain-tree-item-children-toggle-button'
           list_style: 'opacity: 0;'
       else
         item.appendChild childrenBox = createElement doc, 'vbox',

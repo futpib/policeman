@@ -131,4 +131,7 @@
   .policeman-popup-domain-tree-item-children-container {
     padding-left: 1em;
   }
+  .policeman-popup-domain-tree-item-children-toggle-button {
+    padding-right: 1px;
+  }
 }
