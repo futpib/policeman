@@ -15,7 +15,6 @@ L10n = (raw) ->
     [language, region] = locale.split '-'
     if region and language not of raw
       raw[language] = raw[locale]
-  log raw
   lookup = (k) ->
     for locale in prefered_locales
       if locale of raw and k of raw[locale]

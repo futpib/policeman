@@ -37,10 +37,6 @@ exports.prefered_locales = prefered_locales = do ->
     [language, region] = locale.split '-'
     addLocale language if region and language not in locales
 
-  # TODO that 'chrome://global/locale/intl.properties' thing
-
-  log locales
-
   return locales
 
 bundle = Services.strings.createBundle \
