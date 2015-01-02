@@ -170,8 +170,10 @@ class DomainSelectionButtons extends RadioGroup
         node.domain = labels.join('.').slice(0, -1) # slice off trailing '.'
         if shouldDistinguish node
           node.shouldDistinguish = yes
-          nodesStack[0].children.push node
-          nodesStack.unshift node
+          rnode = Object.create node
+          rnode.children = []
+          nodesStack[0].children.push rnode
+          nodesStack.unshift rnode
         return false
       ), ((node) ->
         if node.shouldDistinguish
