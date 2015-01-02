@@ -353,7 +353,7 @@ class DomainSelectionButtons extends RadioGroup
       currentItem = @RadioButton.create doc, currentDescription
       @RadioButton.appendChild itemStack[0], currentItem
 
-      if (not selectionRestored) and (@selectedDomain == domain)
+      if (not selectionRestored) and (@selectedDomain == node.domain)
         @select currentItem
         selectionRestored = yes
 
