@@ -1,0 +1,14 @@
+
+magic: policeman_ruleset
+version: 0.1
+id: "https_half_open_sandbox"
+homepage: "https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#https-sandbox"
+
+l10n:
+  en-US:
+    name: "HTTPS sandbox"
+    description: "Reject non-HTTPS requests from HTTPS pages"
+
+rules:
+  web -> web:
+    [scheme] https -> ! https: REJECT

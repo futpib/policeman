@@ -27,6 +27,7 @@ embeddedRuleSets = [
   'allow_same_second_level_domain',
   'i2p_sandbox',
   'onion_sandbox',
+  'https_half_open_sandbox',
 ].concat codeBasedRuleSets
 
 prefs.define ENABLED_IDS_PREF = 'manager.enabledRuleSets',
