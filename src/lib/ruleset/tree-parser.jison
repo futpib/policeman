@@ -119,7 +119,7 @@ parser.parse = function () {
   component.reset();
   stats.reset();
 
-  return originalParse.apply(parser, arguments);
+  return originalParse.apply(this, arguments);
 }
 
 %}
