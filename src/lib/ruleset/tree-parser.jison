@@ -111,15 +111,19 @@ var stats = {
   },
 }
 
-// Hook before parser.parse to reset our state
+// Hook before parser.parse
 var originalParse = parser.parse;
-parser.parse = function () {
+parser.parse = function (input) {
+  // Reset state
   config.reset();
   indentation.reset();
   component.reset();
   stats.reset();
 
-  return originalParse.apply(this, arguments);
+  // Add trailing newline (simplifies indentation handling)
+  input += '\n';
+
+  return originalParse.call(this, input);
 }
 
 %}
