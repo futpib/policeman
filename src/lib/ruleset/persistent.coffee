@@ -1,7 +1,7 @@
 
 { DomainDomainTypeRS } = require 'ruleset/code-ruleset'
 
-{ prefs, foreign } = require 'prefs'
+{ prefs } = require 'prefs'
 { updating } = require 'updating'
 { l10n } = require 'l10n'
 
@@ -20,33 +20,6 @@ exports.persistentRuleSet = persistentRuleSet = new (class extends DomainDomainT
 )
 
 onShutdown.add persistentRuleSet.save.bind persistentRuleSet
-
-
-prefs.define rpImportPref = 'ruleset.persistent.requestpolicy.triedImport',
-  default: false
-  sync: true
-
-if not prefs.get rpImportPref
-  foreign.define rpOriginsPref = 'extensions.requestpolicy.allowedOrigins',
-    default: ''
-  foreign.define rpDestsPref = 'extensions.requestpolicy.allowedDestinations',
-    default: ''
-  foreign.define rpODPref = 'extensions.requestpolicy.allowedOriginsToDestinations',
-    default: ''
-  try
-    origins = foreign.get(rpOriginsPref).split(' ')
-    for o in origins
-      continue unless o
-      persistentRuleSet.allow o, '', persistentRuleSet.WILDCARD_TYPE
-    dests = foreign.get(rpDestsPref).split(' ')
-    for d in dests
-      continue unless d
-      persistentRuleSet.allow '', d, persistentRuleSet.WILDCARD_TYPE
-    originsDests = foreign.get(rpODPref).split(' ').map((s) -> s.split('|'))
-    for [o, d] in originsDests
-      continue unless o or d
-      persistentRuleSet.allow o, d, persistentRuleSet.WILDCARD_TYPE
-  prefs.set rpImportPref, true
 
 
 updating.from '0.12', ->

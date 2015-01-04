@@ -71,6 +71,15 @@
                   &preferences_user_rulesets_import;
                 </html:a>
               </html:li>
+              <html:ol>
+                <html:li>
+                  <html:a class="text-link"
+                          href="chrome://policeman/content/preferences/user-rulesets-import-requestpolicy.xul"
+                          target="subview">
+                    &preferences_user_rulesets_import_requestpolicy;
+                  </html:a>
+                </html:li>
+              </html:ol>
             </html:ol>
           </html:li>
         </html:ol>
