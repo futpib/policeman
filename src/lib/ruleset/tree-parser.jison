@@ -32,8 +32,10 @@ var config = {
 parser.config = config
 
 var indentation = {
-  current: 0,
-  last: 0,
+  reset: function () {
+    this.current = 0;
+    this.last = 0;
+  },
   indent: function () { this.current++; },
   blank: function () { this.current = 0; },
   yieldToken: function () {
@@ -72,7 +74,9 @@ var component = {
   // InTest not EqTest.
   list: ['classList'],
 
-  stack: [],
+  reset: function () {
+    this.stack = [];
+  },
   push: function (c) {
     if (c) {
       this.stack.push(c);
@@ -106,7 +110,21 @@ var stats = {
     }
   },
 }
-stats.reset();
+
+// Hook before parser.parse
+var originalParse = parser.parse;
+parser.parse = function (input) {
+  // Reset state
+  config.reset();
+  indentation.reset();
+  component.reset();
+  stats.reset();
+
+  // Add trailing newline (simplifies indentation handling)
+  input += '\n';
+
+  return originalParse.call(this, input);
+}
 
 %}
 
@@ -190,9 +208,7 @@ stats.reset();
 start
   : magic dict_body EOF
     {
-      config.reset(); // reset after each parse
       $2.permissiveness = stats.getPermissiveness();
-      stats.reset();
       return $2;
     }
 ;

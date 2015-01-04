@@ -335,17 +335,19 @@ exports.RadioGroup = class RadioGroup extends ContainerPopulation
   constructor: (descr) ->
     super arguments...
     @onSelection = new Handlers
+    @_selectedBtn = null
+
+  purge: (doc) ->
+    super arguments...
+    @_selectedBtn = null
 
   select: (btn) ->
     return if @RadioButton._selected btn
     doc = btn.ownerDocument
-    for b in @getContainerElement(doc).childNodes
-      @RadioButton._unselect b
+    @RadioButton._unselect @_selectedBtn if @_selectedBtn
     @RadioButton._select btn
+    @_selectedBtn = btn
     @onSelection.execute btn, @
 
-  getSelectedBtn: (doc) ->
-    for b in @getContainerElement(doc).childNodes
-      return b if @RadioButton._selected b
-    return undefined
+  getSelectedBtn: (doc) -> @_selectedBtn
 

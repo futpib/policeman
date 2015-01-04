@@ -27,6 +27,7 @@ embeddedRuleSets = [
   'allow_same_second_level_domain',
   'i2p_sandbox',
   'onion_sandbox',
+  'https_half_open_sandbox',
 ].concat codeBasedRuleSets
 
 prefs.define ENABLED_IDS_PREF = 'manager.enabledRuleSets',
@@ -87,9 +88,11 @@ cachedRulesetConstructor = cache
 files = new class
   refCountByPath = Object.create null
 
-  scope = OS.Path.join OS.Constants.Path.profileDir, 'policeman', 'rulesets'
+  scope = OS.Path.normalize \
+              OS.Path.join OS.Constants.Path.profileDir, 'policeman', 'rulesets'
   acquire: (path) ->
-    if (OS.Path.normalize scope) != (OS.Path.dirname OS.Path.normalize path)
+    path = OS.Path.normalize path
+    if scope != (OS.Path.dirname path)
       throw new Error "#{JSON.stringify path} is out of
           #{JSON.stringify scope} directory"
     defaults refCountByPath, path, 0
@@ -126,12 +129,22 @@ exports.Manager = class Manager
     @_installedPathsByIds = Object.create null
     @_installedMetadataById = Object.create null
 
-    @install id, url for id, url of installed
+    for id, url of installed
+      try
+        @install id, url
+      catch e
+        log.warn 'Could not install ruleset id:', id, 'url:', url,
+                 'due to the following error:', e
 
     @_enabledRuleSetsIds = [] # order defines priority
     @_enabledRuleSetsById = Object.create null
 
-    @enable id for id in enabled
+    for id in enabled
+      try
+        @enable id
+      catch e
+        log.warn 'Could not enable ruleset id:', id,
+                 'due to the following error:', e
 
   codeBasedIdToObject =
     'user_temporary': temporaryRuleSet

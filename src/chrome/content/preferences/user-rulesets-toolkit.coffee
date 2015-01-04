@@ -7,6 +7,10 @@
 idnService = Cc["@mozilla.org/network/idn-service;1"]
               .getService Ci.nsIIDNService
 
+{
+  mutateAttribute
+} = require 'utils'
+
 
 {
   CHROME_DOMAIN

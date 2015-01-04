@@ -1,7 +1,7 @@
 
 { MutableOrderedMap } = require 'mutable-ordered-map'
 
-{ locale } = require 'l10n'
+{ prefered_locales } = require 'l10n'
 
 { RuleSet } = require 'ruleset/base'
 { parser } = require 'ruleset/tree-parser'
@@ -9,12 +9,17 @@
 
 
 L10n = (raw) ->
-  lcl = if locale of raw then locale else 'en-US'
+  # create aliases for short language codes if they are missing
+  # e.g. 'en' for 'en-US'
+  for locale of raw
+    [language, region] = locale.split '-'
+    if region and language not of raw
+      raw[language] = raw[locale]
   lookup = (k) ->
-    if lcl of raw and k of raw[lcl]
-      return raw[lcl][k]
-    else
-      return "<l10n error: locale: '#{lcl}' key: '#{k}' >"
+    for locale in prefered_locales
+      if locale of raw and k of raw[locale]
+        return raw[locale][k]
+    return "<l10n error: locale: '#{locale}' key: '#{k}' >"
   return localize = (str, defaultKey=null) ->
     if str instanceof L10nLookup
       return lookup str.key

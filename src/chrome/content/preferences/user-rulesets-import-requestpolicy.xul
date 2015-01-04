@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://policeman/skin/preferences.css" type="text/css"?>
+<!DOCTYPE page SYSTEM "chrome://policeman/locale/">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      xmlns:html="http://www.w3.org/1999/xhtml">
+
+  <script src="../xul-page-common.js"
+          type="application/javascript"/>
+  <script src="user-rulesets-toolkit.js"
+          type="application/javascript"/>
+  <script src="user-rulesets-import-requestpolicy.js"
+          type="application/javascript"/>
+
+  <hbox id="subpref-container" flex="1">
+    <vbox id="persistent-ruleset-diabled-container"
+          hidden="true"
+          flex="1">
+      <label value="&preferences_persistent_ruleset_disabled;"/>
+    </vbox>
+    <vbox id="import-container"
+          flex="1">
+      <groupbox>
+        <caption label="&preferences_user_rulesets_import_select_rules;"/>
+        <radiogroup id="select-rules-to-import">
+          <radio id="import-all-rules"
+                 label="&preferences_user_rulesets_import_all_rules;"/>
+          <radio id="import-selected-rules"
+                 label="&preferences_user_rulesets_import_selected_selected_rules;"/>
+        </radiogroup>
+      </groupbox>
+
+      <groupbox>
+        <caption label="&preferences_user_rulesets_import_conflict_resolution;"
+                 tooltiptext="&preferences_user_rulesets_import_conflict_resolution.tip;"/>
+        <radiogroup id="conflict-resolution">
+          <radio id="conflict-resolution-prefer-new"
+                 label="&preferences_user_rulesets_import_prefer_new;"/>
+          <radio id="conflict-resolution-prefer-existing"
+                 label="&preferences_user_rulesets_import_prefer_existing;"/>
+          <radio id="conflict-resolution-prefer-permissive"
+                 label="&preferences_user_rulesets_import_prefer_permissive;"/>
+          <radio id="conflict-resolution-prefer-restrictive"
+                 label="&preferences_user_rulesets_import_prefer_restrictive;"/>
+        </radiogroup>
+      </groupbox>
+
+      <hbox align="center">
+        <button id="import-button"
+                label="&preferences_user_rulesets_import_button;"
+                icon="save"/>
+        <label id="import-status-label"
+               value=""/>
+      </hbox>
+    </vbox>
+
+    <splitter style="opacity: 0;" collapse="both"/>
+
+    <vbox id="loaded-rules-container"
+          flex="1">
+      <label class="title"
+             value="&preferences_user_rulesets_import_requestpolicy_rules_selection;"
+             crop="end"/>
+      <hbox align="center">
+        <label value="&preferences_search;"/>
+        <textbox id="loaded-rules-search-box"
+                class="compact"
+                type="search"
+                flex="1"/>
+      </hbox>
+      <vbox id="loaded-rules"
+            flex="1">
+        <!-- script inserts a tree with loaded rules here -->
+      </vbox>
+    </vbox>
+  </hbox>
+
+</page>

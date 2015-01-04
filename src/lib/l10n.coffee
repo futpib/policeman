@@ -5,23 +5,39 @@
 
 
 # Mirrors addon-sdk/l10n/locale#getPreferedLocales
-exports.locale = locale = do ->
+exports.prefered_locales = prefered_locales = do ->
   foreignPrefs.define PREF_MATCH_OS_LOCALE = "intl.locale.matchOS", default: yes
   foreignPrefs.define PREF_SELECTED_LOCALE = "general.useragent.locale", default: ''
   foreignPrefs.define PREF_ACCEPT_LANGUAGES = "intl.accept_languages", default: ''
 
+  locales = []
+
+  addLocale = (locale) ->
+    locale = locale.trim()
+    locales.push locale unless locale in locales
+
   if foreignPrefs.get PREF_MATCH_OS_LOCALE
     localeService = Cc["@mozilla.org/intl/nslocaleservice;1"]
-                    .getService(Ci.nsILocaleService)
-    return localeService.getLocaleComponentForUserAgent()
+                    .getService Ci.nsILocaleService
+    osLocale = localeService.getLocaleComponentForUserAgent()
+    addLocale osLocale
 
-  if browserUiLocale = foreignPrefs.get PREF_SELECTED_LOCALE
-    return browserUiLocale
+  browserUiLocale = foreignPrefs.get PREF_SELECTED_LOCALE
+  if browserUiLocale
+    addLocale browserUiLocale
 
-  if contentLocales = foreignPrefs.get PREF_ACCEPT_LANGUAGES
-    return contentLocales.split(",")[0].trim()
+  contentLocales = foreignPrefs.get PREF_ACCEPT_LANGUAGES
+  if contentLocales
+    addLocale locale for locale in contentLocales.split ','
 
-  return "en-US"
+  addLocale "en-US"
+
+  # also append short versions of all culture codes
+  for locale in locales
+    [language, region] = locale.split '-'
+    addLocale language if region and language not in locales
+
+  return locales
 
 bundle = Services.strings.createBundle \
       'chrome://policeman/locale/policeman.properties'
