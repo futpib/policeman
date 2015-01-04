@@ -127,12 +127,22 @@ exports.Manager = class Manager
     @_installedPathsByIds = Object.create null
     @_installedMetadataById = Object.create null
 
-    @install id, url for id, url of installed
+    for id, url of installed
+      try
+        @install id, url
+      catch e
+        log.warn 'Could not install ruleset id:', id, 'url:', url,
+                 'due to the following error:', e
 
     @_enabledRuleSetsIds = [] # order defines priority
     @_enabledRuleSetsById = Object.create null
 
-    @enable id for id in enabled
+    for id in enabled
+      try
+        @enable id
+      catch e
+        log.warn 'Could not enable ruleset id:', id,
+                 'due to the following error:', e
 
   codeBasedIdToObject =
     'user_temporary': temporaryRuleSet
