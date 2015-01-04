@@ -88,9 +88,11 @@ cachedRulesetConstructor = cache
 files = new class
   refCountByPath = Object.create null
 
-  scope = OS.Path.join OS.Constants.Path.profileDir, 'policeman', 'rulesets'
+  scope = OS.Path.normalize \
+              OS.Path.join OS.Constants.Path.profileDir, 'policeman', 'rulesets'
   acquire: (path) ->
-    if (OS.Path.normalize scope) != (OS.Path.dirname OS.Path.normalize path)
+    path = OS.Path.normalize path
+    if scope != (OS.Path.dirname path)
       throw new Error "#{JSON.stringify path} is out of
           #{JSON.stringify scope} directory"
     defaults refCountByPath, path, 0
