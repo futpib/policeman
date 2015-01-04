@@ -758,8 +758,10 @@ class RulesetEditButtons extends ContainerPopulation
         value: l10n 'popup_custom_rule.1'
         class: 'policeman-popup-label-aligned-like-button'
 
+      prefix = l10n 'popup_custom_rule.2'
+      prefix = if prefix then prefix + ' ' else ''
       box.appendChild typeButton = DataRotationButton.create doc, new Description
-        valuesLabels: ([t, l10n('popup_custom_rule.2') + ' ' + localizeType(t)] \
+        valuesLabels: ([t, prefix + localizeType(t)] \
                 for t in popup.contentTypes.enabledList())
 
       @setData box, '_typeButton', typeButton
