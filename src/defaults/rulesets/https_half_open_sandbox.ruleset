@@ -8,6 +8,9 @@ l10n:
   en-US:
     name: "HTTPS sandbox"
     description: "Reject non-HTTPS requests from HTTPS pages"
+  de_DE:
+    name: "HTTPS Sandbox"
+    description: "Blockiert Nicht-HTTPS-Anfragen von HTTPS-Seiten"
 
 rules:
   web -> web:
