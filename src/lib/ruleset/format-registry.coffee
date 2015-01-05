@@ -32,4 +32,5 @@ exports.registry =
 
 # require all the formats, so they register themselves
 
+require 'ruleset/domains-blacklist-ruleset'
 require 'ruleset/tree-ruleset'
