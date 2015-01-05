@@ -206,3 +206,37 @@ if not WeakSet # Firefox < 34
 
 
 exports.addonData = addonData
+
+
+criptoHash = Cc["@mozilla.org/security/hash;1"]
+        .createInstance Ci.nsICryptoHash
+
+unicodeConverter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
+        .createInstance Ci.nsIScriptableUnicodeConverter
+unicodeConverter.charset = "UTF-8"
+
+byteToHexStr = (byte) -> ('0' + byte.toString 16).slice -2
+
+exports.md5 = md5 = (str, options={}) ->
+  ###
+  Compute md5 hash of `str`
+  options:
+    format     'b64', 'hex' or 'bytes' — format of returned value, default: hex
+  ###
+  {
+    format
+  } = options
+  format ?= 'hex'
+
+  data = unicodeConverter.convertToByteArray str, {}
+  criptoHash.init criptoHash.MD5
+  criptoHash.update data, data.length
+
+  switch format
+    when 'b64'
+      return criptoHash.finish true
+    when 'bytes'
+      return criptoHash.finish false
+    when 'hex'
+      hash = criptoHash.finish false
+      return ((byteToHexStr hash.charCodeAt i) for _, i in hash).join ''
