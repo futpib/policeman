@@ -1,5 +1,5 @@
 
-{ DomainDomainTypeRS } = require 'ruleset/code-ruleset'
+{ DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
 
 { prefs } = require 'prefs'
 { updating } = require 'updating'
@@ -25,7 +25,7 @@ onShutdown.add persistentRuleSet.save.bind persistentRuleSet
 updating.from '0.12', ->
   ###
   0.12 and below used 'ruleset.persistent.domainDomainType' which was defined
-  as 'object' by ruleset/code-ruleset#SavableRS.
+  as 'object' by ruleset/in-memory-ruleset#SavableRS.
   Now we have 'ruleset.persistent.domainDomainTypeUnicode' define as 'uobject'
   for proper internationalized domain names support.
   ###

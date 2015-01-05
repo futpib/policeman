@@ -16,7 +16,7 @@
 { tabs } = require 'tabs'
 { memo } = require 'request-memo'
 { manager } = require 'ruleset/manager'
-{ DomainDomainTypeRS } = require 'ruleset/code-ruleset'
+{ DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
 
 {
   wrapsSuperWidget

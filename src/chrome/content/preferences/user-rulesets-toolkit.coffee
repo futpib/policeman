@@ -2,7 +2,7 @@
 { l10n } = require 'l10n'
 
 { manager } = require 'ruleset/manager'
-{ DomainDomainTypeRS } = require 'ruleset/code-ruleset'
+{ DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
 
 idnService = Cc["@mozilla.org/network/idn-service;1"]
               .getService Ci.nsIIDNService

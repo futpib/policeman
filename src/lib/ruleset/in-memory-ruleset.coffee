@@ -37,7 +37,7 @@ exports.ModifiableRS = class ModifiableRS extends RuleSet
     if @isRejected(as...)
       return false
     return null
-  stringify: -> throw new Error "Can't stringify code-based ruleset '#{ @id }'"
+  stringify: -> throw new Error "Can't stringify ruleset '#{ @id }'"
 
 exports.SavableRS = class SavableRS extends ModifiableRS
   constructor: (@_pref=null) ->

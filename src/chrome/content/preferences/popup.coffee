@@ -3,7 +3,7 @@
 { manager } = require 'ruleset/manager'
 { popup } = require 'ui/popup'
 
-{ DomainDomainTypeRS } = require 'ruleset/code-ruleset'
+{ DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
 
 { l10n } = require 'l10n'
 

@@ -3,7 +3,7 @@
   DomainDomainTypeRS
   ClosuresRS
   LookupRS
-} = require 'ruleset/code-ruleset'
+} = require 'ruleset/in-memory-ruleset'
 
 { tabs } = require 'tabs'
 
