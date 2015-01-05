@@ -6,6 +6,7 @@
 { RuleSet } = require 'ruleset/base'
 { parser } = require 'ruleset/tree-parser'
 { L10nLookup } = require 'ruleset/tree-nodes'
+{ registry } = require 'ruleset/format-registry'
 
 
 L10n = (raw) ->
@@ -105,6 +106,13 @@ exports.TreeRS = class TreeRS extends RuleSet
     catch e
       return null if e is RETURN
       throw e
+
+  MAGIC_RE = /^magic:\s*['"]?policeman_ruleset['"]?$/gm
+
+  guess: (str) ->
+    return -1 != str.search MAGIC_RE
+
+registry.register TreeRS, registry.PRIORITY_HIGH
 
 
 
