@@ -118,6 +118,7 @@ class RulesetRichListItem
 
       draggable
     } = widgetDescription
+    version ?= ''
 
     item = createElement doc, 'richlistitem',
       class: 'ruleset'
