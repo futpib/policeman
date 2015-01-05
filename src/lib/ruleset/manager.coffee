@@ -98,7 +98,7 @@ files = new class
     defaults refCountByPath, path, 0
     refCountByPath[path] += 1
 
-  filenamesafe = (str) -> str.replace /[^A-Za-z._-]/g, '_'
+  filenamesafe = (str) -> str.replace /[^0-9A-Za-z._-]/g, '_'
   filenameRnd_ = -> Math.random().toString(36).slice(2)
   filenameRnd = (n=1) ->
     s = ''
