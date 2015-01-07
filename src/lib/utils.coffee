@@ -106,6 +106,10 @@ exports.removeSheet = (win, styleURI, type=Ci.nsIDOMWindowUtils.AUTHOR_SHEET) ->
       .removeSheet(styleURI, type)
 
 
+exports.XMLHttpRequest = XMLHttpRequest = Components.Constructor \
+        "@mozilla.org/xmlextras/xmlhttprequest;1", "nsIXMLHttpRequest"
+
+
 exports.zip = zip = (arrs...) ->
   shortest = arrs.reduce((a,b) -> if a.length < b.length then a else b)
   return shortest.map((_,i) -> arrs.map((array) -> array[i]))

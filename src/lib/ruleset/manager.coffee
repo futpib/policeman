@@ -1,9 +1,15 @@
 
 { TextEncoder, OS } = Cu.import 'resource://gre/modules/osfile.jsm'
-XMLHttpRequest = Components.Constructor("@mozilla.org/xmlextras/xmlhttprequest;1", "nsIXMLHttpRequest")
 
 { path: file_path } = require 'file'
-{ remove, move, zip, cache, defaults } = require 'utils'
+{
+  remove
+  move
+  zip
+  cache
+  defaults
+  XMLHttpRequest
+} = require 'utils'
 
 { registry: formatRegistry } = require 'ruleset/format-registry'
 { temporaryRuleSet } = require 'ruleset/temporary'
