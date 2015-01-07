@@ -9,7 +9,7 @@
   superdomains
   isSuperdomain
 } = require 'utils'
-{ overlayQueue } = require 'ui/overlay-queue'
+{ loadOverlay } = require 'ui/load-overlay'
 
 { windows } = require 'windows'
 { tabs } = require 'tabs'
@@ -1080,7 +1080,7 @@ exports.popup = popup =
 
   addUI: (win) ->
     doc = win.document
-    overlayQueue.add doc, 'chrome://policeman/content/popup.xul', =>
+    loadOverlay doc, 'chrome://policeman/content/popup.xul', =>
       panel = doc.getElementById @id
       panel.addEventListener 'popupshown', @onShowing.bind @
       panel.addEventListener 'popuphidden', @onHiding.bind @

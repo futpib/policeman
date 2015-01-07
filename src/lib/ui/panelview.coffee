@@ -13,7 +13,7 @@
   loadSheet
   removeSheet
 } = require 'utils'
-{ overlayQueue } = require 'ui/overlay-queue'
+{ loadOverlay } = require 'ui/load-overlay'
 
 { aboutPages } = require 'ui/about-policeman'
 
@@ -232,7 +232,7 @@ exports.panelview = panelview =
     view.addEventListener 'ViewHiding', @onHiding.bind @
     doc.getElementById("PanelUI-multiView").appendChild(view)
 
-    overlayQueue.add doc, 'chrome://policeman/content/panelview.xul', =>
+    loadOverlay doc, 'chrome://policeman/content/panelview.xul', =>
       suspendCheckbox.setup doc
       reloadCheckbox.setup doc
       preferencesButton.setup doc
