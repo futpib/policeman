@@ -2,6 +2,10 @@
 { DomainsBlacklistRS } = require 'ruleset/domains-blacklist-ruleset'
 { registry } = require 'ruleset/format-registry'
 
+{
+  md5
+} = require 'utils'
+
 
 exports.HostsRS = class HostsRS extends DomainsBlacklistRS
   DUMMY_IP_FIELD_RE = /^[^\s]+\s+/gm
