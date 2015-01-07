@@ -14,6 +14,9 @@ l10n:
   fa-IR:
     name: "HTTPS sandbox"
     description: "رد درخواست های HTTP در صفحات HTTPS "
+  ru-RU:
+    name: "HTTPS-песочница"
+    description: "Блокирует все не HTTPS запросы на HTTPS-страницах"
 
 rules:
   web -> web:
