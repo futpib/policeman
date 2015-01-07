@@ -7,7 +7,6 @@
   move
   zip
   cache
-  defaults
   XMLHttpRequest
 } = require 'utils'
 
@@ -101,7 +100,7 @@ files = new class
     if scope != (OS.Path.dirname path)
       throw new Error "#{JSON.stringify path} is out of
           #{JSON.stringify scope} directory"
-    defaults refCountByPath, path, 0
+    refCountByPath[path] ?= 0
     refCountByPath[path] += 1
 
   filenamesafe = (str) -> str.replace /[^0-9A-Za-z._-]/g, '_'

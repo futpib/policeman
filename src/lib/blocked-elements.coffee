@@ -3,7 +3,6 @@
 Cu.import "resource://gre/modules/NetUtil.jsm"
 
 {
-  defaults
   remove
   isDead
   superdomains
@@ -97,7 +96,7 @@ class BlockedElementHandler
     delete (@_elementToData.get elem)[name]
 
   _addElemByTabId: (tabId, elem) ->
-    defaults @_tabIdToBlockedElements, tabId, []
+    @_tabIdToBlockedElements[tabId] ?= []
     @_tabIdToBlockedElements[tabId].push elem
   _removeElemByTabId: (tabId, elem) ->
     remove @_tabIdToBlockedElements[tabId], elem

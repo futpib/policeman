@@ -8,7 +8,6 @@
   createElement
   superdomains
   isSuperdomain
-  defaults
 } = require 'utils'
 { overlayQueue } = require 'ui/overlay-queue'
 
@@ -861,8 +860,8 @@ class RulesetEditButtons extends ContainerPopulation
           for t in enabledTypes
             decision = rs.lookup o, d, t
             continue if decision is null
-            defaults rulesSet, o, Object.create null
-            defaults rulesSet[o], d, Object.create null
+            rulesSet[o] ?= Object.create null
+            rulesSet[o][d] ?= Object.create null
             if t of rulesSet[o][d]
               delete rulesList[rulesSet[o][d][t]]
               rulesList[index] = [o, d, t, decision]

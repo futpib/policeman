@@ -12,7 +12,6 @@
   removeChildren
   loadSheet
   removeSheet
-  defaults
 } = require 'utils'
 { overlayQueue } = require 'ui/overlay-queue'
 
@@ -117,11 +116,12 @@ affectedDestinations = new (class extends ContainerPopulation
       continue unless o.schemeType == d.schemeType == 'web'
       origin2lvl = superdomains(o.host, 2).reverse()[0]
       dest2lvl = superdomains(d.host, 2).reverse()[0]
-      defaults domains, dest2lvl,
+      domains[dest2lvl] ?= {
         dest: dest2lvl
         origins: {}
         allow: 0
         reject: 0
+      }
       domains[dest2lvl][if decision then 'allow' else 'reject'] += 1
       domains[dest2lvl].origins[origin2lvl] = true
     domains = (d for _, d of domains)
