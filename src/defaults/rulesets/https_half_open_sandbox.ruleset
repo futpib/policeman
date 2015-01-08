@@ -11,6 +11,15 @@ l10n:
   de_DE:
     name: "HTTPS Sandbox"
     description: "Blockiert Nicht-HTTPS-Anfragen von HTTPS-Seiten"
+  fa-IR:
+    name: "HTTPS sandbox"
+    description: "رد درخواست های HTTP در صفحات HTTPS "
+  ru-RU:
+    name: "HTTPS-песочница"
+    description: "Блокирует все не HTTPS запросы на HTTPS-страницах"
+  fr-FR:
+    name: "HTTPS sandbox"
+    description: "Refuser les requêtes non-HTTPS depuis les sites en HTTPS"
 
 rules:
   web -> web:
