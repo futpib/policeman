@@ -18,7 +18,7 @@ l10n:
     description: "Запрещает запросы от .i2p ресурсов во внешний интернет и от внешних веб-ресусов к .i2p"
   fr-FR:
     name: "Isolation I2P"
-    description: "Refuser les requetes depuis .i2p -> web et web -> .i2p"
+    description: "Refuser les requêtes depuis .i2p -> web et web -> .i2p"
 
 rules:
   web -> web:

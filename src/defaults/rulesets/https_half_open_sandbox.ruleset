@@ -17,6 +17,9 @@ l10n:
   ru-RU:
     name: "HTTPS-песочница"
     description: "Блокирует все не HTTPS запросы на HTTPS-страницах"
+  fr-FR:
+    name: "HTTPS sandbox"
+    description: "Refuser les requêtes non-HTTPS depuis les sites en HTTPS"
 
 rules:
   web -> web:

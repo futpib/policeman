@@ -18,8 +18,8 @@ l10n:
     name: "Запретить любые запросы"
     description: "Запрещает любые запросы"
   fr-FR:
-    name: "Refuser toutes les requetes"
-    description: "Refuser toutes les requetes"
+    name: "Refuser toutes les requêtes"
+    description: "Refuser toutes les requêtes"
 
 rules:
   -> : REJECT
