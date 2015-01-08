@@ -6,7 +6,6 @@
   removeChildren
   superdomains
 } = require 'utils'
-{ overlayQueue } = require 'ui/overlay-queue'
 { windows } = require 'windows'
 { tabs } = require 'tabs'
 
