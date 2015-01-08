@@ -5,7 +5,7 @@ Cu.import 'resource://gre/modules/osfile.jsm'
 
 { foreign } = require 'prefs'
 { manager } = require 'ruleset/manager'
-{ DomainDomainTypeRS } = require 'ruleset/code-ruleset'
+{ DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
 
 {
   zip

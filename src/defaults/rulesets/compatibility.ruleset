@@ -18,7 +18,7 @@ l10n:
     name: "Совместимость и обходные приемы"
     description: "Исправляет некоторые известные проблемы с сайтами и другими расширениями"
   fr-FR:
-    name: "Regle de Compatibilité"
+    name: "Règle de compatibilité"
     description: "Corrige quelques problèmes de compatibilité connus avec des add-on et des sites"
 
 rules:

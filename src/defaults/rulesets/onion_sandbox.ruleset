@@ -18,7 +18,7 @@ l10n:
     description: "Запрещает запросы от .onion ресурсов во внешний интернет и от внешнего веб-содержимого к .onion"
   fr-FR:
     name: "Isolation Tor"
-    description: "Refuser les requetes depuis .onion -> web et web -> .onion"
+    description: "Refuser les requêtes depuis .onion -> web et web -> .onion"
 
 rules:
   web -> web:

@@ -8,15 +8,14 @@
   createElement
   superdomains
   isSuperdomain
-  defaults
 } = require 'utils'
-{ overlayQueue } = require 'ui/overlay-queue'
+{ loadOverlay } = require 'ui/load-overlay'
 
 { windows } = require 'windows'
 { tabs } = require 'tabs'
 { memo } = require 'request-memo'
 { manager } = require 'ruleset/manager'
-{ DomainDomainTypeRS } = require 'ruleset/code-ruleset'
+{ DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
 
 {
   wrapsSuperWidget
@@ -758,8 +757,10 @@ class RulesetEditButtons extends ContainerPopulation
         value: l10n 'popup_custom_rule.1'
         class: 'policeman-popup-label-aligned-like-button'
 
+      prefix = l10n 'popup_custom_rule.2'
+      prefix = if prefix then prefix + ' ' else ''
       box.appendChild typeButton = DataRotationButton.create doc, new Description
-        valuesLabels: ([t, l10n('popup_custom_rule.2') + ' ' + localizeType(t)] \
+        valuesLabels: ([t, prefix + localizeType(t)] \
                 for t in popup.contentTypes.enabledList())
 
       @setData box, '_typeButton', typeButton
@@ -859,8 +860,8 @@ class RulesetEditButtons extends ContainerPopulation
           for t in enabledTypes
             decision = rs.lookup o, d, t
             continue if decision is null
-            defaults rulesSet, o, Object.create null
-            defaults rulesSet[o], d, Object.create null
+            rulesSet[o] ?= Object.create null
+            rulesSet[o][d] ?= Object.create null
             if t of rulesSet[o][d]
               delete rulesList[rulesSet[o][d][t]]
               rulesList[index] = [o, d, t, decision]
@@ -1079,7 +1080,7 @@ exports.popup = popup =
 
   addUI: (win) ->
     doc = win.document
-    overlayQueue.add doc, 'chrome://policeman/content/popup.xul', =>
+    loadOverlay doc, 'chrome://policeman/content/popup.xul', =>
       panel = doc.getElementById @id
       panel.addEventListener 'popupshown', @onShowing.bind @
       panel.addEventListener 'popuphidden', @onHiding.bind @

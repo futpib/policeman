@@ -10,7 +10,6 @@
       <toolbarbutton id="policeman-panelview-open-preferences"
                     class="subviewbutton"
                     label="&panelview_open_preferences;"
-                    tooltiptext="&panelview_open_preferences.tip;"
                     />
       <toolbarseparator/>
       <vbox id="policeman-panelview-affected-destinations-container">

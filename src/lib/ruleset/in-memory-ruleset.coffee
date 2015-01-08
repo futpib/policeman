@@ -1,5 +1,5 @@
 
-{ superdomains, defaults, remove } = require 'utils'
+{ superdomains, remove } = require 'utils'
 { prefs } = require 'prefs'
 
 { RuleSet } = require 'ruleset/base'
@@ -37,7 +37,23 @@ exports.ModifiableRS = class ModifiableRS extends RuleSet
     if @isRejected(as...)
       return false
     return null
-  stringify: -> throw new Error "Can't stringify code-based ruleset '#{ @id }'"
+  stringify: -> throw new Error "Can't stringify ruleset '#{ @id }'"
+
+exports.WebDestHostRS = class WebDestHostRS extends ModifiableRS
+  constructor: ->
+    @_hosts = new Map
+  isEmpty: -> not @_hosts.size
+  allow: (d) -> @_hosts.set d, true
+  isAllowed: (d) -> true == @_hosts.get d
+  reject: (d) -> @_hosts.set d, false
+  isRejected: (d) -> false == @_hosts.get d
+  has: (d) -> @_hosts.has d
+  revoke: (d) -> @_hosts.delete d
+  revokeAll: -> @_hosts.clear()
+  check: (o, d, c) ->
+    if d.schemeType == 'web' and @_hosts.has d.host
+      return @_hosts.get d.host
+    return null
 
 exports.SavableRS = class SavableRS extends ModifiableRS
   constructor: (@_pref=null) ->
@@ -165,7 +181,7 @@ exports.DeepLookupRS = class DeepLookupRS extends LookupRS
   revoke: @::marksForAutosave (keys) -> revoke_ keys.slice(), @_lookup
 
   loopSet_ = (val) -> depthLoop_ (l, k, eta) ->
-    defaults l, k, if eta then Object.create(null) else val
+    l[k] ?= if eta then Object.create(null) else val
     depthLoop_.continue
 
   allow: @::marksForAutosave loopSet_ true

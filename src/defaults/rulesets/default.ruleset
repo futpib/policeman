@@ -18,8 +18,8 @@ l10n:
     name: "По умолчанию"
     description: "Разрешает внутренние запросы и навигацию"
   fr-FR:
-    name: "Par defaut"
-    description: "Autoriser quelques requetes internes essentielles à la navigation"
+    name: "Par défaut"
+    description: "Autoriser quelques requêtes internes essentielles à la navigation"
 
 rules:
   # Essentials

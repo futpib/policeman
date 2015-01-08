@@ -12,9 +12,8 @@
   removeChildren
   loadSheet
   removeSheet
-  defaults
 } = require 'utils'
-{ overlayQueue } = require 'ui/overlay-queue'
+{ loadOverlay } = require 'ui/load-overlay'
 
 { aboutPages } = require 'ui/about-policeman'
 
@@ -117,11 +116,12 @@ affectedDestinations = new (class extends ContainerPopulation
       continue unless o.schemeType == d.schemeType == 'web'
       origin2lvl = superdomains(o.host, 2).reverse()[0]
       dest2lvl = superdomains(d.host, 2).reverse()[0]
-      defaults domains, dest2lvl,
+      domains[dest2lvl] ?= {
         dest: dest2lvl
         origins: {}
         allow: 0
         reject: 0
+      }
       domains[dest2lvl][if decision then 'allow' else 'reject'] += 1
       domains[dest2lvl].origins[origin2lvl] = true
     domains = (d for _, d of domains)
@@ -232,7 +232,7 @@ exports.panelview = panelview =
     view.addEventListener 'ViewHiding', @onHiding.bind @
     doc.getElementById("PanelUI-multiView").appendChild(view)
 
-    overlayQueue.add doc, 'chrome://policeman/content/panelview.xul', =>
+    loadOverlay doc, 'chrome://policeman/content/panelview.xul', =>
       suspendCheckbox.setup doc
       reloadCheckbox.setup doc
       preferencesButton.setup doc

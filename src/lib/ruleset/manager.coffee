@@ -1,11 +1,16 @@
 
 { TextEncoder, OS } = Cu.import 'resource://gre/modules/osfile.jsm'
-XMLHttpRequest = Components.Constructor("@mozilla.org/xmlextras/xmlhttprequest;1", "nsIXMLHttpRequest")
 
 { path: file_path } = require 'file'
-{ remove, move, zip, cache, defaults } = require 'utils'
+{
+  remove
+  move
+  zip
+  cache
+  XMLHttpRequest
+} = require 'utils'
 
-{ rulesetFromLocalUrl, rulesetFromString } = require 'ruleset/ruleset'
+{ registry: formatRegistry } = require 'ruleset/format-registry'
 { temporaryRuleSet } = require 'ruleset/temporary'
 { persistentRuleSet } = require 'ruleset/persistent'
 
@@ -82,7 +87,7 @@ cachedRulesetConstructor = cache
       return file_path.toFile(uri).lastModifiedTime
     catch e
       return Math.random()
-  function: rulesetFromLocalUrl
+  function: formatRegistry.parseByLocalUrl.bind formatRegistry
 
 
 files = new class
@@ -95,10 +100,10 @@ files = new class
     if scope != (OS.Path.dirname path)
       throw new Error "#{JSON.stringify path} is out of
           #{JSON.stringify scope} directory"
-    defaults refCountByPath, path, 0
+    refCountByPath[path] ?= 0
     refCountByPath[path] += 1
 
-  filenamesafe = (str) -> str.replace /[^A-Za-z._-]/g, '_'
+  filenamesafe = (str) -> str.replace /[^0-9A-Za-z._-]/g, '_'
   filenameRnd_ = -> Math.random().toString(36).slice(2)
   filenameRnd = (n=1) ->
     s = ''
@@ -208,7 +213,7 @@ exports.Manager = class Manager
       try
         # TODO go async
         str = xhr.responseText
-        id = rulesetFromString(str).id
+        id = formatRegistry.parse(str).id
       catch err
         log 'downloadInstall', url, 'Failed parsing downloaded file', err
         dispatch 'error', err

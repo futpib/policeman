@@ -22,9 +22,9 @@ l10n:
     name: "Тот же сайт"
     description: "Разрешает запросы к тому же домену и субдоменам"
     warnOnDisable: "TODO"
-  en-US:
-    name: "Meme site"
-    description: "Autoriser les requetes vers le meme domaine ou sous domaine"
+  fr-FR:
+    name: "Même site"
+    description: "Autoriser les requêtes vers le même domaine ou sous domaine"
 
 rules:
   web -> web:
