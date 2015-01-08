@@ -6,6 +6,8 @@
   md5
 } = require 'utils'
 
+{ l10n } = require 'l10n'
+
 
 exports.HostsRS = class HostsRS extends DomainsBlacklistRS
   DUMMY_IP_FIELD_RE = /^[^\s]+\s+/gm
