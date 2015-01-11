@@ -23,4 +23,4 @@ l10n:
 
 rules:
   web -> web:
-    [scheme] https -> ! https: REJECT
+    [scheme] https -> ! (https|wss): REJECT
