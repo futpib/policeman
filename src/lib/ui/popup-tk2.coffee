@@ -66,7 +66,7 @@ prototypeChain = (obj) ->
 exports.elementMethod = elementMethod = em = (cls, method) -> (elem, args...) ->
   e = elem
   for proto in prototypeChain this
-    if cls::__ownsElement e
+    if cls::ownsElement e
       return method.call this, e, args...
     if Object.hasOwnProperty.call proto, '__unwrap'
       e = proto.__unwrap e
@@ -78,7 +78,7 @@ exports.elementMethod = elementMethod = em = (cls, method) -> (elem, args...) ->
 exports.wrapsSuperWidget = wrapsSuperWidget = (widget) ->
   ownElements = new WeakSet
   proto = widget.constructor.prototype
-  proto.__ownsElement = (elem) -> ownElements.has elem
+  proto.ownsElement = (elem) -> ownElements.has elem
   proto.__createOwnElement = (doc, descr) ->
     elem = createElement arguments...
     ownElements.add elem
