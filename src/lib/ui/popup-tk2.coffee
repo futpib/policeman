@@ -198,6 +198,9 @@ exports.Button = Button = new class extends Widget.constructor
 
     return btn
 
+  _getInnerBox: em @, (btn) -> btn.firstChild
+  _getLabel: em @, (btn) -> btn.firstChild.firstChild
+
   disable: em @, (btn) -> btn.setAttribute 'disabled', 'true'
   enable: em @, (btn) -> btn.setAttribute 'disabled', 'false'
   disabled: em @, (btn) -> btn.getAttribute('disabled') == 'true'

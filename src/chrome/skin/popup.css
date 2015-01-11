@@ -18,6 +18,10 @@
   .policeman-popup-button-label {
     cursor: inherit;
   }
+  .policeman-popup-button-sublabel {
+    font-size: .8em;
+    margin-top: -.2em;
+  }
   .policeman-popup-link-button {
     cursor: pointer;
   }
@@ -122,6 +126,11 @@
   #policeman-popup-allowed-requests-filters-container
   .policeman-popup-button {
     background: rgba(0, 255, 0, 0.1);
+  }
+
+  #policeman-popup-rejected-requests-filters-container,
+  #policeman-popup-allowed-requests-filters-container {
+    overflow-x: hidden;
   }
 
   #policeman-popup-label-version-number {

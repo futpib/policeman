@@ -459,6 +459,14 @@ localizeContentTypeFilter = (type) ->
     else
       return l10n 'content_type.title.plural.' + type
 
+localizeContentTypeFilterShort = (type) ->
+    if type == CONTENT_TYPE_FILTER_ALL
+      return l10n 'popup_filter_all.tiny'
+    else if type == CONTENT_TYPE_FILTER_OTHER
+      return l10n 'popup_filter_other.tiny'
+    else
+      return l10n "content_type.lower.plural.#{ type }.tiny"
+
 localizeType = (type) ->
   return l10n 'content_type.lower.plural.' + type
 
@@ -466,9 +474,68 @@ localizeType = (type) ->
 class FilterButtons extends RadioGroup
   constructor: (descr) ->
     @_decision = descr.get 'decision'
+    @_noneLabel = descr.get 'noneLabel'
     super arguments...
     @onSelection.add (btn) =>
       @selectedFilter = @RadioButton.getData btn, 'filter'
+    @_shrunken = no
+
+  FilterRadioButton = new class extends RadioGroup::RadioButton.constructor
+    STATE_LONG: 0
+    STATE_SHORT: 1
+
+    create: (doc, descr) ->
+      descr.default 'innerTagName', 'vbox'
+
+      longLabel = descr.get 'longLabel'
+      shortLabel = descr.get 'shortLabel'
+      shortSubLabel = descr.get 'shortSubLabel'
+
+      state = descr.get 'initialState'
+      state ?= @STATE_LONG
+
+      descr.default 'label', if state == @STATE_LONG \
+                                then longLabel else shortLabel
+
+      btn = super arguments...
+
+      @setData btn, '_longLabel', longLabel
+      @setData btn, '_shortLabel', shortLabel
+      @setData btn, '_shortSubLabel', shortSubLabel
+
+      innerBox = @_getInnerBox btn
+
+      innerBox.align = 'center'
+
+      if shortSubLabel
+        innerBox.appendChild createElement doc, 'label',
+          class: 'policeman-popup-button-sublabel'
+          value: shortSubLabel
+          hidden: state == @STATE_LONG
+
+      return btn
+
+    _getSubLabel: em @, (btn) ->
+      return btn.getElementsByClassName('policeman-popup-button-sublabel')[0]
+
+    shrink: em @, (btn) ->
+      if shortSub = @getData btn, '_shortSubLabel'
+        subLabel = @_getSubLabel btn
+        subLabel.hidden = false
+        subLabel.value = shortSub
+      @_getLabel(btn).value = @getData btn, '_shortLabel'
+
+    expand: em @, (btn) ->
+      if @getData btn, '_shortSubLabel'
+        @_getSubLabel(btn).hidden = true
+      @_getLabel(btn).value = @getData btn, '_longLabel'
+
+  RadioButton: FilterRadioButton
+
+  NoneFilterRadioButton: new class extends FilterRadioButton.constructor
+    create: (doc, descr) ->
+      descr.default 'innerTagName', 'hbox'
+      return super arguments...
 
   populate: (doc) ->
     stats = {}
@@ -483,52 +550,76 @@ class FilterButtons extends RadioGroup
         stats[CONTENT_TYPE_FILTER_ALL] += 1
 
     filters = doc.createDocumentFragment()
+
+    initialState = if @_shrunken then @NoneFilterRadioButton.STATE_SHORT \
+                                 else @NoneFilterRadioButton.STATE_LONG
+
+    filters.appendChild none = @NoneFilterRadioButton.create doc, new Description
+      container: this
+      longLabel: l10n @_noneLabel
+      shortLabel: l10n @_noneLabel + '.tiny'
+      tooltiptext: l10n @_noneLabel + '.tip'
+      data_filter: CONTENT_TYPE_FILTER_NONE
+      initialState: initialState
+
     for type in [] \
                  .concat(popup.contentTypes.enabledList()) \
                  .concat([CONTENT_TYPE_FILTER_OTHER])
-      label = localizeContentTypeFilter type
+      typeLabel = localizeContentTypeFilter type
+      shortTypeLabel = localizeContentTypeFilterShort type
       hitCount = stats[type]
       if (type == CONTENT_TYPE_FILTER_ALL) \
       or popup.filters.enabledEmpty() \
       or hitCount
         filters.appendChild btn = @RadioButton.create doc, new Description
           container: this
-          label: "#{label} (#{hitCount})"
+          longLabel: l10n 'popup_filter_label_format', typeLabel, hitCount
+          shortLabel: hitCount
+          shortSubLabel: shortTypeLabel
+          tooltiptext: l10n 'popup_filter_label_format.tip', typeLabel, hitCount
           data_filter: type
           disabled: not hitCount
+          initialState: initialState
           list_command: do (type=type) -> ->
             for rulesetEdit in [temporaryRulesetEdit, persistentRulesetEdit]
               RulesetEditButtons::CustomRuleWidget.setType \
                   rulesetEdit.getCustomRuleWidget(doc), type
         @select btn if @selectedFilter == type
 
-    @getContainerElement(doc).appendChild filters
-
-rejectedFilter = new (class extends FilterButtons
-  populate: (doc) ->
-    @getContainerElement(doc).appendChild none = @RadioButton.create doc, new Description
-      container: this
-      label: l10n 'popup_filter_rejected_none'
-      data_filter: CONTENT_TYPE_FILTER_NONE
-    super doc
     @select none if (@selectedFilter == CONTENT_TYPE_FILTER_NONE) \
                  or (not @getSelectedBtn doc)
-) new Description
+
+    container = @getContainerElement(doc)
+
+    container.appendChild filters
+
+    overflown = container.scrollWidth > container.clientWidth
+    # when called right away, reflow does not happen
+    doc.defaultView.setTimeout (
+      if overflown then (=> @shrink doc)
+    ), 0
+
+  shrink: (doc) ->
+    container = @getContainerElement doc
+    for child in container.children
+      if @RadioButton.ownsElement child
+        @RadioButton.shrink child
+    @_shrunken = yes
+  expand: (doc) ->
+    container = @getContainerElement doc
+    for child in container.children
+      if @RadioButton.ownsElement child
+        @RadioButton.expand child
+    @_shrunken = no
+
+rejectedFilter = new FilterButtons new Description
   containerId: 'policeman-popup-rejected-requests-filters-container'
+  noneLabel: 'popup_filter_rejected_none'
   decision: false
 
-
-allowedFilter = new (class extends FilterButtons
-  populate: (doc) ->
-    @getContainerElement(doc).appendChild none = @RadioButton.create doc, new Description
-      container: this
-      label: l10n 'popup_filter_allowed_none'
-      data_filter: CONTENT_TYPE_FILTER_NONE
-    super doc
-    @select none if (@selectedFilter == CONTENT_TYPE_FILTER_NONE) \
-                 or (not @getSelectedBtn doc)
-) new Description
+allowedFilter = new FilterButtons new Description
   containerId: 'policeman-popup-allowed-requests-filters-container'
+  noneLabel: 'popup_filter_allowed_none'
   decision: true
 
 
