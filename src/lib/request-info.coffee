@@ -134,12 +134,14 @@ exports.ContextInfo = class ContextInfo
       l[c] = true
     return l
 
-  constructor: (originUri, destUri, context, contentType, @mime, principal) ->
+  constructor: (originUri, destUri, context, contentType, mime, principal) ->
     # TODO is there any useful data we can get from nsIPrincipal?
 
     @contentType = intToTypeMap[contentType]
+    @mime = mime or ''
 
     @nodeName = ''
+    @_tabId = ''
     if context
       if context instanceof Ci.nsIDOMWindow
         @nodeName = '#window'
@@ -155,16 +157,34 @@ exports.ContextInfo = class ContextInfo
         else if context instanceof Ci.nsIDOMDocument
           @_document = context
 
-    @_tabId = ''
-    tab = tabs.getWindowOwner getWindowFromRequestContext context
-    if tab
-      @_tabId = tabs.getTabId tab
+      tab = tabs.getWindowOwner getWindowFromRequestContext context
+      if tab
+        @_tabId = tabs.getTabId tab
 
   delimiter = '|' # hoping there is no way | can get into components
   stringify: -> [@nodeName, @className, @id, @contentType, @mime].join delimiter
   parse: (str) ->
     [@nodeName, @className, @id, @contentType, @mime] = str.split delimiter
     @classList = makeClassList @className
+
+
+exports.ChannelOriginInfo = class ChannelOriginInfo extends OriginInfo
+  constructor: (channel) ->
+    super channel.loadInfo.triggeringPrincipal.URI
+
+
+exports.ChannelDestinationInfo = class ChannelDestinationInfo extends DestinationInfo
+  constructor: (channel) ->
+    super channel.URI
+
+
+exports.ChannelContextInfo = class ChannelContextInfo extends ContextInfo
+  constructor: (channel) ->
+    loadInfo = channel.loadInfo
+    contentType = loadInfo.contentPolicyType
+    context = loadInfo.loadingNode or loadInfo.loadingDocument
+    super null, null, context, contentType
+
 
 XUL_NAMESPACE = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'
 exports.getWindowFromRequestContext = getWindowFromRequestContext = (ctx) ->
