@@ -72,6 +72,16 @@ exports.policy = policy =
 
     return decision
 
+  # We store arguments object together with our request-info object
+  # from the last call to `shouldLoad`. `observe` uses it to determine if it's
+  # dealing with something that was already handled by shouldLoad.
+  # NOTE There seems to be no explicit guarantees on the order of `shouldLoad`
+  # and `observe` (with "http-on-modify-request" topic) calls anywhere in docs.
+  # In fact, `observe` calls are not necessarily preceded by related `shouldLoad`
+  # calls (that's why we need `observe` in the first place).
+  # But we depend on that order here, so this may break some day.
+  _lastShouldLoad: null
+
   # nsIContentPolicy interface implementation
   shouldLoad: (contentType, destUri, originUri, \
                context, mime, extra, principal) ->
@@ -83,6 +93,12 @@ exports.policy = policy =
     ctx = new ContextInfo originUri, destUri, context, contentType, mime, principal
 
     decision = @_shouldLoad origin, dest, ctx
+
+    @_lastShouldLoad = {
+      contentType, destUri, originUri, context, mime, extra, principal,
+      origin, dest, ctx,
+      decision,
+    }
 
     if decision
       return Ci.nsIContentPolicy.ACCEPT
@@ -98,16 +114,24 @@ exports.policy = policy =
         # be the case that the second check gives different result because
         # Channel*Info objects are poorer then their counterparts.
         # Nothing too wrong, but definitely some room for improvement.
-        # Also immediacy may not be the case since requests can be made
-        # asynchronously.
 
         channel = subject.QueryInterface Ci.nsIHttpChannel
 
-        origin = new ChannelOriginInfo channel
-        dest = new ChannelDestinationInfo channel
-        ctx = new ChannelContextInfo channel
+        decision = undefined
 
-        decision = @_shouldLoad origin, dest, ctx
+        if @_lastShouldLoad
+          if channel.URI == @_lastShouldLoad.destUri
+            # Got the same uri object as previous `shouldLoad` call.
+            # Since `shouldLoad` gets far more info, let's say it knows better.
+            decision = @_lastShouldLoad.decision
+            @_lastShouldLoad = null
+
+        if decision is undefined
+          origin = new ChannelOriginInfo channel
+          dest = new ChannelDestinationInfo channel
+          ctx = new ChannelContextInfo channel
+
+          decision = @_shouldLoad origin, dest, ctx
 
         if not decision
           channel.cancel Cr.NS_ERROR_UNEXPECTED
