@@ -149,7 +149,7 @@ exports.ContextInfo = class ContextInfo
     return l
 
   constructor: (originUri, destUri, context, contentType, mime, principal) ->
-    @contentType = intToTypeMap[contentType]
+    @contentType = intToTypeMap[contentType] or ''
     @mime = mime or ''
 
     @nodeName = ''
@@ -194,7 +194,9 @@ exports.ContextInfo = class ContextInfo
 
 exports.ChannelOriginInfo = class ChannelOriginInfo extends OriginInfo
   constructor: (channel) ->
-    super channel?.loadInfo?.triggeringPrincipal?.URI
+    uri = channel?.loadInfo?.triggeringPrincipal?.URI or \
+          channel?.loadInfo?.loadingPrincipal?.URI
+    super uri
 
 
 exports.ChannelDestinationInfo = class ChannelDestinationInfo extends DestinationInfo
@@ -207,7 +209,8 @@ exports.ChannelContextInfo = class ChannelContextInfo extends ContextInfo
     loadInfo = channel.loadInfo
     contentType = loadInfo?.contentPolicyType
     context = loadInfo?.loadingNode or loadInfo?.loadingDocument
-    principal = loadInfo?.triggeringPrincipal
+    principal = loadInfo?.triggeringPrincipal or \
+                loadInfo?.loadingPrincipal
     super null, null, context, contentType, null, principal
 
 
