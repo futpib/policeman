@@ -2,6 +2,13 @@
 { path } = require 'file'
 { tabs } = require 'tabs'
 
+
+systemPrincipal = Cc["@mozilla.org/systemprincipal;1"]
+                  .createInstance Ci.nsIPrincipal
+nullPrincipal = Cc["@mozilla.org/nullprincipal;1"]
+                .createInstance Ci.nsIPrincipal
+
+
 class UriInfo
   _componentsWithoutRefMap:
     'scheme'  : 'scheme'
@@ -101,7 +108,14 @@ exports.DestinationInfo = class DestinationInfo extends UriInfo
 
 
 exports.ContextInfo = class ContextInfo
-  components: ['nodeName', 'contentType', 'mime']
+  components: [
+    'nodeName',
+    'className',
+    'classList',
+    'contentType',
+    'mime',
+    'specialPrincipal',
+  ]
 
   # maps integer values of contentType argument to strings according to
   # https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy#Constants
@@ -135,13 +149,16 @@ exports.ContextInfo = class ContextInfo
     return l
 
   constructor: (originUri, destUri, context, contentType, mime, principal) ->
-    # TODO is there any useful data we can get from nsIPrincipal?
-
     @contentType = intToTypeMap[contentType]
     @mime = mime or ''
 
     @nodeName = ''
+    @className = ''
+    @classList = Object.create null
+    @id = ''
+
     @_tabId = ''
+
     if context
       if context instanceof Ci.nsIDOMWindow
         @nodeName = '#window'
@@ -161,6 +178,13 @@ exports.ContextInfo = class ContextInfo
       if tab
         @_tabId = tabs.getTabId tab
 
+    @specialPrincipal = ''
+    if principal
+      if systemPrincipal.equals principal
+        @specialPrincipal = 'system'
+      else if nullPrincipal.equals principal
+        @specialPrincipal = 'null'
+
   delimiter = '|' # hoping there is no way | can get into components
   stringify: -> [@nodeName, @className, @id, @contentType, @mime].join delimiter
   parse: (str) ->
@@ -170,7 +194,7 @@ exports.ContextInfo = class ContextInfo
 
 exports.ChannelOriginInfo = class ChannelOriginInfo extends OriginInfo
   constructor: (channel) ->
-    super channel.loadInfo.triggeringPrincipal.URI
+    super channel?.loadInfo?.triggeringPrincipal?.URI
 
 
 exports.ChannelDestinationInfo = class ChannelDestinationInfo extends DestinationInfo
@@ -181,9 +205,10 @@ exports.ChannelDestinationInfo = class ChannelDestinationInfo extends Destinatio
 exports.ChannelContextInfo = class ChannelContextInfo extends ContextInfo
   constructor: (channel) ->
     loadInfo = channel.loadInfo
-    contentType = loadInfo.contentPolicyType
-    context = loadInfo.loadingNode or loadInfo.loadingDocument
-    super null, null, context, contentType
+    contentType = loadInfo?.contentPolicyType
+    context = loadInfo?.loadingNode or loadInfo?.loadingDocument
+    principal = loadInfo?.triggeringPrincipal
+    super null, null, context, contentType, null, principal
 
 
 XUL_NAMESPACE = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'
