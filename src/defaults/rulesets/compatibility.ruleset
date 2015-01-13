@@ -57,3 +57,12 @@ rules:
     # like magnet, irc, webcal, custombutton, etc
     # by allowing any documents from such schemes.
     [contentType] DOCUMENT: ACCEPT
+
+  * -> *:
+    # Allows requests having system principal
+    # TODO A lot of addons seem to be using nsIHTTPChannel and for now this is
+    # the most obvious way not to break them. But this also allows favicon and
+    # google safebrowsing (and maybe more) requests that may be unwanted by
+    # user. This is hopefully a temporary solution until a good way of dealing
+    # with such requests is developed
+    [specialPrincipal] system: ACCEPT
