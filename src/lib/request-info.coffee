@@ -115,6 +115,7 @@ exports.ContextInfo = class ContextInfo
     'contentType',
     'mime',
     'specialPrincipal',
+    'hook',
   ]
 
   # maps integer values of contentType argument to strings according to
@@ -185,6 +186,8 @@ exports.ContextInfo = class ContextInfo
       else if nullPrincipal.equals principal
         @specialPrincipal = 'null'
 
+    @hook = 'shouldLoad'
+
   delimiter = '|' # hoping there is no way | can get into components
   stringify: -> [@nodeName, @className, @id, @contentType, @mime].join delimiter
   parse: (str) ->
@@ -211,7 +214,10 @@ exports.ChannelContextInfo = class ChannelContextInfo extends ContextInfo
     context = loadInfo?.loadingNode or loadInfo?.loadingDocument
     principal = loadInfo?.triggeringPrincipal or \
                 loadInfo?.loadingPrincipal
+
     super null, null, context, contentType, null, principal
+
+    @hook = 'modifyRequest'
 
 
 XUL_NAMESPACE = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'
