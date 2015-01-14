@@ -169,9 +169,11 @@ exports.ContextInfo = class ContextInfo
         @_node = context
         if context instanceof Ci.nsIDOMElement
           @_element = context
-          @className = context.className
-          @classList = makeClassList @className or ''
-          @id = context.id
+          @id = context.id.baseVal # SVGAnimatedString
+          @id ?= context.id
+          @className = context.className.baseVal
+          @className ?= context.className
+          @classList = makeClassList @className
         else if context instanceof Ci.nsIDOMDocument
           @_document = context
 
