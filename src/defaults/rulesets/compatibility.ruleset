@@ -66,3 +66,9 @@ rules:
     # user. This is hopefully a temporary solution until a good way of dealing
     # with such requests is developed
     [specialPrincipal] system: ACCEPT
+
+  * -> *:
+    # Allows requests hooked by "http-on-modify-request" observer
+    # TODO Highly related to the above todo, this effectively makes the observer
+    # hook useless. Temporary solution, hopefully.
+    [hook] modifyRequest: ACCEPT
