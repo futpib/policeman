@@ -53,11 +53,11 @@ class UriInfo
   classifyScheme: (s) -> schemeClassification[s] or 'unknown'
 
   constructor: (uri) ->
-    if typeof uri == 'string' # assuming it's a stringified uriinfo
-      @parse uri
+    if typeof uri == 'string'
+      @_parseURI uri
       return
 
-    if uri
+    if uri # assuming nsIURI
       uriWithRef = uri
       uri = uriWithRef.cloneIgnoringRef()
 
@@ -78,8 +78,7 @@ class UriInfo
     copyHelper uriWithRef, this, @_componentsWithRefMap
     @schemeType = @classifyScheme(@scheme) or ''
 
-  stringify: -> @specRef
-  parse: (str) ->
+  _parseURI: (str) ->
     uriWithRef = path.toURI str
     uri = uriWithRef.cloneIgnoringRef()
     @copyComponents uri, uriWithRef
@@ -189,12 +188,6 @@ exports.ContextInfo = class ContextInfo
         @specialPrincipal = 'null'
 
     @hook = 'shouldLoad'
-
-  delimiter = '|' # hoping there is no way | can get into components
-  stringify: -> [@nodeName, @className, @id, @contentType, @mime].join delimiter
-  parse: (str) ->
-    [@nodeName, @className, @id, @contentType, @mime] = str.split delimiter
-    @classList = makeClassList @className
 
 
 exports.ChannelOriginInfo = class ChannelOriginInfo extends OriginInfo

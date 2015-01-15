@@ -7,7 +7,6 @@ catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
   ChannelOriginInfo, ChannelDestinationInfo, ChannelContextInfo
 } = require 'request-info'
 { memo } = require 'request-memo'
-{ cache } = require 'request-cache'
 { blockedElements } = require 'blocked-elements'
 {
   Handlers
@@ -59,11 +58,7 @@ exports.policy = policy =
 
   # the main entry point for attemted requests
   _shouldLoad: (origin, dest, ctx) ->
-    [os, ds, cs] = [origin.stringify(), dest.stringify(), ctx.stringify()]
-
-    if null == (decision = cache.lookup os, ds, cs)
-      decision = manager.check origin, dest, ctx
-      cache.add os, ds, cs, decision
+    decision = manager.check origin, dest, ctx
 
     memo.add origin, dest, ctx, decision
     blockedElements.process origin, dest, ctx, decision
