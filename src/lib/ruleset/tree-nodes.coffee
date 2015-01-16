@@ -1,5 +1,4 @@
 
-{ OriginInfo, DestInfo } = require 'request-info'
 
 exports.L10nLookup = class L10nLookup
   constructor: (@key) ->
