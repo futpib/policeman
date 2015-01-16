@@ -3,8 +3,8 @@ catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
 
 { manager } = require 'ruleset/manager'
 {
-  OriginInfo, DestinationInfo, ContextInfo
-  ChannelOriginInfo, ChannelDestinationInfo, ChannelContextInfo
+  getShouldLoadInfoObjects
+  getChannelInfoObjects
 } = require 'request-info'
 { memo } = require 'request-memo'
 { blockedElements } = require 'blocked-elements'
@@ -65,17 +65,8 @@ exports.policy = policy =
 
     @onRequest.execute origin, dest, ctx, decision
 
-    return decision
 
-  # We store arguments object together with our request-info object
-  # from the last call to `shouldLoad`. `observe` uses it to determine if it's
-  # dealing with something that was already handled by shouldLoad.
-  # NOTE There seems to be no explicit guarantees on the order of `shouldLoad`
-  # and `observe` (with "http-on-modify-request" topic) calls anywhere in docs.
-  # In fact, `observe` calls are not necessarily preceded by related `shouldLoad`
-  # calls (that's why we need `observe` in the first place).
-  # But we depend on that order here, so this may break some day.
-  _lastShouldLoad: null
+    return decision
 
   # nsIContentPolicy interface implementation
   shouldLoad: (contentType, destUri, originUri, \
@@ -83,17 +74,10 @@ exports.policy = policy =
     # Some things get past shouldLoad, notably favicon requests
     # Such requests are handled by `observe` below
 
-    origin = new OriginInfo originUri
-    dest = new DestinationInfo destUri
-    ctx = new ContextInfo originUri, destUri, context, contentType, mime, principal
+    [origin, dest, ctx] = getShouldLoadInfoObjects \
+                contentType, destUri, originUri, context, mime, extra, principal
 
     decision = @_shouldLoad origin, dest, ctx
-
-    @_lastShouldLoad = {
-      contentType, destUri, originUri, context, mime, extra, principal,
-      origin, dest, ctx,
-      decision,
-    }
 
     if decision
       return Ci.nsIContentPolicy.ACCEPT
@@ -104,29 +88,16 @@ exports.policy = policy =
   observe: (subject, topic, data) ->
     switch topic
       when "http-on-modify-request"
-        # TODO for some requests this gets executed immediately after `shouldLoad`
+        # NOTE for some requests this gets executed immediately after `shouldLoad`
         # it may just mean that some checks are done twice, but it also could
         # be the case that the second check gives different result because
-        # Channel*Info objects are poorer then their counterparts.
-        # Nothing too wrong, but definitely some room for improvement.
+        # Channel*Info objects are different from their counterparts.
 
         channel = subject.QueryInterface Ci.nsIHttpChannel
 
-        decision = undefined
+        [origin, dest, ctx, ci] = getChannelInfoObjects channel
+        decision = @_shouldLoad origin, dest, ctx
 
-        if @_lastShouldLoad
-          if channel.URI == @_lastShouldLoad.destUri
-            # Got the same uri object as previous `shouldLoad` call.
-            # Since `shouldLoad` gets far more info, let's say it knows better.
-            decision = @_lastShouldLoad.decision
-            @_lastShouldLoad = null
-
-        if decision is undefined
-          origin = new ChannelOriginInfo channel
-          dest = new ChannelDestinationInfo channel
-          ctx = new ChannelContextInfo channel
-
-          decision = @_shouldLoad origin, dest, ctx
 
         if not decision
           channel.cancel Cr.NS_ERROR_UNEXPECTED
