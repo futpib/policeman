@@ -66,7 +66,7 @@ prototypeChain = (obj) ->
 exports.elementMethod = elementMethod = em = (cls, method) -> (elem, args...) ->
   e = elem
   for proto in prototypeChain this
-    if cls::__ownsElement e
+    if cls::ownsElement e
       return method.call this, e, args...
     if Object.hasOwnProperty.call proto, '__unwrap'
       e = proto.__unwrap e
@@ -78,7 +78,7 @@ exports.elementMethod = elementMethod = em = (cls, method) -> (elem, args...) ->
 exports.wrapsSuperWidget = wrapsSuperWidget = (widget) ->
   ownElements = new WeakSet
   proto = widget.constructor.prototype
-  proto.__ownsElement = (elem) -> ownElements.has elem
+  proto.ownsElement = (elem) -> ownElements.has elem
   proto.__createOwnElement = (doc, descr) ->
     elem = createElement arguments...
     ownElements.add elem
@@ -121,6 +121,8 @@ exports.Widget = Widget = wrapsSuperWidget new class
       list_style
       style
 
+      flex
+
       appendTo
 
       container
@@ -145,6 +147,8 @@ exports.Widget = Widget = wrapsSuperWidget new class
       else if k.startsWith descr.DATA_PREFIX
         dataKey = k.slice descr.DATA_PREFIX.length
         @setData elem, dataKey, v
+
+    if flex? then elem.flex = flex
 
     if appendTo then appendTo.appendChild elem
 
@@ -171,12 +175,18 @@ exports.Button = Button = new class extends Widget.constructor
 
     btn = super arguments...
 
-    btn.appendChild innerBox = createElement doc, 'hbox',
+    descr.default 'innerTagName', 'hbox'
+    flex = descr.get 'flex'
+
+    btn.appendChild innerBox = createElement doc, (descr.get 'innerTagName'),
       class: 'policeman-popup-button-inner'
+    if flex? then innerBox.flex = 1
 
     innerBox.appendChild lbl = createElement doc, 'label',
       class: 'policeman-popup-button-label'
       value: descr.get 'label'
+    if flex? then lbl.flex = 1
+    if (crop = descr.get 'crop')? then lbl.crop = crop
 
     if tip = descr.get 'tooltiptext'
       btn.setAttribute 'tooltiptext', tip
@@ -187,6 +197,9 @@ exports.Button = Button = new class extends Widget.constructor
       @enable btn
 
     return btn
+
+  _getInnerBox: em @, (btn) -> btn.firstChild
+  _getLabel: em @, (btn) -> btn.firstChild.firstChild
 
   disable: em @, (btn) -> btn.setAttribute 'disabled', 'true'
   enable: em @, (btn) -> btn.setAttribute 'disabled', 'false'

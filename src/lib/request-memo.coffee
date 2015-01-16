@@ -2,7 +2,6 @@
 
 { windows } = require 'windows'
 { tabs } = require 'tabs'
-{ OriginInfo, DestInfo, getWindowFromRequestContext } = require 'request-info'
 
 
 ###

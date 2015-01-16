@@ -1,5 +1,4 @@
 
-{ OriginInfo, DestInfo } = require 'request-info'
 
 exports.L10nLookup = class L10nLookup
   constructor: (@key) ->
@@ -199,15 +198,18 @@ exports.OrigDestPredicate = class OrigDestPredicate
             (@originTest.eq other.originTest) and
             (@destTest.eq other.destTest)
 
+  testHelper = (test1, arg1, test2, arg2) ->
+    test1Matches = test1.test arg1
+    if test1Matches
+      return test2.test arg2, test1Matches
+    return false
+
   test: (origin, dest, ctx) ->
     if @originTest._hasBackref
-      destMatches = @destTest.test dest[@component]
-      if destMatches
-        return @originTest.test origin[@component], destMatches
-    originMatches = @originTest.test origin[@component]
-    if originMatches
-      return @destTest.test dest[@component], originMatches
-    return false
+      return testHelper \
+                    @destTest, dest[@component], @originTest, origin[@component]
+    return testHelper \
+                    @originTest, origin[@component], @destTest, dest[@component]
 
   stringify: -> "[#{ @component }]
                   #{ @originTest.stringify() }

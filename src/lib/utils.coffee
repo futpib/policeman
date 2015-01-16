@@ -61,6 +61,34 @@ exports.cache = cache = ({hash, version, function: f}) ->
       return value
 
 
+exports.defineLazyProperty = defineLazyProperty = (cls, name, getter) ->
+  ###
+  Defines a property `name` on `cls::`. Once that property is accesed
+  `getter` is called to determine it's value. This value is set on this
+  and returned as a result.
+  ###
+  proto = cls::
+  Object.defineProperty proto, name,
+    enumerable: yes
+    get: ->
+      try
+        value = getter.call this
+      catch e
+        log.error 'Getter for property', name, 'of', this, 'threw', e
+        value = Object.getPrototypeOf(proto)?[name]
+      Object.defineProperty this, name,
+        enumerable: yes
+        value: value
+      return value
+
+exports.forceLazyProperties = forceLazyProperties = (obj) ->
+  ###
+  Accesses all enumerable properties of `obj`.
+  Useful for debugging the `defineLazyProperty` util.
+  ###
+  continue for n, p of obj
+
+
 CHILDREN_RESERVED_ATTRIBUTE = '_children_'
 EVENT_PREFIX = 'event_'
 exports.createElement = createElement = (doc, tag, attrs={}) ->

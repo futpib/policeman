@@ -1,5 +1,6 @@
 
 {
+  removeNode
   XMLHttpRequest
 } = require 'utils'
 
@@ -16,6 +17,20 @@ exports.loadOverlay = loadOverlay = (doc, url, callback) ->
   xhr = new XMLHttpRequest
   xhr.addEventListener 'load', ->
     xml = xhr.responseXML
+
+    ###
+    Remove text nodes. Some firefox code expects their absence. Particulary
+    chrome://global/content/bindings/scrollbox.xml does (_canScrollToElement
+    (which uses getComputedStyle, expecting element) is called on childNodes)
+    TODO maybe we have to go farther and remove all non-element nodes
+    TODO maybe report to mozilla
+    ###
+    toBeRemoved = []
+    textWalker = xml.createTreeWalker xml, Ci.nsIDOMNodeFilter.SHOW_TEXT
+    while textWalker.nextNode()
+      toBeRemoved.push textWalker.currentNode
+    toBeRemoved.forEach removeNode
+
     overlay = xml.getElementsByTagName('overlay')[0]
     for child in overlay.children
       target = doc.getElementById child.id

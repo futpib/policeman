@@ -5,8 +5,8 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <popupset id="mainPopupSet">
-    <menupopup id="policeman-popup">
-      <vbox>
+    <panel id="policeman-popup">
+      <arrowscrollbox orient="vertical" flex="1">
         <stack>
           <hbox>
             <vbox>
@@ -117,8 +117,8 @@
             -->
           </hbox>
         </hbox>
-      </vbox>
-    </menupopup>
+      </arrowscrollbox>
+    </panel>
   </popupset>
 
 </overlay>

@@ -2,25 +2,103 @@
 { path } = require 'file'
 { tabs } = require 'tabs'
 
-class UriInfo
-  _componentsWithoutRefMap:
-    'scheme'  : 'scheme'
-    'username': 'username'
-    'password': 'password'
-    'userPass': 'userPass'
-    'host'    : 'host'
-    'port'    : 'port'
-    'hostPort': 'hostPort'
-    'prePath' : 'prePath'
-    'path'    : 'path'
-    'spec'    : 'spec'
+{
+  defineLazyProperty: deflp
+} = require 'utils'
 
-  _componentsWithRefMap:
-    'ref' : 'ref'
-    'path': 'pathRef'
-    'spec': 'specRef'
 
-  schemeClassification = Object.create null
+ioService = Cc["@mozilla.org/network/io-service;1"]
+    .getService Ci.nsIIOService
+
+
+systemPrincipal = Cc["@mozilla.org/systemprincipal;1"]
+                  .createInstance Ci.nsIPrincipal
+nullPrincipal = Cc["@mozilla.org/nullprincipal;1"]
+                .createInstance Ci.nsIPrincipal
+
+
+# maps integer values of contentType argument to strings according to
+# https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy#Constants
+intToTypeMap = [
+  undefined,
+  'OTHER', # 1
+  'SCRIPT', # 2
+  'IMAGE', # 3
+  'STYLESHEET', # 4
+  'OBJECT', # 5
+  'DOCUMENT', # 6
+  'SUBDOCUMENT', # 7
+  'REFRESH', # 8
+  'XBL', # 9
+  'PING', # 10
+  'XMLHTTPREQUEST', # 11
+  'OBJECT_SUBREQUEST', # 12
+  'DTD', # 13
+  'FONT', # 14
+  'MEDIA', # 15
+  'WEBSOCKET', # 16
+  'CSP_REPORT', # 17
+  'XSLT', # 18
+  'BEACON', # 19
+]
+
+
+exports.UriInfoBase = class UriInfoBase
+  for property in [
+    'scheme',
+    'schemeType',
+    'username',
+    'password',
+    'userPass',
+    'host',
+    'port',
+    'hostPort',
+    'prePath',
+    'path',
+    'pathRef',
+    'spec',
+    'specRef',
+    'ref',
+  ]
+    @::[property] = ''
+
+
+exports.UriInfo = class UriInfo extends UriInfoBase
+  constructor: (uri) ->
+    if typeof uri == 'string'
+      uri = ioService.newURI x, null, null
+    @_uri = uri
+
+  uriWithRefMap = # property of @_uri -> property of this
+    'scheme'         : 'scheme'
+    'username'       : 'username'
+    'password'       : 'password'
+    'userPass'       : 'userPass'
+    'host'           : 'host'
+    'port'           : 'port'
+    'hostPort'       : 'hostPort'
+    'prePath'        : 'prePath'
+    'ref'            : 'ref'
+    'path'           : 'pathRef'
+    'specIgnoringRef': 'spec'
+    'spec'           : 'specRef'
+
+  for uriProp, thisProp of uriWithRefMap
+    deflp @, thisProp, do (uriProp=uriProp) -> ->
+      try # may throw if such component is inapplicable to uri
+        value = @_uri[uriProp]
+      value ?= ''
+      return value
+
+  deflp @, '_uriWithoutRef', -> @_uri?.cloneIgnoringRef()
+
+  # can't get "path without ref" without calling uri.cloneIgnoringRef() first
+  deflp @, 'path', ->
+    try value = @_uriWithoutRef?.path
+    value ?= ''
+    return value
+
+  schemeClassification = Object.create null # scheme -> schemeClass
   schemeClass = (cls, schemes) -> schemeClassification[s] = cls for s in schemes
 
   schemeClass 'internal', [
@@ -39,147 +117,222 @@ class UriInfo
     'blob',
     'javascript',
   ]
+  schemeClass 'web', [
+    'https',
+    'http',
+    'ftp',
+    'wss',
+    'ws',
+  ]
   schemeClass 'file', [
     'file',
   ]
 
-  classifyScheme: (s) -> schemeClassification[s] or 'unknown'
+  classifyScheme = (s) -> schemeClassification[s] or 'unknown'
 
-  constructor: (uri) ->
-    if typeof uri == 'string' # assuming it's a stringified uriinfo
-      @parse uri
-      return
-
-    if uri
-      uriWithRef = uri
-      uri = uriWithRef.cloneIgnoringRef()
-
-    uri ?= {}
-    uriWithRef ?= {}
-
-    @copyComponents uri, uriWithRef
-
-  copyHelper = (from, to, map) =>
-    for f, t of map
-      to[t] = \
-        try
-          from[f] or '' # may throw if such component is inapplicable to uri
-        catch
-          ''
-  copyComponents: (uri, uriWithRef) ->
-    copyHelper uri, this, @_componentsWithoutRefMap
-    copyHelper uriWithRef, this, @_componentsWithRefMap
-    @schemeType = @classifyScheme(@scheme) or ''
-
-  stringify: -> @specRef
-  parse: (str) ->
-    uriWithRef = path.toURI str
-    uri = uriWithRef.cloneIgnoringRef()
-    @copyComponents uri, uriWithRef
+  deflp @, 'schemeType', -> classifyScheme @scheme
 
 
 exports.OriginInfo = class OriginInfo extends UriInfo
-  schemeWebOrigin =
-    https: true
-    http: true
-    ftp: true
-  classifyScheme: (s) -> if s of schemeWebOrigin \
-    then 'web' \
-    else super arguments...
-
 
 exports.DestinationInfo = class DestinationInfo extends UriInfo
-  schemeWebDestination =
-    https: true
-    http: true
-    ftp: true
-    wss: true
-    ws: true
-  classifyScheme: (s) -> if s of schemeWebDestination \
-    then 'web' \
-    else super arguments...
 
 
-exports.ContextInfo = class ContextInfo
-  components: ['nodeName', 'contentType', 'mime']
-
-  # maps integer values of contentType argument to strings according to
-  # https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy#Constants
-  intToTypeMap = [
-    undefined,
-    'OTHER', # 1
-    'SCRIPT', # 2
-    'IMAGE', # 3
-    'STYLESHEET', # 4
-    'OBJECT', # 5
-    'DOCUMENT', # 6
-    'SUBDOCUMENT', # 7
-    'REFRESH', # 8
-    'XBL', # 9
-    'PING', # 10
-    'XMLHTTPREQUEST', # 11
-    'OBJECT_SUBREQUEST', # 12
-    'DTD', # 13
-    'FONT', # 14
-    'MEDIA', # 15
-    'WEBSOCKET', # 16
-    'CSP_REPORT', # 17
-    'XSLT', # 18
-    'BEACON', # 19
+exports.ContextInfoBase = class ContextInfoBase
+  for property in [
+    'nodeName',
+    'className',
+    'classList',
+    'id',
+    'contentType',
+    'mime',
+    'specialPrincipal',
+    'hook',
   ]
+    @::[property] = ''
 
-  makeClassList = (className) ->
+
+exports.ContextInfo = class ContextInfo extends ContextInfoBase
+  components: Object.keys ContextInfoBase::
+
+  constructor: (originUri, destUri, context, contentType, mime, principal) ->
+    @contentType = intToTypeMap[contentType] or ''
+    @mime = mime or ''
+
+    @_context = context
+    @_principal = principal
+
+    @hook = 'shouldLoad'
+
+  for prop, iface of {
+    '_node'    : Ci.nsIDOMNode
+    '_element' : Ci.nsIDOMElement
+    '_document': Ci.nsIDOMDocument
+    '_window'  : Ci.nsIDOMWindow
+  }
+    deflp @, prop, do (iface=iface) -> ->
+      if @_context instanceof iface then @_context
+
+  deflp @, 'nodeName', ->
+    if @_window
+      return '#window'
+    else if @_node
+      return @_node.nodeName.toLowerCase()
+    else
+      return ''
+
+  deflp @, 'id', ->
+    if (bv = @_element?.id?.baseVal)? # SVGAnimatedString
+      return bv
+    return @_element?.id or ''
+
+  deflp @, 'className', ->
+    if (bv = @_element?.className?.baseVal)?
+      return bv
+    return @_element?.className or ''
+
+  deflp @, 'classList', ->
     l = Object.create null
-    for c in className.split(' ')
+    for c in @className.split(' ')
       l[c] = true
     return l
 
-  constructor: (originUri, destUri, context, contentType, @mime, principal) ->
-    # TODO is there any useful data we can get from nsIPrincipal?
+  XUL_NAMESPACE = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'
+  getWindowFromRequestContext = (ctx) ->
+    # gets dom window from context argument content policy's shouldLoad gets
+    # https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy#shouldLoad%28%29
+    # reference says it's either nsIDOMNode or nsIDOMWindow
+    if ctx instanceof Ci.nsIDOMWindow
+      return ctx
+    if ctx instanceof Ci.nsIDOMDocument
+      return ctx.defaultView
+    if ctx instanceof Ci.nsIDOMNode
+      if (ctx.localName == 'browser') and (ctx.namespaceURI == XUL_NAMESPACE)
+        return ctx.contentWindow
+      # this will be chrome window in some cases
+      return ctx.ownerDocument.defaultView
 
-    @contentType = intToTypeMap[contentType]
-
-    @nodeName = ''
-    if context
-      if context instanceof Ci.nsIDOMWindow
-        @nodeName = '#window'
-        @_window = context
-      else if context instanceof Ci.nsIDOMNode
-        @nodeName = context.nodeName.toLowerCase()
-        @_node = context
-        if context instanceof Ci.nsIDOMElement
-          @_element = context
-          @className = context.className
-          @classList = makeClassList @className or ''
-          @id = context.id
-        else if context instanceof Ci.nsIDOMDocument
-          @_document = context
-
-    @_tabId = ''
-    tab = tabs.getWindowOwner getWindowFromRequestContext context
+  deflp @, '_tabId', ->
+    tab = tabs.getWindowOwner getWindowFromRequestContext @_context
     if tab
-      @_tabId = tabs.getTabId tab
+      return tabs.getTabId tab
+    return ''
 
-  delimiter = '|' # hoping there is no way | can get into components
-  stringify: -> [@nodeName, @className, @id, @contentType, @mime].join delimiter
-  parse: (str) ->
-    [@nodeName, @className, @id, @contentType, @mime] = str.split delimiter
-    @classList = makeClassList @className
-
-XUL_NAMESPACE = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'
-exports.getWindowFromRequestContext = getWindowFromRequestContext = (ctx) ->
-  # gets dom window from context argument content policy's shouldLoad gets
-  # https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy#shouldLoad%28%29
-  # reference says it's either nsIDOMNode or nsIDOMWindow
-  if ctx instanceof Ci.nsIDOMWindow
-    return ctx
-  if ctx instanceof Ci.nsIDOMDocument
-    return ctx.defaultView
-  if ctx instanceof Ci.nsIDOMNode
-    if (ctx.localName == 'browser') and (ctx.namespaceURI == XUL_NAMESPACE)
-      return ctx.contentWindow
-    # this will be chrome window in some cases
-    return ctx.ownerDocument.defaultView
+  deflp @, 'specialPrincipal', ->
+    if @_principal
+      if (try systemPrincipal.equals @_principal)
+        return 'system'
+      else if (try nullPrincipal.equals @_principal)
+        return 'null'
+    return ''
 
 
+exports.ChannelInfo = class ChannelInfo
+  constructor: (channel) ->
+    @_channel = channel
 
+  deflp @, '_triggeringPrincipal', -> @_channel?.loadInfo?.triggeringPrincipal
+  deflp @, '_loadingPrincipal', -> @_channel?.loadInfo?.loadingPrincipal
+
+  for prop, iface of {
+    '_loadContext' : Ci.nsILoadContext
+    '_webProgress' : Ci.nsIWebProgress
+    '_webNav'      : Ci.nsIWebNavigation
+    '_docShell'    : Ci.nsIDocShell
+
+    '_node'        : Ci.nsIDOMNode
+    '_element'     : Ci.nsIDOMElement
+    '_document'    : Ci.nsIDOMDocument
+    '_window'      : Ci.nsIDOMWindow
+
+    '_xhr'         : Ci.nsIXMLHttpRequest
+  }
+    deflp @, prop, do (iface=iface) -> ->
+      try
+        return @_channel.notificationCallbacks.getInterface iface
+
+  deflp @, '_documentIndirect', -> # getting document by more unobvious means
+    return @_document \
+        or @_channel.loadInfo?.loadingDocument \
+        or @_webNav?.document \
+        or @_node?.ownerDocument
+
+  deflp @, '_windowIndirect', ->
+    return @_window \
+        or (try @_loadContext.associatedWindow) \
+        or @_documentIndirect?.defaultView \
+        or @_webProgress?.DOMWindow
+
+  deflp @, '_originLocationUri', ->
+    if (uri = @_webNav?.currentURI)?
+      return uri
+    if @_windowIndirect then try
+      return ioService.newURI @_windowIndirect.location.href, null, null
+    return undefined
+
+  deflp @, '_originPrincipalUri', ->
+    return @_triggeringPrincipal?.URI \
+        or @_triggeringPrincipal?.originalURI \
+        or @_loadingPrincipal?.URI \
+        or @_loadingPrincipal?.originalURI
+
+  deflp @, 'originUri', ->
+    return @_originPrincipalUri \
+        or @_originLocationUri
+
+  deflp @, 'destUri', -> @_channel.URI
+
+  deflp @, 'context', ->
+    return @_element \
+        or @_document \
+        or @_node \
+        or @_window \
+        or @_documentIndirect \
+        or @_windowIndirect
+
+  deflp @, 'contentType', ->
+    if @_channel.loadInfo?.contentPolicyType?
+      return @_channel.loadInfo.contentPolicyType
+    if @_xhr
+      return Ci.nsIContentPolicy.TYPE_XMLHTTPREQUEST
+    return undefined
+
+  deflp @, 'mime', -> try @_channel.contentType
+
+  deflp @, 'principal', -> @_triggeringPrincipal or @_loadingPrincipal
+
+
+exports.ChannelOriginInfo = class ChannelOriginInfo extends OriginInfo
+  constructor: (channelInfo) ->
+    super channelInfo.originUri
+
+exports.ChannelDestinationInfo = class ChannelDestinationInfo extends DestinationInfo
+  constructor: (channelInfo) ->
+    super channelInfo.destUri
+
+
+exports.ChannelContextInfo = class ChannelContextInfo extends ContextInfo
+  constructor: (channelInfo) ->
+    super channelInfo.originUri,
+          channelInfo.destUri,
+          channelInfo.context,
+          channelInfo.contentType,
+          channelInfo.mime,
+          channelInfo.principal
+
+    @hook = 'modifyRequest'
+
+
+exports.getShouldLoadInfoObjects = \
+  (contentType, destUri, originUri, context, mime, extra, principal) ->
+    origin = new OriginInfo originUri
+    dest = new DestinationInfo destUri
+    ctx = new ContextInfo originUri, destUri, context, contentType, mime, principal
+    return [origin, dest, ctx]
+
+exports.getChannelInfoObjects = (channel) ->
+  channelInfo = new ChannelInfo channel
+  origin = new ChannelOriginInfo channelInfo
+  dest = new ChannelDestinationInfo channelInfo
+  ctx = new ChannelContextInfo channelInfo
+  return [origin, dest, ctx, channelInfo]
