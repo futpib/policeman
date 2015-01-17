@@ -30,7 +30,7 @@ onLoad = ->
         SubpageLink::select link
         iframe.contentDocument.location.replace link.href
         return
-    defaultLink = '#default-subpref-link'
+    defaultLink = $ '#default-subpref-link'
     SubpageLink::select defaultLink
     iframe.contentDocument.location.replace defaultLink.href
 
