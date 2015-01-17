@@ -95,6 +95,13 @@ onLoad = ->
   toolbarbuttonEvents '#toolbarbutton-events', 'middleClick'
   toolbarbuttonEvents '#toolbarbutton-events', 'mouseover'
 
+  $('#toolbarbutton-events').appendChild createElement 'checkbox',
+    label: l10n 'preferences_toolbarbutton_events_autoreaload'
+    checked: toolbarbutton.events.autoreload.enabled()
+    event_CheckboxStateChange: -> if @checked \
+      then toolbarbutton.events.autoreload.enable() \
+      else toolbarbutton.events.autoreload.disable()
+
   blockedElementHandling {
     type: 'image'
     enabledCheckbox: '#enable-image-handling'

@@ -148,6 +148,8 @@ exports.toolbarbutton = toolbarbutton = new class
       toggleSuspended: (e) ->
         manager.toggleSuspended()
         toolbarbutton.indicator.update()
+        if toolbarbutton.events.autoreload.enabled()
+          tabs.reload tabs.getCurrent()
       toggleTabSuspended: (e) ->
         if (temporary = manager.get 'user_temporary')
           tab = tabs.getCurrent()
@@ -156,9 +158,13 @@ exports.toolbarbutton = toolbarbutton = new class
           else
             temporary.allowTab tab
           toolbarbutton.indicator.update()
+          if toolbarbutton.events.autoreload.enabled()
+            tabs.reload tab
       removeTemporaryRules: (e) ->
         if (temporary = manager.get 'user_temporary')
           temporary.revokeAll()
+        if toolbarbutton.events.autoreload.enabled()
+          tabs.reload tabs.getCurrent()
     _actions: actions
 
     _eventToAction:
@@ -198,3 +204,12 @@ exports.toolbarbutton = toolbarbutton = new class
 
     setAction: (eventName, actionName) ->
       prefs.set (@_eventNameToPref eventName), @_actions[actionName] or actions.noop
+
+    autoreload: new class
+      prefs.define AUTORELOAD_PREF = 'ui.toolbarbutton.autoReloadPageOnAction',
+        default: true
+        sync: true
+
+      enabled: -> prefs.get AUTORELOAD_PREF
+      enable: -> prefs.set AUTORELOAD_PREF, true
+      disable: -> prefs.set AUTORELOAD_PREF, false
