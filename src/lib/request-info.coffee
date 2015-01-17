@@ -66,7 +66,7 @@ exports.UriInfoBase = class UriInfoBase
 exports.UriInfo = class UriInfo extends UriInfoBase
   constructor: (uri) ->
     if typeof uri == 'string'
-      uri = ioService.newURI x, null, null
+      uri = ioService.newURI uri, null, null
     @_uri = uri
 
   uriWithRefMap = # property of @_uri -> property of this
@@ -266,6 +266,8 @@ exports.ChannelInfo = class ChannelInfo
   deflp @, '_originLocationUri', ->
     if (uri = @_webNav?.currentURI)?
       return uri
+    if (uri = @_documentIndirect?.documentUTIObject)?
+      return uri
     if @_windowIndirect then try
       return ioService.newURI @_windowIndirect.location.href, null, null
     return undefined
@@ -323,16 +325,119 @@ exports.ChannelContextInfo = class ChannelContextInfo extends ContextInfo
     @hook = 'modifyRequest'
 
 
+infoMangling = new class
+  ###
+  This object holds hooks that are called by get*InfoObjects functions below
+  for them to change info objects in some special cases (like making favicon
+  requests look like thay are made by content documents, not by chrome).
+  ###
+
+  class ManglingHook
+    class Hooks
+      constructor: -> @_hooks = []
+      add: (f) -> @_hooks.push f
+      invoke: ->
+        for h in @_hooks
+          try
+            if v = h arguments...
+              return v
+          catch e
+            log.error 'Mangling hook', h, 'threw', e
+        return undefined
+
+    raw: new Hooks
+    wrapped: new Hooks
+
+  shouldLoad = new ManglingHook
+  channel = new ManglingHook
+
+  shouldLoad: shouldLoad
+  channel: channel
+
+  # Favicon requests handling
+
+  favicons = new class # keeps all the favicon URLs and corresponding tabs
+    faviconUrlToTab = Object.create null
+
+    iconChangeObserver = null
+
+    onOpen = (t) ->
+      if not iconChangeObserver
+        { MutationObserver } = t.ownerDocument.defaultView
+        iconChangeObserver = new MutationObserver (mutations) ->
+          for m in mutations
+            if old = m.oldValue
+              delete faviconUrlToTab[old]
+            if new_ = m.target.image
+              faviconUrlToTab[new_] = m.target
+      iconChangeObserver.observe t,
+        attributes: yes
+        attributeOldValue: yes
+        attributeFilter: ['image']
+      faviconUrlToTab[t.image] = t
+
+    onClose = (t) ->
+      delete faviconUrlToTab[t.image]
+
+    onOpen t for t in tabs.list
+    tabs.onOpen.add onOpen
+    tabs.onClose.add onClose
+
+    isIconUrl: (url) -> url of faviconUrlToTab
+    getTabForIcon: (url) -> faviconUrlToTab[url]
+
+  channel.wrapped.add (origin, dest, ctx, channelInfo) ->
+    ###
+    Detects favicon requests and makes them look like they were made by
+    corresponding content documents, not by chrome which they actually are.
+    ###
+    if  ctx.specialPrincipal == 'system' \
+    and origin.spec == 'chrome://browser/content/browser.xul' \
+    and (favicons.isIconUrl dest.specRef)
+      tab = favicons.getTabForIcon dest.specRef
+
+      browser = tab.linkedBrowser
+      window = browser.contentWindow
+      document = browser.contentDocument
+
+      newDest = dest
+      newOrigin = new OriginInfo window.location.href
+      newCtx = new ContextInfo \
+              newOrigin,
+              newDest,
+              document,
+              Ci.nsIContentPolicy.TYPE_IMAGE,
+              null,
+              ctx._principal
+
+      return [newOrigin, newDest, newCtx]
+    return undefined
+
+
 exports.getShouldLoadInfoObjects = \
   (contentType, destUri, originUri, context, mime, extra, principal) ->
+    if mangled = infoMangling.shouldLoad.raw.invoke arguments...
+      return mangled
+
     origin = new OriginInfo originUri
     dest = new DestinationInfo destUri
     ctx = new ContextInfo originUri, destUri, context, contentType, mime, principal
+
+    if mangled = infoMangling.shouldLoad.wrapped.invoke origin, dest, ctx
+      return mangled
+
     return [origin, dest, ctx]
 
 exports.getChannelInfoObjects = (channel) ->
+  if mangled = infoMangling.channel.raw.invoke arguments...
+    return mangled
+
   channelInfo = new ChannelInfo channel
   origin = new ChannelOriginInfo channelInfo
   dest = new ChannelDestinationInfo channelInfo
   ctx = new ChannelContextInfo channelInfo
+
+  if mangled = infoMangling.channel.wrapped.invoke origin, dest, ctx, channelInfo
+    return mangled
+
   return [origin, dest, ctx, channelInfo]
