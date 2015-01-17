@@ -40,3 +40,18 @@ rules:
   (web|file) -> internal:
     # top-level media player and image viewer require internal styles
     [contentType] STYLESHEET: ACCEPT
+
+  * -> *:
+    # Allows requests having system principal
+    # TODO A lot of addons seem to be using nsIHTTPChannel and for now this is
+    # the most obvious way not to break them. But this also allows favicon and
+    # google safebrowsing (and maybe more) requests that may be unwanted by
+    # user. This is hopefully a temporary solution until a good way of dealing
+    # with such requests is developed
+    [specialPrincipal] system: ACCEPT
+
+  * -> *:
+    # Allows requests hooked by "http-on-modify-request" observer
+    # TODO Highly related to the above todo, this effectively makes the observer
+    # hook useless (except for requests mangled by lib/request-info).
+    [hook] modifyRequest: ACCEPT
