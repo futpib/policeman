@@ -29,7 +29,7 @@ exports.memo = memo = new class
   _addRequestByTab: (i, origin, dest, context, decision) ->
     for prop in ['nodeName', 'className', 'id']
       # Force these property getters for later use by UI if the node goes dead
-      context['prop']
+      context[prop]
     @_tabIdToRequests[i].push [origin, dest, context, decision]
     @_tabIdToStats[i].hit origin, dest, context, decision
 
