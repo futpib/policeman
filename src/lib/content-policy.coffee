@@ -60,11 +60,12 @@ exports.policy = policy =
   _shouldLoad: (origin, dest, ctx) ->
     decision = manager.check origin, dest, ctx
 
-    memo.add origin, dest, ctx, decision
-    blockedElements.process origin, dest, ctx, decision
-
-    @onRequest.execute origin, dest, ctx, decision
-
+    try
+      memo.add origin, dest, ctx, decision
+      blockedElements.process origin, dest, ctx, decision
+      @onRequest.execute origin, dest, ctx, decision
+    catch e
+      log.error 'Error processing a request:', e
 
     return decision
 
