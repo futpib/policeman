@@ -1173,7 +1173,9 @@ exports.popup = popup =
     doc = win.document
     loadOverlay doc, 'chrome://policeman/content/popup.xul', =>
       panel = doc.getElementById @id
-      panel.addEventListener 'popupshown', @onShowing.bind @
+      # just before it's visible
+      panel.addEventListener 'popupshowing', @onShowing.bind @
+      # just after it's hidden
       panel.addEventListener 'popuphidden', @onHiding.bind @
 
     loadSheet doc.defaultView, @styleURI
