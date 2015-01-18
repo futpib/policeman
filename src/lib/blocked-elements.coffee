@@ -191,8 +191,9 @@ class Placeholder extends BlockedElementHandler
     elem.style.backgroundRepeat = 'no-repeat'
     elem.style.backgroundPosition = 'center center'
     elem.style.backgroundImage = "url('#{ BACKGROUND_IMAGE }')"
-    if 'inline' == computedStyle.getPropertyValue 'display'
-      elem.style.display = 'inline-block'
+    if computedStyle # FF bug 548397 (getComputedStyle == null for hidden iframes)
+      if 'inline' == computedStyle.getPropertyValue 'display'
+        elem.style.display = 'inline-block'
     elem.style.minWidth = elem.style.minHeight = '32px'
 
   _filteredRestore: (elem) ->
