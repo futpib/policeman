@@ -43,11 +43,10 @@ rules:
 
   * -> *:
     # Allows requests having system principal
-    # TODO A lot of addons seem to be using nsIHTTPChannel and for now this is
-    # the most obvious way not to break them. But this also allows favicon and
-    # google safebrowsing (and maybe more) requests that may be unwanted by
-    # user. This is hopefully a temporary solution until a good way of dealing
-    # with such requests is developed
+    # TODO A lot of addons are loading stuff with system principal and for now
+    # this is the most obvious way not to break them. But this also allows
+    # some requests that may be unwanted by user. This is hopefully a temporary
+    # solution until a good way of dealing with such requests is developed
     [specialPrincipal] system: ACCEPT
 
   * -> *:
