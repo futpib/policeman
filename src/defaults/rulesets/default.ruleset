@@ -22,10 +22,7 @@ l10n:
     description: "Autoriser quelques requêtes internes essentielles à la navigation"
 
 rules:
-  # Essentials
-
-  * -> inline: ACCEPT
-  internal -> internal: ACCEPT
+  * -> (inline|internal): ACCEPT
 
   internal -> (web|file):
     # allows various thing like navigation from chrome pages to web and
@@ -36,10 +33,6 @@ rules:
   web -> web:
     # allows opening links on web pages
     [contentType] DOCUMENT: ACCEPT
-
-  (web|file) -> internal:
-    # top-level media player and image viewer require internal styles
-    [contentType] STYLESHEET: ACCEPT
 
   * -> *:
     # Allows requests having system principal
