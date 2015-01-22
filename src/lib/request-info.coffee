@@ -235,41 +235,43 @@ exports.ChannelInfo = class ChannelInfo
   deflp @, '_loadingPrincipal', -> @_channel?.loadInfo?.loadingPrincipal
 
   for prop, iface of {
-    '_loadContext' : Ci.nsILoadContext
-    '_webProgress' : Ci.nsIWebProgress
-    '_webNav'      : Ci.nsIWebNavigation
-    '_docShell'    : Ci.nsIDocShell
+    '_notificationCallbacks_loadContext' : Ci.nsILoadContext
+    '_notificationCallbacks_webProgress' : Ci.nsIWebProgress
+    '_notificationCallbacks_webNav'      : Ci.nsIWebNavigation
+    '_notificationCallbacks_docShell'    : Ci.nsIDocShell
 
-    '_node'        : Ci.nsIDOMNode
-    '_element'     : Ci.nsIDOMElement
-    '_document'    : Ci.nsIDOMDocument
-    '_window'      : Ci.nsIDOMWindow
+    '_notificationCallbacks_node'        : Ci.nsIDOMNode
+    '_notificationCallbacks_element'     : Ci.nsIDOMElement
+    '_notificationCallbacks_document'    : Ci.nsIDOMDocument
+    '_notificationCallbacks_window'      : Ci.nsIDOMWindow
 
-    '_xhr'         : Ci.nsIXMLHttpRequest
+    '_notificationCallbacks_xhr'         : Ci.nsIXMLHttpRequest
   }
     deflp @, prop, do (iface=iface) -> ->
       try
         return @_channel.notificationCallbacks.getInterface iface
 
-  deflp @, '_documentIndirect', -> # getting document by more unobvious means
-    return @_document \
-        or @_channel.loadInfo?.loadingDocument \
-        or @_webNav?.document \
-        or @_node?.ownerDocument
+  deflp @, '_document', ->
+    return @_channel.loadInfo?.loadingDocument \
+        or @_notificationCallbacks_document \
+        or @_notificationCallbacks_webNav?.document \
+        or @_notificationCallbacks_node?.ownerDocument
 
-  deflp @, '_windowIndirect', ->
-    return @_window \
-        or (try @_loadContext.associatedWindow) \
-        or @_documentIndirect?.defaultView \
-        or @_webProgress?.DOMWindow
+  deflp @, '_window', ->
+    return @_document?.defaultView \
+        or @_notificationCallbacks_window \
+        or (try @_notificationCallbacks_loadContext.associatedWindow) \
+        or @_notificationCallbacks_webProgress?.DOMWindow
 
   deflp @, '_originLocationUri', ->
-    if (uri = @_webNav?.currentURI)?
+    if (uri = @_channel.referrer)?
       return uri
-    if (uri = @_documentIndirect?.documentUTIObject)?
+    if (uri = @_document?.documentURIObject)?
       return uri
-    if @_windowIndirect then try
-      return ioService.newURI @_windowIndirect.location.href, null, null
+    if (uri = @_notificationCallbacks_webNav?.currentURI)?
+      return uri
+    if @_window then try
+      return ioService.newURI @_window.location.href, null, null
     return undefined
 
   deflp @, '_originPrincipalUri', ->
@@ -285,17 +287,15 @@ exports.ChannelInfo = class ChannelInfo
   deflp @, 'destUri', -> @_channel.URI
 
   deflp @, 'context', ->
-    return @_element \
+    return @_notificationCallbacks_element \
         or @_document \
-        or @_node \
-        or @_window \
-        or @_documentIndirect \
-        or @_windowIndirect
+        or @_notificationCallbacks_node \
+        or @_window
 
   deflp @, 'contentType', ->
     if @_channel.loadInfo?.contentPolicyType?
       return @_channel.loadInfo.contentPolicyType
-    if @_xhr
+    if @_notificationCallbacks_xhr
       return Ci.nsIContentPolicy.TYPE_XMLHTTPREQUEST
     return undefined
 
