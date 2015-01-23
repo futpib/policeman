@@ -400,8 +400,8 @@ originSelection = new (class extends DomainSelectionButtons
       return false
 
   populate: (doc) ->
-    location = tabs.getCurrent().linkedBrowser.contentWindow.location
-    @selectedDomain = location.hostname
+    currentURI = tabs.getCurrent().linkedBrowser.currentURI
+    @selectedDomain = try currentURI.host
     super doc
 
   _chromeDomainLabel: l10n 'popup_chrome_origin'

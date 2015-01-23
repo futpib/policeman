@@ -56,7 +56,7 @@ exports.tabs = tabs =
 
   getNodeOwner: (node) -> @getWindowOwner node.ownerDocument.defaultView.top
 
-  reload: (tab) -> tab.linkedBrowser.contentDocument.location.reload()
+  reload: (tab) -> tab.linkedBrowser.reload()
 
   open: (url, reuse=on) ->
     if reuse
