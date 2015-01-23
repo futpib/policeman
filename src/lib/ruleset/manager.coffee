@@ -96,13 +96,15 @@ prefs.define SUSPENDED_PREF = 'manager.suspended',
 
 
 cachedRulesetConstructor = cache
-  hash: (uri) -> uri
-  version: (uri) ->
+  hash: (id, uri) -> uri
+  version: (id, uri) ->
+    if id in embeddedRuleSets # embedded ones can not change, return a constant
+      return 1
     try
       return file_path.toFile(uri).lastModifiedTime
     catch e
       return Math.random()
-  function: formatRegistry.parseByLocalUrl.bind formatRegistry
+  function: (id, uri) -> formatRegistry.parseByLocalUrl uri
 
 
 rulesetFiles = new class
@@ -141,13 +143,13 @@ rulesetFiles = new class
       tmpPath: "#{path}.tmp"
     ).then(-> relPath)
 
-  load: (relPath) ->
-    # TODO OS.File + Promise
-    return cachedRulesetConstructor @getFullPath relPath
-
-  loadEmbedded: (id) ->
-    # TODO Something (XHR?) + Promise
-    return cachedRulesetConstructor @getEmbeddedUrl id
+  load: (id, relPath=undefined) ->
+    if id in embeddedRuleSets
+      # TODO Something (XHR?) + Promise
+      return cachedRulesetConstructor id, @getEmbeddedUrl id
+    else
+      # TODO OS.File + Promise
+      return cachedRulesetConstructor id, @getFullPath relPath
 
   acquire: (relPath) ->
     relPath = OS.Path.normalize relPath
@@ -198,10 +200,10 @@ exports.Manager = class Manager
     if codeBasedIdToObject.hasOwnProperty id
       return codeBasedIdToObject[id]
     if id in embeddedRuleSets
-      return rulesetFiles.loadEmbedded id
+      return rulesetFiles.load id
     unless id of @_installedPathsByIds
       throw new Error "Ruleset '#{id}' is not installed"
-    return rulesetFiles.load @_installedPathsByIds[id]
+    return rulesetFiles.load id, @_installedPathsByIds[id]
 
   installed: (id) -> id of @_installedPathsByIds
 

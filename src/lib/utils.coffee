@@ -48,16 +48,16 @@ exports.cache = cache = ({hash, version, function: f}) ->
   if not version
     version = -> '' # just a constant
   versions = Object.create null
-  cache_ = Object.create null
+  cache_ = new ValueWeakMap
   return (args...) ->
     k = hash args...
     v = version args...
-    if k of cache_ and versions[k] == v
-      return cache_[k]
+    if cache_.has(k) and versions[k] == v
+      return cache_.get(k)
     else
       value = f args...
       versions[k] = v
-      cache_[k] = value
+      cache_.set k, value
       return value
 
 
@@ -230,6 +230,23 @@ if not WeakSet # Firefox < 34
     clear: -> @_map.clear()
     delete: (value) -> @_map.delete value
     has: (value) -> @_map.has value
+
+exports.ValueWeakMap = class ValueWeakMap
+  ###
+  A map where values are transparently wrapped using Cu.getWeakReference.
+  Use with object-values only.
+  ###
+  constructor: (array) ->
+    @_map = new Map
+    @set k, v for [k, v] in array if array
+  length: 1
+  set: (k, v) -> @_map.set k, Cu.getWeakReference v
+  get: (k) ->
+    v = @_map.get(k)?.get()
+    @delete k if not v # save some memory
+    return v
+  has: (k) -> !! @get k
+  delete: (k) -> @_map.delete k
 
 
 exports.addonData = addonData
