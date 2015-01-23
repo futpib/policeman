@@ -148,13 +148,12 @@ exports.ContextInfoBase = class ContextInfoBase
     'mime',
     'specialPrincipal',
     'hook',
+    'hints',
   ]
     @::[property] = ''
 
 
 exports.ContextInfo = class ContextInfo extends ContextInfoBase
-  components: Object.keys ContextInfoBase::
-
   constructor: (originUri, destUri, context, contentType, mime, principal) ->
     @contentType = intToTypeMap[contentType] or ''
     @mime = mime or ''
@@ -323,6 +322,20 @@ exports.ChannelContextInfo = class ChannelContextInfo extends ContextInfo
           channelInfo.principal
 
     @hook = 'modifyRequest'
+
+
+# Constants for ruleset parser
+
+# OriginInfo and DestinationInfo accessible properties
+exports.PUBLIC_URI_PROPERTIES = Object.keys UriInfoBase::
+# Same for ContextInfo
+exports.PUBLIC_CONTEXT_PROPERTIES = Object.keys ContextInfoBase::
+
+# Accessible set-like properties (object representing a set of strings)
+exports.PUBLIC_URI_SET_LIKE_PROPERTIES = []
+exports.PUBLIC_CONTEXT_SET_LIKE_PROPERTIES = [
+  'classList',
+]
 
 
 infoMangling = new class
