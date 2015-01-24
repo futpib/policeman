@@ -10,6 +10,9 @@
 ioService = Cc["@mozilla.org/network/io-service;1"]
     .getService Ci.nsIIOService
 
+eTLDService = Cc["@mozilla.org/network/effective-tld-service;1"]
+              .getService Ci.nsIEffectiveTLDService
+
 
 systemPrincipal = Cc["@mozilla.org/systemprincipal;1"]
                   .createInstance Ci.nsIPrincipal
@@ -89,6 +92,25 @@ exports.UriInfo = class UriInfo extends UriInfoBase
         value = @_uri[uriProp]
       value ?= ''
       return value
+
+  deflp @, 'baseDomain', ->
+    try
+      return eTLDService.getBaseDomain @_uri
+    catch e then switch e.result
+      when Cr.NS_ERROR_HOST_IS_IP_ADDRESS, \
+           Cr.NS_ERROR_INSUFFICIENT_DOMAIN_LEVELS
+        return @host
+      else
+        return ''
+
+  deflp @, 'publicSuffix', ->
+    try
+      return eTLDService.getPublicSuffix @_uri
+    catch e then switch e.result
+      when Cr.NS_ERROR_HOST_IS_IP_ADDRESS
+        return @host
+      else
+        return ''
 
   deflp @, '_uriWithoutRef', -> @_uri?.cloneIgnoringRef()
 
