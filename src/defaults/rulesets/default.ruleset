@@ -43,7 +43,8 @@ rules:
     [specialPrincipal] system: ACCEPT
 
   * -> *:
-    # Allows requests hooked by "http-on-modify-request" observer
-    # TODO Highly related to the above todo, this effectively makes the observer
-    # hook useless (except for requests mangled by lib/request-info).
-    [hook] modifyRequest: ACCEPT
+    # Allows most requests hooked by "http-on-modify-request" observer (unless
+    # the permit hint was unset by code (see lib/request-info#infoMangling))
+    # TODO Highly related to the above todo, this is out temporary way to not
+    # break a lot of things.
+    [hints] permit: ACCEPT

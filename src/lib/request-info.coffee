@@ -54,6 +54,8 @@ exports.UriInfoBase = class UriInfoBase
     'password',
     'userPass',
     'host',
+    'baseDomain',
+    'publicSuffix',
     'port',
     'hostPort',
     'prePath',
@@ -161,6 +163,9 @@ exports.DestinationInfo = class DestinationInfo extends UriInfo
 
 
 exports.ContextInfoBase = class ContextInfoBase
+  constructor: ->
+    @hints = Object.create null
+
   for property in [
     'nodeName',
     'className',
@@ -169,7 +174,6 @@ exports.ContextInfoBase = class ContextInfoBase
     'contentType',
     'mime',
     'specialPrincipal',
-    'hook',
     'hints',
   ]
     @::[property] = ''
@@ -177,13 +181,13 @@ exports.ContextInfoBase = class ContextInfoBase
 
 exports.ContextInfo = class ContextInfo extends ContextInfoBase
   constructor: (originUri, destUri, context, contentType, mime, principal) ->
+    super
+
     @contentType = intToTypeMap[contentType] or ''
     @mime = mime or ''
 
     @_context = context
     @_principal = principal
-
-    @hook = 'shouldLoad'
 
   for prop, iface of {
     '_node'    : Ci.nsIDOMNode
@@ -343,8 +347,6 @@ exports.ChannelContextInfo = class ChannelContextInfo extends ContextInfo
           channelInfo.mime,
           channelInfo.principal
 
-    @hook = 'modifyRequest'
-
 
 # Constants for ruleset parser
 
@@ -357,6 +359,7 @@ exports.PUBLIC_CONTEXT_PROPERTIES = Object.keys ContextInfoBase::
 exports.PUBLIC_URI_SET_LIKE_PROPERTIES = []
 exports.PUBLIC_CONTEXT_SET_LIKE_PROPERTIES = [
   'classList',
+  'hints',
 ]
 
 
@@ -445,6 +448,8 @@ infoMangling = new class
               null,
               ctx._principal
 
+      ctx.hints.favicon = yes
+
       return [newOrigin, newDest, newCtx]
     return undefined
 
@@ -471,6 +476,8 @@ exports.getChannelInfoObjects = (channel) ->
   origin = new ChannelOriginInfo channelInfo
   dest = new ChannelDestinationInfo channelInfo
   ctx = new ChannelContextInfo channelInfo
+
+  ctx.hints.permit = yes
 
   if mangled = infoMangling.channel.wrapped.invoke origin, dest, ctx, channelInfo
     return mangled
