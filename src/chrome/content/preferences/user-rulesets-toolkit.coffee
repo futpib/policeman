@@ -15,11 +15,13 @@ idnService = Cc["@mozilla.org/network/idn-service;1"]
 {
   CHROME_DOMAIN
   USER_AVAILABLE_CONTENT_TYPES
+  WILDCARD_TYPE
 } = DomainDomainTypeRS::
 
 
 class AddRuleWidget
   constructor: (@_containerSelector, @_rulesetId) ->
+    @_currentlyEditingRule = null
 
   init: ->
     container = $ @_containerSelector
@@ -61,14 +63,25 @@ class AddRuleWidget
     box.appendChild @_addButton = createElement 'button',
       label: l10n "preferences_custom_rule.add"
       icon: "add"
+      event_command: @_addButtonClick.bind this
 
-    @_addButton.addEventListener 'command', @_addButtonClick.bind this
-
-    addOnEnterPress = (event) ->
+    addOnEnterPress = (event) =>
       if event.keyCode == 13 # Enter
-        do add
+        @_addButtonClick()
     @_originTextbox.addEventListener 'keypress', addOnEnterPress
     @_destinationTextbox.addEventListener 'keypress', addOnEnterPress
+
+    box.appendChild @_saveButton = createElement 'button',
+      label: l10n "preferences_custom_rule.save"
+      icon: "save"
+      hidden: yes
+      event_command: @_saveButtonClick.bind this
+
+    box.appendChild @_cancelEditingButton = createElement 'button',
+      label: l10n "preferences_custom_rule.cancel_editing"
+      icon: "cancel"
+      hidden: yes
+      event_command: @_cancelButtonClick.bind this
 
   WEB_HOST_RE = ///
     ^(
@@ -88,13 +101,58 @@ class AddRuleWidget
     textbox.focus()
     return null
 
-  _addButtonClick: ->
+  _saveCurrentRule: ->
     allowReject = @_decisionList.selectedItem.value
     type = @_typeList.selectedItem.value
     origin = @_validateHost @_originTextbox
     destination = @_validateHost @_destinationTextbox
     return if origin is null or destination is null
     manager.get(@_rulesetId)[allowReject](origin, destination, type)
+
+  _selectMenuitemByValue: (menulist, value) ->
+    for i in [0...menulist.itemCount]
+      if menulist.getItemAtIndex(i).value == value
+        menulist.selectedIndex = i
+        break
+
+  _loadRuleForEditing: (rule) ->
+    [o, d, t, dec] = rule
+    @_originTextbox.value = o
+    @_destinationTextbox.value = d
+    @_selectMenuitemByValue @_typeList, t
+    @_selectMenuitemByValue @_decisionList, dec
+
+  _resetInputsState: ->
+    @_loadRuleForEditing ['', '', WILDCARD_TYPE, yes]
+
+  _addButtonClick: ->
+    @_saveCurrentRule()
+    @_updateRuleset()
+
+  _saveButtonClick: ->
+    return unless @_currentlyEditingRule
+    [origin, destination, type] = @_currentlyEditingRule
+    manager.get(@_rulesetId).revoke(origin, destination, type)
+    @_saveCurrentRule()
+    @cancelEditing()
+    @_updateRuleset()
+
+  _cancelButtonClick: ->
+    @cancelEditing()
+
+  _updateRuleset: ->
+
+  edit: (rule) ->
+    @_loadRuleForEditing rule
+    @_currentlyEditingRule = rule
+    @_addButton.hidden = yes
+    @_saveButton.hidden = @_cancelEditingButton.hidden = no
+
+  cancelEditing: ->
+    @_resetInputsState()
+    @_currentlyEditingRule = null
+    @_addButton.hidden = no
+    @_saveButton.hidden = @_cancelEditingButton.hidden = yes
 
 
 class RulesTree
