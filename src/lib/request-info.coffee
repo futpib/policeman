@@ -22,28 +22,9 @@ nullPrincipal = Cc["@mozilla.org/nullprincipal;1"]
 
 # maps integer values of contentType argument to strings according to
 # https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIContentPolicy#Constants
-intToTypeMap = [
-  undefined,
-  'OTHER', # 1
-  'SCRIPT', # 2
-  'IMAGE', # 3
-  'STYLESHEET', # 4
-  'OBJECT', # 5
-  'DOCUMENT', # 6
-  'SUBDOCUMENT', # 7
-  'REFRESH', # 8
-  'XBL', # 9
-  'PING', # 10
-  'XMLHTTPREQUEST', # 11
-  'OBJECT_SUBREQUEST', # 12
-  'DTD', # 13
-  'FONT', # 14
-  'MEDIA', # 15
-  'WEBSOCKET', # 16
-  'CSP_REPORT', # 17
-  'XSLT', # 18
-  'BEACON', # 19
-]
+intToTypeMap = []
+for k, v of Ci.nsIContentPolicy when k.startsWith 'TYPE_'
+  intToTypeMap[v] = k.slice 5
 
 
 exports.UriInfoBase = class UriInfoBase
