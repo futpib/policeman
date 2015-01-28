@@ -69,6 +69,13 @@ exports.policy = policy =
 
     return decision
 
+  # `shouldLoad` stores some data about last call so that when `observe`
+  # is called right after `shouldLoad` for the same request it need not consult
+  # the `manager` again
+  _lastShouldLoad:
+    expired: yes
+    destSpec: null
+
   # nsIContentPolicy interface implementation
   shouldLoad: (contentType, destUri, originUri, \
                context, mime, extra, principal) ->
@@ -79,6 +86,9 @@ exports.policy = policy =
                 contentType, destUri, originUri, context, mime, extra, principal
 
     decision = @_shouldLoad origin, dest, ctx
+
+    @_lastShouldLoad.expired = no
+    @_lastShouldLoad.destSpec = destUri.spec
 
     if decision
       return Ci.nsIContentPolicy.ACCEPT
@@ -95,6 +105,13 @@ exports.policy = policy =
         # Channel*Info objects are different from their counterparts.
 
         channel = subject.QueryInterface Ci.nsIHttpChannel
+
+        if not @_lastShouldLoad.expired
+          @_lastShouldLoad.expired = yes
+          # If we got the same destination URI as previous `shouldLoad` call
+          if @_lastShouldLoad.destSpec == channel.URI.spec
+            # Since `observe` got called, `shouldLoad` must have returned ACCEPT
+            return
 
         [origin, dest, ctx, ci] = getChannelInfoObjects channel
         decision = @_shouldLoad origin, dest, ctx
