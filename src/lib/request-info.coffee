@@ -244,7 +244,6 @@ exports.ChannelInfo = class ChannelInfo
     '_notificationCallbacks_loadContext' : Ci.nsILoadContext
     '_notificationCallbacks_webProgress' : Ci.nsIWebProgress
     '_notificationCallbacks_webNav'      : Ci.nsIWebNavigation
-    '_notificationCallbacks_docShell'    : Ci.nsIDocShell
 
     '_notificationCallbacks_node'        : Ci.nsIDOMNode
     '_notificationCallbacks_element'     : Ci.nsIDOMElement
@@ -258,10 +257,17 @@ exports.ChannelInfo = class ChannelInfo
         return @_channel.notificationCallbacks.getInterface iface
 
   deflp @, '_document', ->
-    return @_channel.loadInfo?.loadingDocument \
-        or @_notificationCallbacks_document \
-        or @_notificationCallbacks_webNav?.document \
-        or @_notificationCallbacks_node?.ownerDocument
+    candidates = [
+      @_channel.loadInfo?.loadingDocument,
+      @_notificationCallbacks_document,
+      @_notificationCallbacks_webNav?.document,
+      @_notificationCallbacks_node?.ownerDocument,
+    ]
+    if (contentDoc = candidates.find (d) -> d not instanceof Ci.nsIDOMXULDocument)
+      return contentDoc
+    if (doc = candidates.find (d) -> !! d)
+      return doc
+    return undefined
 
   deflp @, '_window', ->
     return @_document?.defaultView \
