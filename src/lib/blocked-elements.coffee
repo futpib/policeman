@@ -1,6 +1,7 @@
 
 
 Cu.import "resource://gre/modules/NetUtil.jsm"
+{ setTimeout, clearTimeout } = Cu.import "resource://gre/modules/Timer.jsm"
 
 {
   remove
@@ -126,7 +127,7 @@ class BlockedElementHandler
   _filteredRestore: (elem) ->
     @removeProcessedTag elem
     @removeData elem, 'src'
-    elem.ownerDocument.defaultView.setTimeout (=>
+    setTimeout (=>
       @_restoreAttribute elem, 'src'
     ), 1
 
