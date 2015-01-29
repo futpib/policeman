@@ -22,29 +22,13 @@ l10n:
     description: "Autoriser quelques requêtes internes essentielles à la navigation"
 
 rules:
+  # Allows requests for inline and internal schemes
+  # (no networking involved here anyway)
   * -> (inline|internal): ACCEPT
 
-  internal -> (web|file):
-    # allows various thing like navigation from chrome pages to web and
-    # iframes on chrome pages (addons page has one)
-    # kind of entry point for document load
-    [contentType] (DOCUMENT|SUBDOCUMENT): ACCEPT
+  # Allows requests originating from internal schemes (made by browser and addons)
+  internal -> *: ACCEPT
 
   web -> web:
-    # allows opening links on web pages
-    [contentType] DOCUMENT: ACCEPT
-
-  * -> *:
-    # Allows requests having system principal
-    # TODO A lot of addons are loading stuff with system principal and for now
-    # this is the most obvious way not to break them. But this also allows
-    # some requests that may be unwanted by user. This is hopefully a temporary
-    # solution until a good way of dealing with such requests is developed
-    [specialPrincipal] system: ACCEPT
-
-  * -> *:
-    # Allows most requests hooked by "http-on-modify-request" observer (unless
-    # the permit hint was unset by code (see lib/request-info#infoMangling))
-    # TODO Highly related to the above todo, this is out temporary way to not
-    # break a lot of things.
-    [hints] permit: ACCEPT
+    # allows navigation (like opening links on web pages)
+    [hints] navigation: ACCEPT

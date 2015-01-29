@@ -350,123 +350,197 @@ exports.PUBLIC_CONTEXT_SET_LIKE_PROPERTIES = [
 ]
 
 
-infoMangling = new class
-  ###
-  This object holds hooks that are called by get*InfoObjects functions below
-  for them to change info objects in some special cases (like making favicon
-  requests look like thay are made by content documents, not by chrome).
-  ###
-
-  class ManglingHook
-    class Hooks
-      constructor: -> @_hooks = []
-      add: (f) -> @_hooks.push f
-      invoke: ->
-        for h in @_hooks
-          try
-            if v = h arguments...
-              return v
-          catch e
-            log.error 'Mangling hook', h, 'threw', e
-        return undefined
-
-    raw: new Hooks
-    wrapped: new Hooks
-
-  shouldLoad = new ManglingHook
-  channel = new ManglingHook
-
-  shouldLoad: shouldLoad
-  channel: channel
-
-  # Favicon requests handling
-
-  favicons = new class # keeps all the favicon URLs and corresponding tabs
-    faviconUrlToTab = Object.create null
-
-    iconChangeObserver = null
-
-    onOpen = (t) ->
-      if not iconChangeObserver
-        { MutationObserver } = t.ownerDocument.defaultView
-        iconChangeObserver = new MutationObserver (mutations) ->
-          for m in mutations
-            if old = m.oldValue
-              delete faviconUrlToTab[old]
-            if new_ = m.target.image
-              faviconUrlToTab[new_] = m.target
-      iconChangeObserver.observe t,
-        attributes: yes
-        attributeOldValue: yes
-        attributeFilter: ['image']
-      faviconUrlToTab[t.image] = t
-
-    onClose = (t) ->
-      delete faviconUrlToTab[t.image]
-
-    onOpen t for t in tabs.list
-    tabs.onOpen.add onOpen
-    tabs.onClose.add onClose
-
-    isIconUrl: (url) -> url of faviconUrlToTab
-    getTabForIcon: (url) -> faviconUrlToTab[url]
-
-  channel.wrapped.add (origin, dest, ctx, channelInfo) ->
-    ###
-    Detects favicon requests and makes them look like they were made by
-    corresponding content documents, not by chrome which they actually are.
-    ###
-    if  ctx.specialPrincipal == 'system' \
-    and origin.spec == 'chrome://browser/content/browser.xul' \
-    and (favicons.isIconUrl dest.specRef)
-      tab = favicons.getTabForIcon dest.specRef
-
-      browser = tab.linkedBrowser
-      window = browser.contentWindow
-      document = browser.contentDocument
-
-      newDest = dest
-      newOrigin = new OriginInfo window.location.href
-      newCtx = new ContextInfo \
-              newOrigin,
-              newDest,
-              document,
-              Ci.nsIContentPolicy.TYPE_IMAGE,
-              null,
-              ctx._principal
-
-      ctx.hints.favicon = yes
-
-      return [newOrigin, newDest, newCtx]
-    return undefined
-
-
 exports.getShouldLoadInfoObjects = \
   (contentType, destUri, originUri, context, mime, extra, principal) ->
-    if mangled = infoMangling.shouldLoad.raw.invoke arguments...
-      return mangled
-
     origin = new OriginInfo originUri
     dest = new DestinationInfo destUri
     ctx = new ContextInfo originUri, destUri, context, contentType, mime, principal
 
-    if mangled = infoMangling.shouldLoad.wrapped.invoke origin, dest, ctx
-      return mangled
-
-    return [origin, dest, ctx]
+    return infoMangling.invoke origin, dest, ctx
 
 exports.getChannelInfoObjects = (channel) ->
-  if mangled = infoMangling.channel.raw.invoke arguments...
-    return mangled
-
   channelInfo = new ChannelInfo channel
   origin = new ChannelOriginInfo channelInfo
   dest = new ChannelDestinationInfo channelInfo
   ctx = new ChannelContextInfo channelInfo
 
-  ctx.hints.permit = yes
+  return infoMangling.invoke origin, dest, ctx, channelInfo
 
-  if mangled = infoMangling.channel.wrapped.invoke origin, dest, ctx, channelInfo
-    return mangled
 
+infoMangling = new class Pipeline
+  ###
+  This object holds hooks that are called by get*InfoObjects functions above
+  for them to change info objects in some special cases (see below).
+  ###
+  constructor: -> @_functions = []
+  add: (f) -> @_functions.push f
+  invoke: (args...) ->
+    info = args
+    for f in @_functions
+      try
+        mangled = f info...
+      catch e
+        log.error 'Mangling function', f, 'threw', e
+      if mangled
+        info = mangled
+    return info
+
+# Tags all DOCUMENT requests as is they are caused by user navigation
+
+infoMangling.add (origin, dest, ctx, channelInfo) ->
+  if ctx.contentType == 'DOCUMENT'
+    # This is not generally true that all DOCUMENT requests are directly caused
+    # by navigation, but it's a sane default. This hint is removed down the
+    # pipeline when it makes sense (for instance when dealing with redirects).
+    ctx.hints.navigation = yes
   return [origin, dest, ctx, channelInfo]
+
+# Favicon requests handling
+
+favicons = new class # keeps all the favicon URLs and corresponding tabs
+  faviconUrlToTab = Object.create null
+
+  iconChangeObserver = null
+
+  onOpen = (t) ->
+    if not iconChangeObserver
+      { MutationObserver } = t.ownerDocument.defaultView
+      iconChangeObserver = new MutationObserver (mutations) ->
+        for m in mutations
+          if old = m.oldValue
+            delete faviconUrlToTab[old]
+          if new_ = m.target.image
+            faviconUrlToTab[new_] = m.target
+    iconChangeObserver.observe t,
+      attributes: yes
+      attributeOldValue: yes
+      attributeFilter: ['image']
+    faviconUrlToTab[t.image] = t
+
+  onClose = (t) ->
+    delete faviconUrlToTab[t.image]
+
+  onOpen t for t in tabs.list
+  tabs.onOpen.add onOpen
+  tabs.onClose.add onClose
+
+  isIconUrl: (url) -> url of faviconUrlToTab
+  getTabForIcon: (url) -> faviconUrlToTab[url]
+
+infoMangling.add (origin, dest, ctx, channelInfo) ->
+  ###
+  Detects favicon requests and makes them look like they were made by
+  corresponding content documents, not by chrome which they actually are.
+  ###
+  if  ctx.specialPrincipal == 'system' \
+  and origin.spec == 'chrome://browser/content/browser.xul' \
+  and (favicons.isIconUrl dest.specRef)
+    tab = favicons.getTabForIcon dest.specRef
+
+    browser = tab.linkedBrowser
+    window = browser.contentWindow
+    document = browser.contentDocument
+
+    newDest = dest
+    newOrigin = new OriginInfo window.location.href
+    newCtx = new ContextInfo \
+            newOrigin,
+            newDest,
+            document,
+            Ci.nsIContentPolicy.TYPE_IMAGE,
+            null,
+            ctx._principal
+
+    ctx.hints.favicon = yes
+
+    return [newOrigin, newDest, newCtx, channelInfo]
+  return undefined
+
+# HTTP Redirects
+
+infoMangling.add (origin, dest, ctx, channelInfo) ->
+  ###
+  Detects HTTP redirected requests and replaces origin with the original URI.
+  ###
+
+  # FIXME nsIHttpChannel only holds it's original URI and it's current URI only,
+  # so in case of multiple HTTP redirects intermediate URIs get lost and such
+  # redirects apper as ch.originalURI -> ch.URI
+
+  if  channelInfo \
+  and (channel = channelInfo._channel) \
+  and channel.URI \
+  and (previousURI = channel.originalURI) \
+  and channel.URI != previousURI \
+  and not channel.URI.equals(previousURI)
+    origin = new OriginInfo previousURI
+    channelInfo = new ChannelInfo channel
+    dest = new ChannelDestinationInfo channelInfo
+    ctx = new ChannelContextInfo channelInfo
+
+    delete ctx.hints.navigation
+    ctx.hints.redirect = yes
+
+    return [origin, dest, ctx, channelInfo]
+  return undefined
+
+# Other kinds of redirects
+
+# Events that usually cause expected navigation
+eventsCausingLegitLocationChange = [
+  'click',
+  'keypress',
+  'command',
+]
+
+navigationDetector = new class
+  EVENT_EXPIRATION = 50
+
+  tabIdToLastInputEvent = Object.create null
+
+  onInput = (t, e) ->
+    tabIdToLastInputEvent[t] =
+      timeStamp: Date.now()
+      modifyRequestHit: no
+      shouldLoadHit: no
+
+  onOpen = (t) ->
+    tabId = tabs.getTabId t
+    for evt in eventsCausingLegitLocationChange
+      t.linkedBrowser.addEventListener evt, ((e) ->
+        onInput tabId, e
+      ), yes
+
+  onClose = (t) ->
+    tabId = tabs.getTabId t
+    delete tabIdToLastInputEvent[tabId]
+
+  onOpen t for t in tabs.list
+  tabs.onOpen.add onOpen
+  tabs.onClose.add onClose
+
+  isNavigation: (origin, dest, ctx, channelInfo) ->
+    if  (tabId = ctx._tabId) \
+    and (lastInput = tabIdToLastInputEvent[tabId])
+      if channelInfo # it's a "http-on-modify-request" call
+        if lastInput.modifyRequestHit
+          return no
+        lastInput.modifyRequestHit = yes
+      else # it's a shouldLoad call
+        if lastInput.shouldLoadHit
+          return no
+        lastInput.shouldLoadHit = yes
+      if (Date.now() - lastInput.timeStamp) > EVENT_EXPIRATION
+        return no
+      return yes
+    return no
+
+# Find potentially mislabled navigation requests and label them as redirects
+# (code above just marks anything DOCUMENT as navigation)
+infoMangling.add (origin, dest, ctx, channelInfo) ->
+  if  ctx.hints.navigation \
+  and origin.schemeType != 'internal' \
+  and not navigationDetector.isNavigation origin, dest, ctx, channelInfo
+    delete ctx.hints.navigation
+    ctx.hints.redirect = yes
+  return undefined
