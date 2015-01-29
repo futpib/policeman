@@ -1,18 +1,36 @@
+#!/bin/bash
 
+root="."
+build_root="$root/build"
+source_root="$root/src"
+tests_source_root="$root/test"
 
-source_root="src"
-build_root="build"
+tester_args=""
 
 do_build=true
 do_pack=false
 do_svg=true
+do_test=false
 
+hr () {
+  if [ -z "$1" ]; then
+    printf '%80s\n' | tr ' ' =
+  else
+    printf '%80s' | tr ' ' =
+    printf '%80s' | tr ' ' $'\b'
+    echo "$1"
+  fi
+}
 
 build () {
   clean || return 1
 
   if [ "$do_build" = true ]; then
     generate || return 1
+  fi
+
+  if [ "$do_test" = true ]; then
+    test_ || echo "Testing failed."
   fi
 
   if [ "$do_pack" = true ]; then
@@ -130,6 +148,30 @@ pack () {
   popd >/dev/null
 }
 
+test_ () {
+  tmp="$(mktemp -d --suffix=.policeman.tests)"
+  rsync -qav --exclude=".*" "$tests_source_root"/* "$tmp" | return 1
+
+  echo "Compiling coffee tests to js..."
+  coffee_files="$(find $tmp/cases -mindepth 2 -type f -name '*.coffee')"
+  for f in $coffee_files
+  do
+    cat "$tmp/cases/test-header.coffee" "$f" \
+            | coffee -cbps \
+            | tee "${f/%.coffee/.js}" >/dev/null
+    coffee_status=${PIPESTATUS[0]}
+    [ 0 -ne $coffee_status ] && return $coffee_status
+    rm "$f"
+  done
+
+  hr "=== Started tester "
+  eval python2 "$root/test/tester/main.py" "$tester_args" "$tmp" "$build_root" \
+          || return 1
+  hr "=== Tester exited "
+
+  rm -r "$tmp"
+}
+
 clean () {
   echo "Performing clean..."
   if [ "$do_svg" = false ]; then # keep icons
@@ -144,24 +186,25 @@ cat << _EOF_
 Build script for Policeman Firefox add-on
 Usage: $0 [OPTION]...
   -c, --clean-only      Clean build directory and exit
-  -i, --keep-icons      Do not rasterize svg icons (assuming png icons exist in
-                        build directory)
+  -i, --keep-icons      Do not delete and do not rasterize svg icons (faster)
   -p, --pack            Pack add-on into an xpi file in the build directory
-  -s, --source-dir=DIR  Set source directory (default: ./src)
-  -b, --build-dir       Set build directory (default: ./build)
+  -t, --test            Run tests after build
+      --tester-args=STR Arguments passed to the tester script
+  -r, --root=DIR        Repository root directory (default: current directory)
   -h, --help            display this help and exit
 
 This script depends at least on the following tools:
   coffee                CoffeeScript compiler
   jison                 Jison compiler
+  mozmill               Mozmill Gecko testing framework
   inkscape              Vector graphics editor (for svg icons rasterization)
   zip                   Zip compression utility (for packaging on xpi file)
 _EOF_
 }
 
 main () {
-  args=$(getopt -o hcips:b: \
-                -l help,clean-only,keep-icons,pack,source-dir:,build-dir: \
+  args=$(getopt -o hcitpr: \
+                -l help,clean-only,keep-icons,test,pack,root: \
                 -- "$@")
   eval set -- "$args"
 
@@ -180,12 +223,16 @@ main () {
         do_pack=true
         shift
       ;;
-      -s|--source-dir)
-        source_root="$2"
+      -t|--test)
+        do_test=true
+        shift
+      ;;
+      --tester-args)
+        tester_args="$2"
         shift 2
       ;;
-      -b|--build-dir)
-        build_root="$2"
+      -r|--root)
+        root="$2"
         shift 2
       ;;
       -h|--help)
