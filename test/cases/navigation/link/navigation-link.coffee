@@ -1,5 +1,5 @@
 
-testRedirectHeaderLocationDocument = ->
+testNavigationLink = ->
   ctrl = mozmill.getBrowserController()
 
   ctrl.open 'http://127.0.0.1:18080'
