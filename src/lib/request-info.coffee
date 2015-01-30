@@ -512,6 +512,7 @@ navigationDetector = new class
       t.linkedBrowser.addEventListener evt, ((e) ->
         onInput tabId, e
       ), yes
+    onInput tabId, null
 
   onClose = (t) ->
     tabId = tabs.getTabId t
