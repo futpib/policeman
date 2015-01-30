@@ -655,6 +655,8 @@ class RequestList extends ContainerPopulation
         href: origin.spec
 
       contextSummary = ""
+      if context.hints.redirect
+        contextSummary += "#{ l10n 'request_context_hints_redirect' }\n"
       for property, title of contextPropertyToTitle
         if value = context[property]
           contextSummary += "#{ title } #{ value }\n"
