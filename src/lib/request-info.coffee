@@ -25,7 +25,9 @@ nullPrincipal = Cc["@mozilla.org/nullprincipal;1"]
 intToTypeMap = []
 for k, v of Ci.nsIContentPolicy when k.startsWith 'TYPE_'
   intToTypeMap[v] = k.slice 5
-
+# nsIContentPolicy has TYPE_DATAREQUEST alias for TYPE_XMLHTTPREQUEST
+# let's prefer the latter
+intToTypeMap[Ci.nsIContentPolicy.TYPE_XMLHTTPREQUEST] = 'XMLHTTPREQUEST'
 
 exports.UriInfoBase = class UriInfoBase
   for property in [
