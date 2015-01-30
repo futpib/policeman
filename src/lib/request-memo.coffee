@@ -50,6 +50,7 @@ exports.memo = memo = new class
     i = context._tabId
     return if not i
     if context.contentType == 'DOCUMENT' \
+    and context.hints.navigation \
     and not ( # conditions for no real page reload follow
       dest.scheme == 'javascript' \ # href="javascript:..."
       or origin.spec == dest.spec   # href="#hash"
