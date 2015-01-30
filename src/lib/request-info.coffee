@@ -503,8 +503,7 @@ navigationDetector = new class
   onInput = (t, e) ->
     tabIdToLastInputEvent[t] =
       timeStamp: Date.now()
-      modifyRequestHit: no
-      shouldLoadHit: no
+      hit: no
 
   onOpen = (t) ->
     tabId = tabs.getTabId t
@@ -525,14 +524,9 @@ navigationDetector = new class
   isNavigation: (origin, dest, ctx, channelInfo) ->
     if  (tabId = ctx._tabId) \
     and (lastInput = tabIdToLastInputEvent[tabId])
-      if channelInfo # it's a "http-on-modify-request" call
-        if lastInput.modifyRequestHit
-          return no
-        lastInput.modifyRequestHit = yes
-      else # it's a shouldLoad call
-        if lastInput.shouldLoadHit
-          return no
-        lastInput.shouldLoadHit = yes
+      if lastInput.hit
+        return no
+      lastInput.hit = yes
       if (Date.now() - lastInput.timeStamp) > EVENT_EXPIRATION
         return no
       return yes
