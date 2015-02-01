@@ -124,14 +124,20 @@ exports.isDead = isDead = (node) ->
   return false
 
 exports.loadSheet = (win, styleURI, type=Ci.nsIDOMWindowUtils.AUTHOR_SHEET) ->
+  styleURI = newURI styleURI if 'string' == typeof styleURI
   win.QueryInterface(Ci.nsIInterfaceRequestor)
       .getInterface(Ci.nsIDOMWindowUtils)
       .loadSheet(styleURI, type)
 
 exports.removeSheet = (win, styleURI, type=Ci.nsIDOMWindowUtils.AUTHOR_SHEET) ->
+  styleURI = newURI styleURI if 'string' == typeof styleURI
   win.QueryInterface(Ci.nsIInterfaceRequestor)
       .getInterface(Ci.nsIDOMWindowUtils)
       .removeSheet(styleURI, type)
+
+
+exports.newURI = newURI = (spec, originCharset=null, baseURI=null) ->
+  return Services.io.newURI spec, originCharset, baseURI
 
 
 exports.XMLHttpRequest = XMLHttpRequest = Components.Constructor \

@@ -41,9 +41,14 @@ exports.tabs = tabs =
 
   getTabId: (tab) ->
     return tab if typeof tab is 'string'
-    # not a DOM id or smth, just a unique string
-    # copypasted from addon-sdk/lib/tabs/utils.js#getTabId
-    String.split(tab.linkedPanel, 'panel').pop()
+    # returns DOM id of linked panel
+    # inspired by addon-sdk/lib/tabs/utils.js#getTabId
+    return tab.linkedPanel
+
+  getTabById: (id) ->
+    for tab in @list
+      return tab if id == @getTabId tab
+    return null
 
   getCurrent: -> windows.getCurrent().gBrowser.tabContainer.tabbox.selectedTab
 

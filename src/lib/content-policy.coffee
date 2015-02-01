@@ -8,6 +8,7 @@ catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
 } = require 'request-info'
 { memo } = require 'request-memo'
 { blockedElements } = require 'blocked-elements'
+{ blockedRedirects } = require 'blocked-redirects'
 {
   Handlers
   runAsync
@@ -63,6 +64,7 @@ exports.policy = policy =
     try
       memo.add origin, dest, ctx, decision
       blockedElements.process origin, dest, ctx, decision
+      blockedRedirects.process origin, dest, ctx, decision
       @onRequest.execute origin, dest, ctx, decision
     catch e
       log.error 'Error processing a request:', e

@@ -1,0 +1,7 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+@-moz-document url("chrome://browser/content/browser.xul") {
+  .popup-notification-icon[popupid="policeman-redirect-notification-popup"] {
+    list-style-image: url(chrome://policeman/skin/redirect-notification-icon-64.png);
+  }
+}
