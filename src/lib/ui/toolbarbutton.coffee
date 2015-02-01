@@ -27,20 +27,20 @@
 exports.toolbarbutton = toolbarbutton = new class
   id: 'policeman-toolbarbutton'
 
-  styleURI: Services.io.newURI 'chrome://policeman/skin/toolbar.css', null, null
+  _styleURI: 'chrome://policeman/skin/toolbar.css'
 
   constructor: ->
     @wrapper = CustomizableUI.createWidget
         id:              @id
         type:            'custom'
         defaultArea:     CustomizableUI.AREA_NAVBAR
-        onBuild:         @onBuild.bind @
+        onBuild:         @_onBuild.bind @
     onShutdown.add => CustomizableUI.destroyWidget @id
 
-    @addUI(w) for w in windows.list
-    windows.onOpen.add @addUI.bind @
-    windows.onClose.add @removeUI.bind @
-    onShutdown.add => @removeUI(w) for w in windows.list
+    @_addUI(w) for w in windows.list
+    windows.onOpen.add @_addUI.bind @
+    windows.onClose.add @_removeUI.bind @
+    onShutdown.add => @_removeUI(w) for w in windows.list
 
   _getAreaTypeSpecificWidget: (areaType=@wrapper.areaType) ->
     if areaType == CustomizableUI.TYPE_MENU_PANEL
@@ -50,7 +50,7 @@ exports.toolbarbutton = toolbarbutton = new class
   BUTTON_LEFT = 0
   BUTTON_MIDDLE = 1
   BUTTON_RIGHT = 2
-  onBuild: (doc) ->
+  _onBuild: (doc) ->
     btn = createElement doc, 'toolbarbutton',
       id:              @id
       class:           'toolbarbutton-1 chromeclass-toolbar-additional'
@@ -70,11 +70,11 @@ exports.toolbarbutton = toolbarbutton = new class
 
     return btn
 
-  addUI: (win) ->
-    loadSheet win, @styleURI
+  _addUI: (win) ->
+    loadSheet win, @_styleURI
 
-  removeUI: (win) ->
-    removeSheet win, @styleURI
+  _removeUI: (win) ->
+    removeSheet win, @_styleURI
 
   indicator: new class
     constructor: ->

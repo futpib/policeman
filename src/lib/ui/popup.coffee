@@ -1120,18 +1120,18 @@ prefs.define AUTORELOAD_PREF = 'ui.popup.autoReloadPageOnHiding',
 exports.popup = popup =
   id: 'policeman-popup'
 
-  styleURI: Services.io.newURI 'chrome://policeman/skin/popup.css', null, null
+  _styleURI: 'chrome://policeman/skin/popup.css'
 
   init: ->
-    @addUI(w) for w in windows.list
-    windows.onOpen.add @addUI.bind @
-    windows.onClose.add @removeUI.bind @
-    onShutdown.add => @removeUI(w) for w in windows.list
+    @_addUI(w) for w in windows.list
+    windows.onOpen.add @_addUI.bind @
+    windows.onClose.add @_removeUI.bind @
+    onShutdown.add => @_removeUI(w) for w in windows.list
 
     tabs.onSelect.add (t) =>
       if @_visible
-        @cleanupUI t.ownerDocument
-        @updateUI t.ownerDocument
+        @_cleanupUI t.ownerDocument
+        @_updateUI t.ownerDocument
 
     originSelection.onSelection.add (btn) ->
       destinationSelection.update btn.ownerDocument
@@ -1161,17 +1161,17 @@ exports.popup = popup =
   onShowing: (e) ->
     doc = e.currentTarget.ownerDocument
     @autoreload.onShowing doc
-    @updateUI doc
+    @_updateUI doc
     @_visible = true
 
   onHiding: (e) ->
     doc = e.currentTarget.ownerDocument
-    @cleanupUI doc
+    @_cleanupUI doc
     if @autoreload.enabled() and @autoreload.required()
       tabs.reload tabs.getCurrent()
     @_visible = false
 
-  addUI: (win) ->
+  _addUI: (win) ->
     doc = win.document
     loadOverlay doc, 'chrome://policeman/content/popup.xul', =>
       panel = doc.getElementById @id
@@ -1180,21 +1180,21 @@ exports.popup = popup =
       # just after it's hidden
       panel.addEventListener 'popuphidden', @onHiding.bind @
 
-    loadSheet doc.defaultView, @styleURI
+    loadSheet doc.defaultView, @_styleURI
 
-  removeUI: (win) ->
+  _removeUI: (win) ->
     doc = win.document
     removeNode doc.getElementById @id
-    removeSheet doc.defaultView, @styleURI
+    removeSheet doc.defaultView, @_styleURI
 
-  updateUI: (doc) ->
+  _updateUI: (doc) ->
     originSelection.update doc
     footerCheckButtons.update doc
     footerLinkButtons.update doc
 
     statusIndicator.updateFinished doc
 
-  cleanupUI: (doc) ->
+  _cleanupUI: (doc) ->
     destinationSelection.purge doc
     rejectedFilter.purge doc
     allowedFilter.purge doc
