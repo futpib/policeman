@@ -4,6 +4,7 @@ Cu.import "resource://gre/modules/NetUtil.jsm"
 { setTimeout, clearTimeout } = Cu.import "resource://gre/modules/Timer.jsm"
 
 {
+  WeakSet
   remove
   isDead
   superdomains
@@ -136,13 +137,13 @@ class BlockedElementHandler
     i = tabs.getTabId tab
     return unless i of @_tabIdToBlockedElements
 
-    restored = new Map
+    restored = new WeakSet
     for elem in @_getAllByTabId i
       if isDead elem
         @_removeElemByTabId i, elem
       else
         @restore elem
-        restored.set elem, true
+        restored.add elem, true
 
     return restored
 
@@ -151,7 +152,7 @@ class BlockedElementHandler
     i = tabs.getTabId tab
     return unless i of @_tabIdToBlockedElements
 
-    restored = new Map
+    restored = new WeakSet
     for elem in @_getAllByTabId i
       if isDead elem
         @_removeElemByTabId i, elem
@@ -159,7 +160,7 @@ class BlockedElementHandler
       if  isSuperdomain(oHost, elem.ownerDocument.defaultView.location.host) \
       and isSuperdomain(dHost, @getData elem, 'host')
         @restore elem
-        restored.set elem
+        restored.add elem
 
     return restored
 
