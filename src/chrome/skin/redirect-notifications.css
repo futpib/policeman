@@ -4,4 +4,7 @@
   .popup-notification-icon[popupid="policeman-redirect-notification-popup"] {
     list-style-image: url(chrome://policeman/skin/redirect-notification-icon-64.png);
   }
+  #policeman-redirect-blocked-notification-icon {
+    list-style-image: url(chrome://policeman/skin/toolbar-icon-16.png);
+  }
 }

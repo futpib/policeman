@@ -6,6 +6,8 @@
 {
   loadSheet
   removeSheet
+  createElement
+  removeNode
 } = require 'utils'
 
 { l10n } = require 'l10n'
@@ -13,6 +15,7 @@
 
 exports.redirectNotifications = redirectNotifications = new class
   _styleURI: 'chrome://policeman/skin/redirect-notifications.css'
+  _anchorId: 'policeman-redirect-blocked-notification-icon'
 
   constructor: ->
     @_addUI w for w in windows.list
@@ -23,8 +26,19 @@ exports.redirectNotifications = redirectNotifications = new class
   _addUI: (win) ->
     loadSheet win, @_styleURI
 
+    doc = win.document
+    anchorsBox = doc.getElementById 'notification-popup-box'
+    anchorsBox.appendChild createElement doc, 'image',
+      id: @_anchorId
+      class: 'notification-anchor-icon'
+      role: 'button'
+
   _removeUI: (win) ->
     removeSheet win, @_styleURI
+
+    doc = win.document
+    if anchor = doc.getElementById @_anchorId
+      removeNode anchor
 
   _makeActionDescriptors: (redirect) ->
     actions = []
@@ -65,6 +79,6 @@ exports.redirectNotifications = redirectNotifications = new class
         'policeman-redirect-notification-popup',
         l10n('redirect_notification_popup_message',
               redirect.origin.host, redirect.destination.host),
-        null, # default anchor
+        @_anchorId,
         actions[0],
         actions.slice(1),
