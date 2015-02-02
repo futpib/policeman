@@ -374,9 +374,13 @@ class DownloadsRichListItem
 
 
 downloadsList =
+  _setHidden: (yesno) ->
+    @$.hidden = @splitter.hidden = yesno
+
   init: ->
     @$ = $ '#downloads-list'
-    @$.hidden = yes
+    @splitter = $ '#installed-rulesets-downloads-splitter'
+    @_setHidden yes
 
   add: (link) ->
     item = null
@@ -395,10 +399,11 @@ downloadsList =
 
   _addItem: (item) ->
     @$.appendChild item
-    @$.hidden = not @$.childNodes.length
+    @_setHidden not @$.childNodes.length
+
   _removeItem: (item) ->
     removeNode item
-    @$.hidden = not @$.childNodes.length
+    @_setHidden not @$.childNodes.length
 
 
 

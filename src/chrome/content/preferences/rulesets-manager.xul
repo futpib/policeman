@@ -32,6 +32,12 @@
         <vbox flex="1">
           <label class="title" value="&preferences_installed_rulesets;" crop="end"/>
           <richlistbox flex="1" id="installed-rulesets-list"/>
+
+          <splitter id="installed-rulesets-downloads-splitter"
+                    style="opacity: 0;"
+                    collapse="both"
+                    orient="vertical"/>
+
           <richlistbox flex="1" id="downloads-list"/>
         </vbox>
 
