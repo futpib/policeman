@@ -3,6 +3,13 @@
 { windows } = require 'windows'
 { tabs } = require 'tabs'
 
+{ prefs } = require 'prefs'
+
+
+prefs.define REQUEST_PER_TAB_LIMIT_PREF = 'requestMemo.requestPerTabLimit',
+  default: 2000
+  get: (n) -> Math.max 200, n
+
 
 ###
 Remembers requests attempted by each tab with corresponding decisions
@@ -30,16 +37,22 @@ exports.memo = memo = new class
     for prop in ['nodeName', 'className', 'id']
       # Force these property getters for later use by UI if the node goes dead
       context[prop]
-    @_tabIdToRequests[i].push [origin, dest, context, decision]
+    requests = @_tabIdToRequests[i]
+    requests.push [origin, dest, context, decision]
+    requests.shift() if requests.length > @_requestPerTabLimit
     @_tabIdToStats[i].hit origin, dest, context, decision
 
   _resetTab: (i) ->
     @_tabIdToRequests[i] = []
     @_tabIdToStats[i] = new Stats
 
+  _requestPerTabLimit: prefs.get REQUEST_PER_TAB_LIMIT_PREF
+
 
   constructor: ->
     tabs.onClose.add @removeRequestsMadeByTab.bind @
+
+    prefs.onChange REQUEST_PER_TAB_LIMIT_PREF, (n) => @_requestPerTabLimit = n
 
   removeRequestsMadeByTab: (tab) ->
     tabId = tabs.getTabId tab
