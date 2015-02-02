@@ -634,6 +634,18 @@ class RequestList extends ContainerPopulation
     for p, t of contextPropertyToTitle
       contextPropertyToTitle[p] = l10n t
 
+    localizeContext = (context) ->
+      contextSummary = ""
+      if context.hints.redirect
+        contextSummary += "#{ l10n 'request_context_hints_redirect' }\n"
+      for property, title of contextPropertyToTitle
+        if value = context[property]
+          if  property == 'contentType' \
+          and value in USER_AVAILABLE_CONTENT_TYPES
+            value = l10n "content_type.title.singular.#{value}"
+          contextSummary += "#{ title } #{ value }\n"
+      return contextSummary
+
     create: (doc, descr) ->
       descr.set 'tagName', 'hbox'
       descr.push 'list_class', 'policeman-popup-request'
@@ -654,12 +666,7 @@ class RequestList extends ContainerPopulation
         tooltiptext: origin.spec
         href: origin.spec
 
-      contextSummary = ""
-      if context.hints.redirect
-        contextSummary += "#{ l10n 'request_context_hints_redirect' }\n"
-      for property, title of contextPropertyToTitle
-        if value = context[property]
-          contextSummary += "#{ title } #{ value }\n"
+      contextSummary = localizeContext context
 
       box.appendChild arrowLabel = createElement doc, 'label',
         class: 'policeman-popup-request-label policeman-popup-request-arrow-label'
