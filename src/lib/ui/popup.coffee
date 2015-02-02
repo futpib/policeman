@@ -39,7 +39,6 @@
 
 
 WILDCARD_TYPE = DomainDomainTypeRS::WILDCARD_TYPE
-CHROME_DOMAIN = DomainDomainTypeRS::CHROME_DOMAIN
 USER_AVAILABLE_CONTENT_TYPES = DomainDomainTypeRS::USER_AVAILABLE_CONTENT_TYPES
 
 
@@ -347,8 +346,6 @@ class DomainSelectionButtons extends RadioGroup
         allowHits: node.allowHits
         rejectHits: node.rejectHits
         isLeaf: not (node.children and node.children.length)
-      if node.domain == CHROME_DOMAIN
-        currentDescription.set 'label', @_chromeDomainLabel
       if node.children.length > HIDE_CHILDREN_THRESHOLD
         currentDescription.set 'childrenHidden', yes
 
@@ -373,15 +370,11 @@ class DomainSelectionButtons extends RadioGroup
     if requestInfo.schemeType == 'web'
       if not @selectedDomain
         yes
-      else if @selectedDomain == CHROME_DOMAIN
-        no
       else
         isSuperdomain @selectedDomain, requestInfo.host
     else if requestInfo.schemeType == 'internal'
       if not @selectedDomain
         no
-      else if @selectedDomain == CHROME_DOMAIN
-        yes
       else
         no
     else
@@ -394,8 +387,6 @@ originSelection = new (class extends DomainSelectionButtons
   _chooseDomain: (o, d, c, decision) ->
     if o.schemeType == 'web'
       return o.host
-    else if o.schemeType == 'internal'
-      return CHROME_DOMAIN
     else
       return false
 
@@ -404,8 +395,6 @@ originSelection = new (class extends DomainSelectionButtons
     @selectedDomain = try currentURI.host
     super doc
 
-  _chromeDomainLabel: l10n 'popup_chrome_origin'
-
 ) new Description containerId: 'policeman-popup-origins-container'
 
 destinationSelection = new (class extends DomainSelectionButtons
@@ -413,30 +402,22 @@ destinationSelection = new (class extends DomainSelectionButtons
     if originSelection.filter o
       if d.schemeType == 'web'
         return d.host
-      else if d.schemeType == 'internal'
-        return CHROME_DOMAIN
       else
         return false
     else
       return false
 
-  _chromeDomainLabel: l10n 'popup_chrome_destination'
-
 ) new Description containerId: 'policeman-popup-destinations-container'
 
 
 localizeOrigin = (o) ->
-  if o == CHROME_DOMAIN
-    return l10n 'popup_chrome_origin'
-  else if not o
+  if not o
     return l10n 'popup_rule_any_domain'
   else
     return o
 
 localizeDestination = (d) ->
-  if d == CHROME_DOMAIN
-    return l10n 'popup_chrome_destination'
-  else if not d
+  if not d
     return l10n 'popup_rule_any_domain'
   else
     return d
@@ -727,12 +708,11 @@ class RulesetEditButtons extends ContainerPopulation
     @_rulesetId = descr.get 'rulesetId'
     super arguments...
 
-  localizeDomain = (d) -> if d == CHROME_DOMAIN
-        l10n 'popup_rule_chrome_domain'
-      else if not d
-        l10n 'popup_rule_any_domain'
-      else
-        d
+  localizeDomain = (d) ->
+    if not d
+      l10n 'popup_rule_any_domain'
+    else
+      d
 
   PassiveRuleWidget: new class extends Widget.constructor
     create: (doc, descr) ->
@@ -941,11 +921,9 @@ class RulesetEditButtons extends ContainerPopulation
       # show rules that influenced anything in the current tab
       # filtered by selected origin or destination if any
       # ordered by priority
-      chooseDomain = (requestInfo) ->
+      getDomain = (requestInfo) ->
         if requestInfo.schemeType == 'web'
           requestInfo.host
-        else if requestInfo.schemeType == 'internal'
-          CHROME_DOMAIN
         else
           ''
       rulesSet = Object.create null # origin -> dest -> type -> index
@@ -954,8 +932,8 @@ class RulesetEditButtons extends ContainerPopulation
       for [o, d, c, decision] in memo.getByTab tabs.getCurrent()
         continue if selectedOrigin and not (originSelection.filter o)
         continue if selectedDestination and not (destinationSelection.filter d)
-        originDomain = chooseDomain o
-        destinationDomain = chooseDomain d
+        originDomain = getDomain o
+        destinationDomain = getDomain d
         rs.superdomainsCheckOrder originDomain, destinationDomain, (o, d) =>
           for t in enabledTypes
             decision = rs.lookup o, d, t

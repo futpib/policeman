@@ -205,8 +205,6 @@ exports.DeepLookupRS = class DeepLookupRS extends LookupRS
   toTable: -> toTableRec @_lookup
 
 exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
-  CHROME_DOMAIN: '_CHROME_DOMAIN_'
-
   WILDCARD_TYPE = '_ANY_'
   WILDCARD_TYPE: WILDCARD_TYPE
 
@@ -272,8 +270,4 @@ exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
     destinationIsWeb = d.schemeType == 'web'
     return null if @_restrictToWeb and not (originIsWeb and destinationIsWeb)
     contentType = @_contentTypeMap c.contentType
-    # for non-web URI schemes check special pseudo-domain constant
-    originHost = if originIsWeb then o.host else @CHROME_DOMAIN
-    destinationHost = if destinationIsWeb then d.host else @CHROME_DOMAIN
-    return @checkWithSuperdomains originHost, destinationHost, contentType
-
+    return @checkWithSuperdomains o.host, d.host, contentType

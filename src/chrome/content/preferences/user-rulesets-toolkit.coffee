@@ -13,7 +13,6 @@ idnService = Cc["@mozilla.org/network/idn-service;1"]
 
 
 {
-  CHROME_DOMAIN
   USER_AVAILABLE_CONTENT_TYPES
   WILDCARD_TYPE
 } = DomainDomainTypeRS::
@@ -279,7 +278,6 @@ class RulesTree
     localizeTypeLookup[t] = l10n 'content_type.title.plural.' + t
 
   localizeDomainLookup = {}
-  localizeDomainLookup[CHROME_DOMAIN] = l10n 'preferences_chrome_domain'
   localizeDomainLookup[''] = l10n 'preferences_any_domain'
 
   localizeDecisionLookup = {

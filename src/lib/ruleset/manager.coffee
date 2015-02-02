@@ -22,6 +22,17 @@ codeBasedRuleSets = [
   'user_temporary',
 ]
 
+updating.from '0.19pre0', ->
+  ###
+  Chrome domain notion removed since requests from and to internal schemes
+  are allowed by default.
+  ###
+  CHROME_DOMAIN = '_CHROME_DOMAIN_'
+  for rs in [temporaryRuleSet, persistentRuleSet]
+    for [o, d, t] in rs.toTable()
+      if CHROME_DOMAIN in [o, d]
+        rs.revoke o, d, t
+
 embeddedRuleSets = [
   'default',
   'compatibility',
