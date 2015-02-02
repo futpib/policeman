@@ -89,7 +89,7 @@ exports.contentContextMenu = contentContextMenu =
           event_command: do (blocked=blocked, ds=ds) -> ->
             temp.addClosure (o, d, c) ->
               return true if c._tabId == currentTabId \
-                          and restored.get c._element
+                          and restored.has c._element
               temp.revokeClosure @ # FIXME may be revoked too soon
             restored = blocked.restoreAllOnTab currentTabId
 

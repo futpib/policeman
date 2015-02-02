@@ -65,15 +65,30 @@ updating.from '0.14', ->
 addEmbedded = (obj) ->
   for id in embeddedRuleSets
     unless id of obj
-      if id in codeBasedRuleSets
-        obj[id] = null
-      else
-        obj[id] = file_path.toString file_path.join file_path.defaults, 'rulesets', "#{id}.ruleset"
+      obj[id] = null
   return obj
 
-prefs.define INSTALLED_PATH_BY_ID_PREF = 'manager.installedPathsByIds',
+prefs.define INSTALLED_PATH_BY_ID_PREF = 'manager.installedPathsByIds2',
   default: {}
   get: (o) -> addEmbedded o
+
+updating.from '0.18.1', ->
+  ###
+  'manager.installedPathsByIds' pref renamed to 'manager.installedPathsByIds2'
+  and instead of absolute paths relative are stored now (relative to Fx profile)
+
+  Left old pref alone to not break downgrading (pre-release users might want it)
+  ###
+  prefs.define OLD_INSTALLED_PATH_BY_ID_PREF = 'manager.installedPathsByIds',
+    default: {}
+    get: (o) -> addEmbedded o
+  newInstalled = prefs.get INSTALLED_PATH_BY_ID_PREF
+  for id, path of prefs.get OLD_INSTALLED_PATH_BY_ID_PREF
+    if id in embeddedRuleSets
+      newInstalled[id] = null
+    else
+      newInstalled[id] = path.split(/[\/\\]/).pop() # filename only
+  prefs.set INSTALLED_PATH_BY_ID_PREF, newInstalled
 
 prefs.define SUSPENDED_PREF = 'manager.suspended',
   default: false
@@ -81,27 +96,22 @@ prefs.define SUSPENDED_PREF = 'manager.suspended',
 
 
 cachedRulesetConstructor = cache
-  hash: (uri) -> uri
-  version: (uri) ->
+  hash: (id, uri) -> uri
+  version: (id, uri) ->
+    if id in embeddedRuleSets # embedded ones can not change, return a constant
+      return 1
     try
       return file_path.toFile(uri).lastModifiedTime
     catch e
       return Math.random()
-  function: formatRegistry.parseByLocalUrl.bind formatRegistry
+  function: (id, uri) -> formatRegistry.parseByLocalUrl uri
 
 
-files = new class
+rulesetFiles = new class
   refCountByPath = Object.create null
 
-  scope = OS.Path.normalize \
+  rulesetDir = OS.Path.normalize \
               OS.Path.join OS.Constants.Path.profileDir, 'policeman', 'rulesets'
-  acquire: (path) ->
-    path = OS.Path.normalize path
-    if scope != (OS.Path.dirname path)
-      throw new Error "#{JSON.stringify path} is out of
-          #{JSON.stringify scope} directory"
-    refCountByPath[path] ?= 0
-    refCountByPath[path] += 1
 
   filenamesafe = (str) -> str.replace /[^0-9A-Za-z._-]/g, '_'
   filenameRnd_ = -> Math.random().toString(36).slice(2)
@@ -109,19 +119,50 @@ files = new class
     s = ''
     s += filenameRnd_() for i in [1..n]
     return s
-  uniquePath: (prefix) ->
+
+  uniqueRelativePath = (prefix) ->
     prefix_ = if prefix is undefined then '' else filenamesafe(prefix) + '.'
     trial = 0
     while trial += 1
-      path = OS.Path.join scope, "#{ prefix_ }#{ filenameRnd trial }.ruleset"
-      return path unless path of refCountByPath
+      relPath = "#{ prefix_ }#{ filenameRnd trial }.ruleset"
+      return relPath unless relPath of refCountByPath
 
-  release: (path) ->
-    unless path of refCountByPath
+  getFullPath: (relPath) -> OS.Path.join rulesetDir, relPath
+  getEmbeddedUrl: (id) -> file_path.toString \
+                  file_path.join file_path.defaults, 'rulesets', "#{id}.ruleset"
+
+  encoder = new TextEncoder
+  save: (string, desiredName='') -> # Promise<path>
+    # Returns a Promise of a string which is a path relative to `rulesetDir`
+    # where the `string` argument was written.
+    relPath = uniqueRelativePath desiredName
+    path = @getFullPath relPath
+    OS.File.writeAtomic(
+      path,
+      encoder.encode(string),
+      tmpPath: "#{path}.tmp"
+    ).then(-> relPath)
+
+  load: (id, relPath=undefined) ->
+    if id in embeddedRuleSets
+      # TODO Something (XHR?) + Promise
+      return cachedRulesetConstructor id, @getEmbeddedUrl id
+    else
+      # TODO OS.File + Promise
+      return cachedRulesetConstructor id, @getFullPath relPath
+
+  acquire: (relPath) ->
+    relPath = OS.Path.normalize relPath
+    refCountByPath[relPath] ?= 0
+    refCountByPath[relPath] += 1
+
+  release: (relPath) ->
+    unless relPath of refCountByPath
       throw new Error "Releasing unknown path #{ JSON.stringify path }"
-    refCountByPath[path] -= 1
-    if refCountByPath[path] < 1
-      delete refCountByPath[path]
+    refCountByPath[relPath] -= 1
+    if refCountByPath[relPath] < 1
+      delete refCountByPath[relPath]
+      path = @getFullPath relPath
       (OS.File.remove path).then null, ->
         log "files: release #{ JSON.stringify path }: Failed to remove the file."
 
@@ -134,11 +175,11 @@ exports.Manager = class Manager
     @_installedPathsByIds = Object.create null
     @_installedMetadataById = Object.create null
 
-    for id, url of installed
+    for id, path of installed
       try
-        @install id, url
+        @install id, path
       catch e
-        log.warn 'Could not install ruleset id:', id, 'url:', url,
+        log.warn 'Could not install ruleset id:', id, 'path:', path,
                  'due to the following error:', e
 
     @_enabledRuleSetsIds = [] # order defines priority
@@ -158,34 +199,43 @@ exports.Manager = class Manager
   _newRuleSetById: (id) ->
     if codeBasedIdToObject.hasOwnProperty id
       return codeBasedIdToObject[id]
+    if id in embeddedRuleSets
+      return rulesetFiles.load id
     unless id of @_installedPathsByIds
       throw new Error "Ruleset '#{id}' is not installed"
-    return cachedRulesetConstructor @_installedPathsByIds[id]
+    return rulesetFiles.load id, @_installedPathsByIds[id]
 
-  installed: (id, path=undefined) ->
-    if path isnt undefined
-      return @_installedPathsByIds[id] == path
-    return id of @_installedPathsByIds
-  install: (id, path) ->
-    return if @installed id, path
-    @uninstall id if @installed id
-    if path and not (id in embeddedRuleSets)
-      files.acquire path
-    @_installedPathsByIds[id] = path
+  installed: (id) -> id of @_installedPathsByIds
+
+  install: (id, relPath) ->
+    return if @installed id
+
+    isEmbeddedId = id in embeddedRuleSets
+
+    if relPath and not isEmbeddedId
+      rulesetFiles.acquire relPath
+
+    @_installedPathsByIds[id] = relPath
+
     rs = @_newRuleSetById id
+
     @_installedMetadataById[id] = rs.getMetadata()
-    @_installedMetadataById[id].sourceUrl = path
-  uninstall: (id, path=undefined) ->
-    return unless @installed id, path
+    if isEmbeddedId
+      @_installedMetadataById[id].sourceUrl = rulesetFiles.getEmbeddedUrl id
+    else
+      @_installedMetadataById[id].sourceUrl = \
+              OS.Path.toFileURI rulesetFiles.getFullPath relPath
+
+  uninstall: (id) ->
+    return unless @installed id
     if id in embeddedRuleSets
       throw new Error "Can't uninstall embedded ruleset '#{id}'"
     if (path = @_installedPathsByIds[id])
-      files.release path
+      rulesetFiles.release path
     @disable id
     delete @_installedPathsByIds[id]
     delete @_installedMetadataById[id]
 
-  encoder = new TextEncoder
   downloadInstall: (url, listeners={}) ->
     dispatch = (event, args...) ->
       if event in ['start', 'progress', 'error', 'abort', 'success'] \
@@ -220,9 +270,7 @@ exports.Manager = class Manager
         return
       dispatch 'progress', {phase: 'save'}
       return if aborted
-      path = files.uniquePath id
-      OS.File.writeAtomic(path, encoder.encode(str),
-                          tmpPath: "#{path}.tmp").then((=>
+      rulesetFiles.save(str, id).then(((path) =>
         try
           @install id, path
         catch err
@@ -230,9 +278,9 @@ exports.Manager = class Manager
           dispatch 'error', err
           return
         dispatch 'success', {id}
-      ), (=>
+      ), ((e) =>
         log "downloadInstall #{ JSON.stringify url }:
-            Failed writing to #{ JSON.stringify path }.
+            Failed saving ruleset, error: #{ e }.
             Ruleset '#{id}' not installed."
         dispatch 'error'
       ))
@@ -306,7 +354,7 @@ class Snapshot extends Manager
   destroy: ->
     for id, path of @getInstalledUrlsByIds()
       if path and not (id in embeddedRuleSets)
-        files.release path
+        rulesetFiles.release path
 
 
 class SanityCheckedSnapshot extends Snapshot

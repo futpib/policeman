@@ -8,6 +8,7 @@ catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
 } = require 'request-info'
 { memo } = require 'request-memo'
 { blockedElements } = require 'blocked-elements'
+{ blockedRedirects } = require 'blocked-redirects'
 {
   Handlers
   runAsync
@@ -60,13 +61,22 @@ exports.policy = policy =
   _shouldLoad: (origin, dest, ctx) ->
     decision = manager.check origin, dest, ctx
 
-    memo.add origin, dest, ctx, decision
-    blockedElements.process origin, dest, ctx, decision
-
-    @onRequest.execute origin, dest, ctx, decision
-
+    try
+      memo.add origin, dest, ctx, decision
+      blockedElements.process origin, dest, ctx, decision
+      blockedRedirects.process origin, dest, ctx, decision
+      @onRequest.execute origin, dest, ctx, decision
+    catch e
+      log.error 'Error processing a request:', e
 
     return decision
+
+  # `shouldLoad` stores some data about last call so that when `observe`
+  # is called right after `shouldLoad` for the same request it need not consult
+  # the `manager` again
+  _lastShouldLoad:
+    expired: yes
+    destSpec: null
 
   # nsIContentPolicy interface implementation
   shouldLoad: (contentType, destUri, originUri, \
@@ -78,6 +88,9 @@ exports.policy = policy =
                 contentType, destUri, originUri, context, mime, extra, principal
 
     decision = @_shouldLoad origin, dest, ctx
+
+    @_lastShouldLoad.expired = no
+    @_lastShouldLoad.destSpec = destUri.spec
 
     if decision
       return Ci.nsIContentPolicy.ACCEPT
@@ -94,6 +107,13 @@ exports.policy = policy =
         # Channel*Info objects are different from their counterparts.
 
         channel = subject.QueryInterface Ci.nsIHttpChannel
+
+        if not @_lastShouldLoad.expired
+          @_lastShouldLoad.expired = yes
+          # If we got the same destination URI as previous `shouldLoad` call
+          if @_lastShouldLoad.destSpec == channel.URI.spec
+            # Since `observe` got called, `shouldLoad` must have returned ACCEPT
+            return
 
         [origin, dest, ctx, ci] = getChannelInfoObjects channel
         decision = @_shouldLoad origin, dest, ctx

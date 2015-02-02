@@ -6,7 +6,7 @@ Cu.import 'resource://gre/modules/osfile.jsm'
 filepicker = Cc["@mozilla.org/filepicker;1"]
              .createInstance(Ci.nsIFilePicker)
 filepicker.init window,
-                    l10n('preferences_user_rulesets_export_file_dialog'),
+                    l10n('preferences_user_rulesets_import_file_dialog'),
                     Ci.nsIFilePicker.modeOpen
 filepicker.appendFilter 'Policeman rules dump', '*.policeman.json'
 filepicker.appendFilter 'JSON', '*.json'

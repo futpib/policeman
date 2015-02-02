@@ -22,21 +22,13 @@ l10n:
     description: "Autoriser quelques requêtes internes essentielles à la navigation"
 
 rules:
-  # Essentials
+  # Allows requests for inline and internal schemes
+  # (no networking involved here anyway)
+  * -> (inline|internal): ACCEPT
 
-  * -> inline: ACCEPT
-  internal -> internal: ACCEPT
-
-  internal -> (web|file):
-    # allows various thing like navigation from chrome pages to web and
-    # iframes on chrome pages (addons page has one)
-    # kind of entry point for document load
-    [contentType] (DOCUMENT|SUBDOCUMENT): ACCEPT
+  # Allows requests originating from internal schemes (made by browser and addons)
+  internal -> *: ACCEPT
 
   web -> web:
-    # allows opening links on web pages
-    [contentType] DOCUMENT: ACCEPT
-
-  (web|file) -> internal:
-    # top-level media player and image viewer require internal styles
-    [contentType] STYLESHEET: ACCEPT
+    # allows navigation (like opening links on web pages)
+    [hints] navigation: ACCEPT

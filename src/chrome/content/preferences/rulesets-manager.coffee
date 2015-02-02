@@ -143,20 +143,37 @@ class RulesetRichListItem
 
     draggableBox.appendChild createElement doc, 'image',
       class: 'ruleset-icon'
-      src: "chrome://policeman/skin/ruleset-#{permissiveness}-icon-16.png"
-    draggableBox.appendChild createElement doc, 'label',
+      src: "chrome://policeman/skin/ruleset-#{permissiveness}-icon-32.png"
+
+    draggableBox.appendChild innerBox = createElement doc, 'vbox',
+      flex: 1
+
+    innerBox.appendChild upperBox = createElement doc, 'hbox',
+      class: 'ruleset-upper-box'
+      align: 'center'
+      flex: 1
+
+    innerBox.appendChild lowerBox = createElement doc, 'hbox',
+      class: 'ruleset-lower-box'
+      align: 'center'
+      flex: 1
+
+    upperBox.appendChild createElement doc, 'label',
       class: 'ruleset-name'
       value: name
-    draggableBox.appendChild createElement doc, 'label',
+      crop: 'end'
+      flex: 1
+    upperBox.appendChild createElement doc, 'spacer',
+      flex: 1
+    upperBox.appendChild createElement doc, 'label',
+      class: 'ruleset-version'
+      value: version
+
+    lowerBox.appendChild createElement doc, 'label',
       class: 'ruleset-description'
       value: description
       crop: 'end'
       flex: 1
-    draggableBox.appendChild createElement doc, 'spacer',
-      flex: 1
-    draggableBox.appendChild createElement doc, 'label',
-      class: 'ruleset-version'
-      value: version
 
     return item
 
@@ -180,7 +197,19 @@ class InstalledRulesetRichListItem extends RulesetRichListItem
 
     item = super doc, widgetDescription
 
-    item.appendChild enableBtn = createElement document, 'button',
+    item.appendChild outer = createElement doc, 'vbox',
+      class: 'ruleset-buttons-box'
+
+    outer.appendChild createElement doc, 'spacer',
+      flex: 1
+
+    outer.appendChild buttonsBox = createElement doc, 'hbox',
+      class: 'ruleset-buttons-inner-box'
+
+    outer.appendChild createElement doc, 'spacer',
+      flex: 1
+
+    buttonsBox.appendChild enableBtn = createElement document, 'button',
       class: 'ruleset-enable'
       label: l10n 'preferences_enable'
       icon: 'add'
@@ -192,7 +221,7 @@ class InstalledRulesetRichListItem extends RulesetRichListItem
 
     canUninstall = snapshot.canUninstall id
 
-    item.appendChild removeBtn = createElement document, 'button',
+    buttonsBox.appendChild removeBtn = createElement document, 'button',
       class: 'ruleset-uninstall'
       label: l10n 'preferences_uninstall'
       icon: 'remove'
@@ -224,7 +253,19 @@ class EnabledRulesetRichListItem extends RulesetRichListItem
       sourceUrl
     } = widgetDescription
 
-    item.appendChild disableBtn = createElement document, 'button',
+    item.appendChild outer = createElement doc, 'vbox',
+      class: 'ruleset-buttons-box'
+
+    outer.appendChild createElement doc, 'spacer',
+      flex: 1
+
+    outer.appendChild buttonsBox = createElement doc, 'hbox',
+      class: 'ruleset-buttons-inner-box'
+
+    outer.appendChild createElement doc, 'spacer',
+      flex: 1
+
+    buttonsBox.appendChild disableBtn = createElement document, 'button',
       class: 'ruleset-disable'
       label: l10n 'preferences_disable'
       icon: 'remove'

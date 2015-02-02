@@ -26,6 +26,18 @@ exports.memo = memo = new class
   _tabIdToStats: Object.create null
   _contentWindowToStats: new WeakMap
 
+  _addRequestByTab: (i, origin, dest, context, decision) ->
+    for prop in ['nodeName', 'className', 'id']
+      # Force these property getters for later use by UI if the node goes dead
+      context[prop]
+    @_tabIdToRequests[i].push [origin, dest, context, decision]
+    @_tabIdToStats[i].hit origin, dest, context, decision
+
+  _resetTab: (i) ->
+    @_tabIdToRequests[i] = []
+    @_tabIdToStats[i] = new Stats
+
+
   constructor: ->
     tabs.onClose.add @removeRequestsMadeByTab.bind @
 
@@ -38,20 +50,18 @@ exports.memo = memo = new class
     i = context._tabId
     return if not i
     if context.contentType == 'DOCUMENT' \
+    and context.hints.navigation \
     and not ( # conditions for no real page reload follow
       dest.scheme == 'javascript' \ # href="javascript:..."
       or origin.spec == dest.spec   # href="#hash"
     )
       # Page reload or navigated to another document, reset the data
-      @_tabIdToRequests[i] = []
-      @_tabIdToStats[i] = new Stats
+      @_resetTab i
       # Not to record the document request itself seems reasonable
       return
     unless i of @_tabIdToRequests
-      @_tabIdToRequests[i] = []
-      @_tabIdToStats[i] = new Stats
-    @_tabIdToRequests[i].push [origin, dest, context, decision]
-    @_tabIdToStats[i].hit origin, dest, context, decision
+      @_resetTab i
+    @_addRequestByTab i, origin, dest, context, decision
 
   getByTabId: (tabId) ->
     return @_tabIdToRequests[tabId] or []

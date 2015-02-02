@@ -2,12 +2,12 @@
 magic: policeman_ruleset
 version: 0.1
 id: "allow_same_second_level_domain"
-homepage: "https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#same-second-level-domain"
+homepage: "https://github.com/futpib/policeman/wiki/Preinstalled-rulesets-description#same-base-domain"
 
 l10n:
   en-US:
-    name: "Same second-level domain"
-    description: "Allow requests to same second-level domain"
+    name: "Same base domain"
+    description: "Allow requests to same base domain"
   de-DE:
     name: "Gleiche Second-level Domain"
     description: "Erlaubt Anfragen zur selben Second-level Domain"
@@ -23,5 +23,4 @@ l10n:
 
 rules:
   web -> web:
-    /.+\.(.+\..+)/ -> $1: ACCEPT
-    /.+\.(.+\..+)/ -> *.$1: ACCEPT
+    [baseDomain] * -> $&: ACCEPT

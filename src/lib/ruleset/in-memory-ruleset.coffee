@@ -220,7 +220,7 @@ exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
     'OBJECT',
     # 'OBJECT_SUBREQUEST', # This is treated as OBJECT by `check`
     'SUBDOCUMENT',
-    # 'DOCUMENT', # Let's hide this from user, default ruleset handles it
+    'DOCUMENT',
     'XMLHTTPREQUEST',
     'WEBSOCKET',
     'DTD',

@@ -69,10 +69,13 @@ var component = {
   ],
   // Components that don't belong to origin or destination uri.
   // Predicate on these components consist of a single test (without any ->)
-  single: requestInfo.ContextInfo.prototype.components,
+  single: requestInfo.PUBLIC_CONTEXT_PROPERTIES,
   // Components that support lookup, bare string on these will be parsed as
   // InTest not EqTest.
-  list: ['classList'],
+  list: [].concat(
+    requestInfo.PUBLIC_URI_SET_LIKE_PROPERTIES,
+    requestInfo.PUBLIC_CONTEXT_SET_LIKE_PROPERTIES
+  ),
 
   reset: function () {
     this.stack = [];

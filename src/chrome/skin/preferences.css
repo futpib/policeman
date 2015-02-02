@@ -50,13 +50,16 @@ richlistbox {
   margin: 0;
 }
 
+.ruleset {
+  border-bottom: 1px solid ThreeDShadow;
+}
 #enabled-rulesets-list .ruleset.dragover {
   box-shadow: inset 0 3px Highlight;
 }
 .ruleset-draggable-part * {
   pointer-events: none;
 }
-.ruleset-name, .ruleset-description, .ruleset-version  {
+.ruleset-name, .ruleset-version {
   font-size: 1.3em;
 }
 .ruleset-description {

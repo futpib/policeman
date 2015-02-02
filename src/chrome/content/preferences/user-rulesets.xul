@@ -15,9 +15,11 @@
   <popupset>
     <menupopup id="temporary-rule-menu">
       <menuitem class="menu-promote" label="&preferences_promote_rule_to_rersistent;"/>
+      <menuitem class="menu-edit" label="&preferences_edit_rule;"/>
       <menuitem class="menu-remove" label="&preferences_remove_rule;"/>
     </menupopup>
     <menupopup id="persistent-rule-menu">
+      <menuitem class="menu-edit" label="&preferences_edit_rule;"/>
       <menuitem class="menu-remove" label="&preferences_remove_rule;"/>
     </menupopup>
   </popupset>
