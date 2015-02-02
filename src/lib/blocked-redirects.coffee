@@ -16,6 +16,7 @@ exports.blockedRedirects = blockedRedirects =
   process: (origin, destination, context, decision) ->
     if  decision is false \
     and context.hints.redirect \
+    and context.contentType == 'DOCUMENT' \
     and context._tabId
       redirect = new BlockedRedirectInfo origin, destination, context
       redirectNotifications.show redirect
