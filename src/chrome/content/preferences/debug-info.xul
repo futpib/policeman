@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://policeman/skin/preferences.css" type="text/css"?>
+<!DOCTYPE page [
+  <!ENTITY % policemanDTD SYSTEM "chrome://policeman/locale/"> %policemanDTD;
+  <!ENTITY % aboutSupportDTD SYSTEM "chrome://global/locale/aboutSupport.dtd"> %aboutSupportDTD;
+]>
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      xmlns:html="http://www.w3.org/1999/xhtml">
+
+  <script src="chrome://policeman/content/xul-page-common.js"
+          type="application/javascript"/>
+  <script src="debug-info.js"
+          type="application/javascript"/>
+
+  <vbox id="subpref-container" flex="1">
+    <label class="title" value="&aboutSupport.pageTitle;"/>
+    <description>
+      &preferences_debug_info_subtitle;
+    </description>
+    <label value="&preferences_debug_info_pastebin_list;"/>
+    <html:ul>
+      <html:li>
+        <label href="http://pastebin.mozilla.org/"
+               class="text-link"
+               target="_blank">
+          pastebin.mozilla.org
+        </label>
+      </html:li>
+      <html:li>
+        <label href="http://pastebin.com/"
+               class="text-link"
+               target="_blank">
+          pastebin.com
+        </label>
+      </html:li>
+      <html:li>
+        <label href="http://paste.ubuntu.com/"
+               class="text-link"
+               target="_blank">
+          paste.ubuntu.com
+        </label>
+      </html:li>
+    </html:ul>
+
+    <textbox id="info-box"
+             flex="1"
+             multiline="true"/>
+  </vbox>
+
+</page>

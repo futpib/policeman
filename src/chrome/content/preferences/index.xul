@@ -25,74 +25,81 @@
       <vbox id="subpref-links-container">
         <html:ol id="subpref-links-list">
           <html:li>
-            <html:a class="text-link"
+            <label  class="text-link"
                     id="default-subpref-link"
                     href="chrome://policeman/content/preferences/general.xul"
                     style="display: block;"
                     target="subview">
               &preferences_general;
-            </html:a>
+            </label>
           </html:li>
           <html:li>
-            <html:a class="text-link"
+            <label  class="text-link"
                     href="chrome://policeman/content/preferences/popup.xul"
                     style="display: block;"
                     target="subview">
               &preferences_popup;
-            </html:a>
+            </label>
           </html:li>
           <html:li>
-            <html:a class="text-link"
+            <label  class="text-link"
                     href="chrome://policeman/content/preferences/rulesets-manager.xul"
                     style="display: block;"
                     target="subview">
               &preferences_rulesets_manager;
-            </html:a>
+            </label>
           </html:li>
           <html:li class="user-rulesets-preferences">
-            <html:a class="text-link"
+            <label  class="text-link"
                     href="chrome://policeman/content/preferences/user-rulesets.xul"
                     style="display: block;"
                     target="subview">
               &preferences_user_rulesets;
-            </html:a>
+            </label>
             <html:ol class="persistent-ruleset-preferences">
               <html:li>
-                <html:a class="text-link"
+                <label  class="text-link"
                         href="chrome://policeman/content/preferences/user-rulesets-export.xul"
                         target="subview">
                   &preferences_user_rulesets_export;
-                </html:a>
+                </label>
               </html:li>
               <html:li>
-                <html:a class="text-link"
+                <label  class="text-link"
                         href="chrome://policeman/content/preferences/user-rulesets-import.xul"
                         target="subview">
                   &preferences_user_rulesets_import;
-                </html:a>
+                </label>
               </html:li>
               <html:ol>
                 <html:li>
-                  <html:a class="text-link"
+                  <label  class="text-link"
                           href="chrome://policeman/content/preferences/user-rulesets-import-requestpolicy.xul"
                           target="subview">
                     &preferences_user_rulesets_import_requestpolicy;
-                  </html:a>
+                  </label>
                 </html:li>
               </html:ol>
             </html:ol>
+          </html:li>
+          <html:li>
+            <label  class="text-link"
+                    href="chrome://policeman/content/preferences/debug-info.xul"
+                    target="subview"
+                    hidden="true">
+              &preferences_debug_info;
+            </label>
           </html:li>
         </html:ol>
       </vbox>
 
       <separator/>
 
-      <html:a id="help-link"
-              class="text-link"
+      <label  class="text-link"
               href="https://github.com/futpib/policeman/wiki/Help"
               target="_blank">
         &preferences_help;
-      </html:a>
+      </label>
     </vbox>
 
     <vbox flex="1">

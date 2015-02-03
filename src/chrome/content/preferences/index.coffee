@@ -15,18 +15,22 @@ class SubpageLink
 onLoad = ->
   iframe = $ 'iframe#subview'
 
-  for link in $$ '#subpref-links-container a'
+  links = $$ '#subpref-links-container label.text-link'
+
+  for link in links
     link.addEventListener 'click', do (link=link) -> (e) ->
-      for otherAnchor in $$ '#subpref-links-container a'
-        SubpageLink::deselect otherAnchor
+      for otherLink in links
+        SubpageLink::deselect otherLink
       hash = SubpageLink::hash link
-      window.top.location.hash = hash
+      location.hash = hash
       SubpageLink::select link
 
-  do -> # navigate to initial hash or to a default page
-    for link in $$ '#subpref-links-container a'
+  do updateFrameLocation = -> # navigate to initial hash or to a default page
+    for otherLink in links
+      SubpageLink::deselect otherLink
+    for link in links
       hash = SubpageLink::hash link
-      if window.top.location.hash == hash
+      if location.hash == hash
         SubpageLink::select link
         iframe.contentDocument.location.replace link.href
         return
@@ -34,12 +38,12 @@ onLoad = ->
     SubpageLink::select defaultLink
     iframe.contentDocument.location.replace defaultLink.href
 
+  addEventListener 'hashchange', (e) ->
+    frameHash = SubpageLink::hash iframe.contentDocument.location
+    if frameHash != location.hash
+      do updateFrameLocation
 
   $('#version-number').value = addonData.version
-
-  $('#help-link').addEventListener 'click', (e) ->
-    e.preventDefault()
-    tabs.open e.currentTarget.href
 
   if not (manager.enabled('user_persistent') or manager.enabled('user_temporary'))
     for elem in $$ '.user-rulesets-preferences'

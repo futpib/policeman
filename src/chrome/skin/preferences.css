@@ -13,7 +13,7 @@
   margin-left: 0;
 }
 
-a {
+label.text-link {
   font-size: 1.2em;
   display: block;
 /*   color: -moz-nativehyperlinktext; */
@@ -21,11 +21,7 @@ a {
   text-decoration: none;
 }
 
-a:hover {
-  text-decoration: underline;
-}
-
-#sidebar a {
+#sidebar label.text-link {
   display: block;
 }
 
@@ -34,7 +30,7 @@ a:hover {
   margin: 0;
 }
 
-#sidebar ol a {
+#sidebar ol label.text-link {
   margin-bottom: .5em;
 }
 

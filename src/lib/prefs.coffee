@@ -133,6 +133,21 @@ class Preferences
     name = name + '.' unless name.endsWith('.')
     return new @::constructor @_branchName + name
 
+  _debug_dump: ->
+    dump = { prefs: [] }
+    for name, type of @_nameToType
+      infoObj =
+        name: name
+        type: type
+      try
+        infoObj.rawValue = @_getRaw name
+      catch e
+        infoObj.rawValueError =
+          message: e.message
+          stack:   e.stack
+      dump.prefs.push infoObj
+    return dump
+
 
 class ObservablePreferences extends Preferences
   constructor: ->
@@ -200,6 +215,19 @@ class HookedPreferences extends ObservablePreferences
     hook = @_setterHook name
     value = hook value
     super name, value
+
+  _debug_dump: ->
+    dump = super arguments...
+    for pref in dump.prefs
+      try
+        wrapped = @get pref.name
+        JSON.stringify wrapped
+        pref.wrappedValue = wrapped
+      catch e
+        pref.wrappedValueError =
+          message: e.message
+          stack:   e.stack
+    return dump
 
 
 FinalPreferencesClass = class SynchronizablePreferences extends HookedPreferences
