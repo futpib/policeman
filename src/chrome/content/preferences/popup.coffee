@@ -37,7 +37,7 @@ onLoad = ->
     if type == DomainDomainTypeRS::WILDCARD_TYPE
       cb.disabled = true
 
-    checkbox "##{id}", popup.contentTypes.enabled(type), do (type=type) -> ->
+    checkbox "##{id}", popup.contentTypes.enabled(type), do (type) -> ->
       if @checked
         popup.contentTypes.enable type
       else

@@ -561,7 +561,7 @@ class FilterButtons extends RadioGroup
           data_filter: type
           disabled: not hitCount
           initialState: initialState
-          list_command: do (type=type) -> ->
+          list_command: do (type) -> ->
             for rulesetEdit in [temporaryRulesetEdit, persistentRulesetEdit]
               RulesetEditButtons::CustomRuleWidget.setType \
                   rulesetEdit.getCustomRuleWidget(doc), type

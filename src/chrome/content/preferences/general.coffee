@@ -25,7 +25,7 @@ toolbarbuttonEvents = (container, eventName) ->
     menuitems["menuitem_#{action}"] =
       label: l10n "preferences_toolbarbutton_actions.#{action}"
       selected: action is selectedAction
-      event_command: do (action=action) -> ->
+      event_command: do (action) -> ->
         toolbarbutton.events.setAction eventName, action
 
   container.appendChild createElement 'hbox',

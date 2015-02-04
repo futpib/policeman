@@ -72,7 +72,7 @@ exports.contentContextMenu = contentContextMenu =
         popup.appendChild createElement doc, 'menuitem',
           id: "context-policeman-blocked-#{subj}-load"
           label: l10n "context_blocked_#{subj}_load"
-          event_command: do (blocked=blocked) ->  ->
+          event_command: do (blocked) ->  ->
             src = blocked.getData elem, 'src'
             once = false
             temp.addClosure (o, d, c) ->
@@ -86,7 +86,7 @@ exports.contentContextMenu = contentContextMenu =
         popup.appendChild createElement doc, 'menuitem',
           id: "context-policeman-blocked-#{subj}-load-all-on-tab"
           label: l10n "context_blocked_#{subj}_load_all_on_tab", ds
-          event_command: do (blocked=blocked, ds=ds) -> ->
+          event_command: do (blocked, ds) -> ->
             temp.addClosure (o, d, c) ->
               return true if c._tabId == currentTabId \
                           and restored.has c._element
@@ -103,7 +103,7 @@ exports.contentContextMenu = contentContextMenu =
           tempFragment.appendChild createElement doc, 'menuitem',
             label: l10n \
               "context_blocked_#{subj}_temp_allow_domain_pair_and_load", ds
-            event_command: do (blocked=blocked, ds=ds) -> ->
+            event_command: do (blocked, ds) -> ->
               temp.allow ohost, ds, contentType
               blocked.restoreAllDomainPairOnTab ohost, ds, currentTabId
 
@@ -111,7 +111,7 @@ exports.contentContextMenu = contentContextMenu =
           buttonsCount += 1
           persFragment.appendChild createElement doc, 'menuitem',
             label: l10n "context_blocked_#{subj}_pers_allow_domain_pair_and_load", ds
-            event_command: do (blocked=blocked, ds=ds) -> ->
+            event_command: do (blocked, ds) -> ->
               pers.allow ohost, ds, contentType
               blocked.restoreAllDomainPairOnTab ohost, ds, currentTabId
 

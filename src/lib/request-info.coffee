@@ -72,7 +72,7 @@ exports.UriInfo = class UriInfo extends UriInfoBase
     'spec'           : 'specRef'
 
   for uriProp, thisProp of uriWithRefMap
-    deflp @, thisProp, do (uriProp=uriProp) -> ->
+    deflp @, thisProp, do (uriProp) -> ->
       try # may throw if such component is inapplicable to uri
         value = @_uri[uriProp]
       value ?= ''
@@ -178,7 +178,7 @@ exports.ContextInfo = class ContextInfo extends ContextInfoBase
     '_document': Ci.nsIDOMDocument
     '_window'  : Ci.nsIDOMWindow
   }
-    deflp @, prop, do (iface=iface) -> ->
+    deflp @, prop, do (iface) -> ->
       if @_context instanceof iface then @_context
 
   deflp @, 'nodeName', ->
@@ -254,7 +254,7 @@ exports.ChannelInfo = class ChannelInfo
 
     '_notificationCallbacks_xhr'         : Ci.nsIXMLHttpRequest
   }
-    deflp @, prop, do (iface=iface) -> ->
+    deflp @, prop, do (iface) -> ->
       try
         return @_channel.notificationCallbacks.getInterface iface
 
