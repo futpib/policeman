@@ -69,6 +69,14 @@ exports.redirectNotifications = redirectNotifications = new class
             callback: do (rs=rs, dest=dest) -> ->
               rs.allow redirect.origin.host, dest, 'DOCUMENT'
               redirect.restore()
+      actions.push
+          label: l10n \
+            "redirect_notification_action_#{rsLbl}_allow_from_domain_to_any",
+            redirect.origin.host
+          accessKey: actions.length.toString()
+          callback: do (rs) -> ->
+            rs.allow redirect.origin.host, '', 'DOCUMENT'
+            redirect.restore()
     return actions
 
   show: (redirect) ->
