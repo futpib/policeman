@@ -444,7 +444,7 @@ infoMangling.add (origin, dest, ctx, channelInfo) ->
     document = browser.contentDocument
 
     newDest = dest
-    newOrigin = new OriginInfo window.location.href
+    newOrigin = new OriginInfo browser.currentURI
     newCtx = new ContextInfo \
             newOrigin,
             newDest,
