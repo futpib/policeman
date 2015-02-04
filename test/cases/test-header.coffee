@@ -13,3 +13,5 @@ setupModule = (m) ->
       return internals.require arguments...
 
   { console: m.console } = Cu.import 'resource://gre/modules/devtools/Console.jsm'
+
+  m.pause = -> assert.waitFor (-> no), '', 999999999
