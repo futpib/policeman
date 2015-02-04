@@ -81,6 +81,9 @@ def run_tests(tests, data):
             'addons': [data.args.addon_dir[0]],
             'preferences': {
                 'network.http.use-cache': False,
+                'devtools.chrome.enabled': True,
+                'devtools.debugger.chrome-enabled': True,
+                'devtools.debugger.remote-enabled': True,
             }
         },
         jsbridge_timeout=(24*60*60), # useful when debugging tests
