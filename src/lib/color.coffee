@@ -18,7 +18,6 @@ exports.Color = class Color
     return res
 
   toRgbaArray: (c=@) ->
-    throw new Error "QWE" if c[0] == null
     # Converts various representations to [r, g, b, a] with 0 <= v <= 1 values
     if c instanceof Array
       if c.length == 4
