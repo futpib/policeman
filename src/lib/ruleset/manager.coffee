@@ -202,6 +202,10 @@ exports.Manager = class Manager
       catch e
         log.warn 'Could not enable ruleset id:', id,
                  'due to the following error:', e
+        try
+          @uninstall id
+          log.info 'Ruleset id:', id,
+                   'was uninstalled due to malfunctioning'
 
   codeBasedIdToObject =
     'user_temporary': temporaryRuleSet
@@ -223,18 +227,28 @@ exports.Manager = class Manager
 
     isEmbeddedId = id in embeddedRuleSets
 
+    pathAcquired = no
     if relPath and not isEmbeddedId
+      pathAcquired = yes
       rulesetFiles.acquire relPath
 
     @_installedPathsByIds[id] = relPath
 
-    rs = @_newRuleSetById id
+    try
+      rs = @_newRuleSetById id
+      @_installedMetadataById[id] = rs.getMetadata()
+    catch e
+      # ruleset is broken; restore our previous state
+      if pathAcquired
+        rulesetFiles.release relPath
+      delete @_installedPathsByIds[id]
+      delete @_installedMetadataById[id]
+      throw e
 
-    @_installedMetadataById[id] = rs.getMetadata()
     if isEmbeddedId
-      @_installedMetadataById[id].sourceUrl = rulesetFiles.getEmbeddedUrl id
+      @_installedMetadataById[id].sourceUrl ?= rulesetFiles.getEmbeddedUrl id
     else
-      @_installedMetadataById[id].sourceUrl = \
+      @_installedMetadataById[id].sourceUrl ?= \
               OS.Path.toFileURI rulesetFiles.getFullPath relPath
 
   uninstall: (id) ->
@@ -416,6 +430,8 @@ class SavableSnapshotableManager extends SuspendableManager
 
     prefs.onChange INSTALLED_PATH_BY_ID_PREF, @_onInstalledPrefChange.bind @
     prefs.onChange ENABLED_IDS_PREF, @_onEnabledPrefChange.bind @
+
+    onShutdown.add @save.bind @
 
   _loadInstalledIds: (newInstalledUrlById) ->
     for id, url of newInstalledUrlById
