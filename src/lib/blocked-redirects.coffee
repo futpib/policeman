@@ -1,22 +1,24 @@
 
 
 { tabs } = require 'tabs'
+{ RequestInfo } = require 'request-info'
 
 { redirectNotifications } = require 'ui/redirect-notifications'
 
 
-class BlockedRedirectInfo
-  constructor: (@origin, @destination, @context) ->
+class BlockedRedirectInfo extends RequestInfo
+  constructor: ->
+    super arguments...
     @browser = (tabs.getTabById @context._tabId).linkedBrowser
 
   restore: ->
     @browser.loadURI @destination.spec
 
 exports.blockedRedirects = blockedRedirects =
-  process: (origin, destination, context, decision) ->
+  process: (request, decision) ->
     if  decision is false \
-    and context.hints.redirect \
-    and context.contentType == 'DOCUMENT' \
-    and context._tabId
-      redirect = new BlockedRedirectInfo origin, destination, context
+    and request.context.hints.redirect \
+    and request.context.contentType == 'DOCUMENT' \
+    and request.context._tabId
+      redirect = new BlockedRedirectInfo request
       redirectNotifications.show redirect

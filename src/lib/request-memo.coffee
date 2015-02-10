@@ -59,7 +59,7 @@ exports.memo = memo = new class
     delete @_tabIdToRequests[tabId]
     delete @_tabIdToStats[tabId]
 
-  add: (origin, dest, context, decision) ->
+  add: ([origin, dest, context], decision) ->
     i = context._tabId
     return if not i
     if context.contentType == 'DOCUMENT' \

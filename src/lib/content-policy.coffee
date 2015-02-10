@@ -3,8 +3,8 @@ catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
 
 { manager } = require 'ruleset/manager'
 {
-  getShouldLoadInfoObjects
-  getChannelInfoObjects
+  getShouldLoadRequestInfo
+  getChannelRequestInfo
 } = require 'request-info'
 { memo } = require 'request-memo'
 { blockedElements } = require 'blocked-elements'
@@ -58,14 +58,14 @@ exports.policy = policy =
   onRequest: new Handlers
 
   # the main entry point for attemted requests
-  _shouldLoad: (origin, dest, ctx) ->
-    decision = manager.check origin, dest, ctx
+  _shouldLoad: (request) ->
+    decision = manager.check request
 
     try
-      memo.add origin, dest, ctx, decision
-      blockedElements.process origin, dest, ctx, decision
-      blockedRedirects.process origin, dest, ctx, decision
-      @onRequest.execute origin, dest, ctx, decision
+      memo.add request, decision
+      blockedElements.process request, decision
+      blockedRedirects.process request, decision
+      @onRequest.execute request, decision
     catch e
       log.error 'Error processing a request:', e
 
@@ -84,10 +84,10 @@ exports.policy = policy =
     # Some things get past shouldLoad, notably favicon requests
     # Such requests are handled by `observe` below
 
-    [origin, dest, ctx] = getShouldLoadInfoObjects \
+    request = getShouldLoadRequestInfo \
                 contentType, destUri, originUri, context, mime, extra, principal
 
-    decision = @_shouldLoad origin, dest, ctx
+    decision = @_shouldLoad request
 
     @_lastShouldLoad.expired = no
     @_lastShouldLoad.destSpec = destUri.spec
@@ -115,9 +115,8 @@ exports.policy = policy =
             # Since `observe` got called, `shouldLoad` must have returned ACCEPT
             return
 
-        [origin, dest, ctx, ci] = getChannelInfoObjects channel
-        decision = @_shouldLoad origin, dest, ctx
-
+        request = getChannelRequestInfo channel
+        decision = @_shouldLoad request
 
         if not decision
           channel.cancel Cr.NS_ERROR_UNEXPECTED

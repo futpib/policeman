@@ -337,6 +337,27 @@ exports.ChannelContextInfo = class ChannelContextInfo extends ContextInfo
           channelInfo.principal
 
 
+exports.RequestInfo = class RequestInfo
+  constructor: ->
+    switch arguments.length
+      when 1
+        [triple] = arguments
+        [@origin, @destination, @context, @_channel] = triple
+      else
+        [@origin, @destination, @context, @_channel] = arguments
+
+  defp = defineProperty = (name, getter) =>
+    Object.defineProperty @::, name,
+      enumerable: yes
+      get: getter
+
+  # makes `[o, d, c] = requestInfo` unpacking possible
+  defp 0, -> @origin
+  defp 1, -> @destination
+  defp 2, -> @context
+  defp 3, -> @_channel
+
+
 # Constants for ruleset parser
 
 # OriginInfo and DestinationInfo accessible properties
@@ -352,21 +373,21 @@ exports.PUBLIC_CONTEXT_SET_LIKE_PROPERTIES = [
 ]
 
 
-exports.getShouldLoadInfoObjects = \
+exports.getShouldLoadRequestInfo = \
   (contentType, destUri, originUri, context, mime, extra, principal) ->
     origin = new OriginInfo originUri
     dest = new DestinationInfo destUri
     ctx = new ContextInfo originUri, destUri, context, contentType, mime, principal
 
-    return infoMangling.invoke origin, dest, ctx
+    return infoMangling.invoke new RequestInfo origin, dest, ctx
 
-exports.getChannelInfoObjects = (channel) ->
+exports.getChannelRequestInfo = (channel) ->
   channelInfo = new ChannelInfo channel
   origin = new ChannelOriginInfo channelInfo
   dest = new ChannelDestinationInfo channelInfo
   ctx = new ChannelContextInfo channelInfo
 
-  return infoMangling.invoke origin, dest, ctx, channelInfo
+  return infoMangling.invoke new RequestInfo origin, dest, ctx, channelInfo
 
 
 infoMangling = new class Pipeline
@@ -376,26 +397,25 @@ infoMangling = new class Pipeline
   ###
   constructor: -> @_functions = []
   add: (f) -> @_functions.push f
-  invoke: (args...) ->
-    info = args
+  invoke: (request) ->
     for f in @_functions
       try
-        mangled = f info...
+        mangled = f request
       catch e
         log.error 'Mangling function', f, 'threw', e
       if mangled
-        info = mangled
-    return info
+        request = mangled
+    return request
 
 # Tags all DOCUMENT requests as is they are caused by user navigation
 
-infoMangling.add (origin, dest, ctx, channelInfo) ->
-  if ctx.contentType == 'DOCUMENT'
+infoMangling.add (request) ->
+  if request.context.contentType == 'DOCUMENT'
     # This is not generally true that all DOCUMENT requests are directly caused
     # by navigation, but it's a sane default. This hint is removed down the
     # pipeline when it makes sense (for instance when dealing with redirects).
-    ctx.hints.navigation = yes
-  return [origin, dest, ctx, channelInfo]
+    request.context.hints.navigation = yes
+  return request
 
 # Favicon requests handling
 
@@ -429,38 +449,38 @@ favicons = new class # keeps all the favicon URLs and corresponding tabs
   isIconUrl: (url) -> url of faviconUrlToTab
   getTabForIcon: (url) -> faviconUrlToTab[url]
 
-infoMangling.add (origin, dest, ctx, channelInfo) ->
+infoMangling.add (request) ->
   ###
   Detects favicon requests and makes them look like they were made by
   corresponding content documents, not by chrome which they actually are.
   ###
-  if  ctx.specialPrincipal == 'system' \
-  and origin.spec == 'chrome://browser/content/browser.xul' \
-  and (favicons.isIconUrl dest.specRef)
-    tab = favicons.getTabForIcon dest.specRef
+  if  request.context.specialPrincipal == 'system' \
+  and request.origin.spec == 'chrome://browser/content/browser.xul' \
+  and (favicons.isIconUrl request.destination.specRef)
+    tab = favicons.getTabForIcon request.destination.specRef
 
     browser = tab.linkedBrowser
     window = browser.contentWindow
     document = browser.contentDocument
 
-    newDest = dest
     newOrigin = new OriginInfo browser.currentURI
     newCtx = new ContextInfo \
             newOrigin,
-            newDest,
+            request.destination,
             document,
             Ci.nsIContentPolicy.TYPE_IMAGE,
             null,
-            ctx._principal
+            request.context._principal
 
-    ctx.hints.favicon = yes
+    request.origin = newOrigin
+    request.context = newCtx
 
-    return [newOrigin, newDest, newCtx, channelInfo]
-  return undefined
+    request.context.hints.favicon = yes
+  return request
 
 # HTTP Redirects
 
-infoMangling.add (origin, dest, ctx, channelInfo) ->
+infoMangling.add (request) ->
   ###
   Detects HTTP redirected requests and replaces origin with the original URI.
   ###
@@ -469,22 +489,17 @@ infoMangling.add (origin, dest, ctx, channelInfo) ->
   # so in case of multiple HTTP redirects intermediate URIs get lost and such
   # redirects apper as ch.originalURI -> ch.URI
 
-  if  channelInfo \
-  and (channel = channelInfo._channel) \
+  if  request._channel \
+  and (channel = request._channel._channel) \
   and channel.URI \
   and (previousURI = channel.originalURI) \
   and channel.URI != previousURI \
   and not channel.URI.equals(previousURI)
-    origin = new OriginInfo previousURI
-    channelInfo = new ChannelInfo channel
-    dest = new ChannelDestinationInfo channelInfo
-    ctx = new ChannelContextInfo channelInfo
+    request.origin = new OriginInfo previousURI
 
-    delete ctx.hints.navigation
-    ctx.hints.redirect = yes
-
-    return [origin, dest, ctx, channelInfo]
-  return undefined
+    delete request.context.hints.navigation
+    request.context.hints.redirect = yes
+  return request
 
 # Other kinds of redirects
 
@@ -521,8 +536,8 @@ navigationDetector = new class
   tabs.onOpen.add onOpen
   tabs.onClose.add onClose
 
-  isNavigation: (origin, dest, ctx, channelInfo) ->
-    if  (tabId = ctx._tabId) \
+  isNavigation: (request) ->
+    if  (tabId = request.context._tabId) \
     and (lastInput = tabIdToLastInputEvent[tabId])
       if lastInput.hit
         return no
@@ -534,10 +549,10 @@ navigationDetector = new class
 
 # Find potentially mislabled navigation requests and label them as redirects
 # (code above just marks anything DOCUMENT as navigation)
-infoMangling.add (origin, dest, ctx, channelInfo) ->
-  if  ctx.hints.navigation \
-  and origin.schemeType != 'internal' \
-  and not navigationDetector.isNavigation origin, dest, ctx, channelInfo
-    delete ctx.hints.navigation
-    ctx.hints.redirect = yes
+infoMangling.add (request) ->
+  if  request.context.hints.navigation \
+  and request.origin.schemeType != 'internal' \
+  and not navigationDetector.isNavigation request
+    delete request.context.hints.navigation
+    request.context.hints.redirect = yes
   return undefined

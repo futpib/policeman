@@ -34,7 +34,7 @@ exports.findTabThatOwnsImage = findTabThatOwnsImage = (img) ->
 
 
 class Filter
-  shouldProcess: (elem, origin, destination, context, decision) ->
+  shouldProcess: (elem, [origin, destination, context], decision) ->
     return decision == false \
            and origin.schemeType == origin.schemeType == 'web' \
            and context._element \
@@ -43,7 +43,7 @@ class Filter
 imageFilter = new class ImageFilter extends Filter
   TOOLTIP_TEXT_KEY: 'blocked_image.tip'
   isImage = (elem) -> elem.nodeName == 'IMG'
-  shouldProcess: (elem, origin, destination, context, decision) ->
+  shouldProcess: (elem, request, decision) ->
     return super(arguments...) \
            and isImage(elem) \
            # filter off 1px counter images
@@ -52,18 +52,18 @@ imageFilter = new class ImageFilter extends Filter
 frameFilter = new class FrameFilter extends Filter
   TOOLTIP_TEXT_KEY: 'blocked_frame.tip'
   isFrame = (elem) -> elem.nodeName in ['IFRAME', 'FRAME']
-  shouldProcess: (elem, origin, destination, context, decision) ->
+  shouldProcess: (elem, request, decision) ->
     return super(arguments...) \
            and isFrame(elem)
 
 objectFilter = new class ObjectFilter extends Filter
   TOOLTIP_TEXT_KEY: 'blocked_object.tip'
   isObject = (elem) -> elem.nodeName in ['OBJECT', 'EMBED']
-  shouldProcess: (elem, origin, destination, context, decision) ->
+  shouldProcess: (elem, request, decision) ->
     return super(arguments...) \
            and isObject(elem) \
            # do not process OBJECT_SUBREQUESTs
-           and context.contentType == 'OBJECT'
+           and request.context.contentType == 'OBJECT'
 
 
 class BlockedElementHandler
@@ -110,19 +110,19 @@ class BlockedElementHandler
     @_tabIdToBlockedElements = Object.create null # TODO go weak
     tabs.onClose.add (t) => @_removeAllByTabId tabs.getTabId t
 
-  process: (elem, origin, destination, context, decision) ->
-    return unless @filter.shouldProcess elem, origin, destination, context, decision
+  process: (elem, request, decision) ->
+    return unless @filter.shouldProcess elem, request, decision
     @_filteredProcess arguments...
-    @_addElemByTabId context._tabId, elem
+    @_addElemByTabId request.context._tabId, elem
 
   restore: (elem) ->
     return unless @isBlocked elem
     @_filteredRestore arguments...
     @_removeElemByTabId (tabs.getTabId tabs.getNodeOwner elem), elem
 
-  _filteredProcess: (elem, origin, destination, context, decision) ->
+  _filteredProcess: (elem, request, decision) ->
     @tagAsProcessed elem
-    @setData elem, 'src', destination.spec
+    @setData elem, 'src', request.destination.spec
     @_backupAttribute elem, 'src'
 
   _filteredRestore: (elem) ->
@@ -172,15 +172,15 @@ class Passer
 class Placeholder extends BlockedElementHandler
   _processedTagName: 'placeholder'
 
-  _filteredProcess: (elem, origin, destination, context) ->
+  _filteredProcess: (elem, request) ->
     super arguments...
 
-    @setData elem, 'host', destination.host
-    @setData elem, 'contentType', context.contentType
+    @setData elem, 'host', request.destination.host
+    @setData elem, 'contentType', request.context.contentType
 
     @_backupAttribute elem, 'title'
     mutateAttribute elem, 'title', (title) =>
-      tip = l10n @filter.TOOLTIP_TEXT_KEY, destination.host
+      tip = l10n @filter.TOOLTIP_TEXT_KEY, request.destination.host
       if title \
         then title + '\n' + tip \
         else tip
@@ -210,7 +210,7 @@ class Placeholder extends BlockedElementHandler
 class Remover extends BlockedElementHandler
   _processedTagName: 'removed'
 
-  _filteredProcess: (elem, origin, destination, context) ->
+  _filteredProcess: (elem, request) ->
     super arguments...
     @_backupAttribute elem, 'style'
     elem.style.display = 'none'
@@ -264,9 +264,9 @@ exports.blockedElements = blockedElements = new class
   getHandler: (filterName) ->
     handlerClassToPref.get prefs.get fullHandlerPreferenceName filterName
 
-  process: (origin, destination, context, decision) ->
+  process: (request, decision) ->
     for handler in [@image, @frame, @object]
-      handler.process context._element, origin, destination, context, decision
+      handler.process request.context._element, request, decision
 
   restore: (elem) ->
     for handler in [@image, @frame, @object]

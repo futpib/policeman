@@ -127,9 +127,9 @@ exports.toolbarbutton = toolbarbutton = new class
       ), ON_TAB_SELECT_UPDATE_TIMEOUT
 
     ON_REQUEST_UPDATE_TIMEOUT = 1500
-    _onRequest: (origin, destination, context, decision) ->
+    _onRequest: (request, decision) ->
       return if updateTimeoutId
-      return unless ctxTabId = context._tabId
+      return unless ctxTabId = request.context._tabId
       currentTab = tabs.getCurrent()
       return unless ctxTabId == tabs.getTabId currentTab
       browser = currentTab.ownerDocument.defaultView

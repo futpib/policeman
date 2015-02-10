@@ -345,7 +345,7 @@ exports.Manager = class Manager
 
   get: (id) -> @_enabledRuleSetsById[id]
 
-  check: (origin, dest, ctx) ->
+  check: ([origin, dest, ctx]) ->
     for id in @_enabledRuleSetsIds
       decision = @_enabledRuleSetsById[id].check origin, dest, ctx
       if decision != null
