@@ -53,7 +53,6 @@ prefs.define ENABLED_IDS_PREF = 'manager.enabledRuleSets',
     'allow_from_file_to_file_and_web',
     'user_temporary',
     'user_persistent',
-    'allow_same_site',
     'allow_same_second_level_domain',
     'reject_any',
   ]
