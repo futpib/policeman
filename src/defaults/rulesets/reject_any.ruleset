@@ -20,6 +20,9 @@ l10n:
   fr-FR:
     name: "Refuser toutes les requêtes"
     description: "Refuser toutes les requêtes"
+  ja-JP:
+    name: "Reject any request"
+    description: "全てのリクエストを禁止します"
 
 rules:
   -> : REJECT

@@ -20,6 +20,9 @@ l10n:
   fr-FR:
     name: "Autoriser toutes les requêtes"
     description: "Autoriser toutes les requêtes"
+  ja-JP:
+    name: "Allow any request"
+    description: "全てのリクエストを許可します(ブラックリスト制で運用できるようになります)"
 
 rules:
   -> : ACCEPT

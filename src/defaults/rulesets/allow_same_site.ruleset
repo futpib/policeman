@@ -25,6 +25,9 @@ l10n:
   fr-FR:
     name: "Même site"
     description: "Autoriser les requêtes vers le même domaine ou sous domaine"
+  ja-JP:
+    name: "Same site"
+    description: "同じドメインとサブドメインへのリクエストを全て許可します"
 
 rules:
   web -> web:

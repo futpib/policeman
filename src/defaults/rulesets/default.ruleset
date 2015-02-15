@@ -20,6 +20,9 @@ l10n:
   fr-FR:
     name: "Par défaut"
     description: "Autoriser quelques requêtes internes essentielles à la navigation"
+  ja-JP:
+    name: "Default"
+    description: "内部の要求とナビゲーションを許可します"
 
 rules:
   # Allows requests for inline and internal schemes

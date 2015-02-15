@@ -19,6 +19,9 @@ l10n:
   fr-FR:
     name: "Isolation I2P"
     description: "Refuser les requêtes depuis .i2p -> web et web -> .i2p"
+  ja-JP:
+    name: "I2P isolation"
+    description: ".i2pドメインのページでは.i2pドメインのリクエストのみ許可し、.i2pドメイン以外のページでは.i2pドメインのリクエストを禁止します。"
 
 rules:
   web -> web:

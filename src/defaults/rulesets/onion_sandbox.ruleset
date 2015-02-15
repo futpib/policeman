@@ -19,6 +19,9 @@ l10n:
   fr-FR:
     name: "Isolation Tor"
     description: "Refuser les requêtes depuis .onion -> web et web -> .onion"
+  ja-JP:
+    name: "Tor isolation"
+    description: ".onionドメインのページでは.onionドメインのリクエストのみ許可し、.onionドメイン以外のページでは.onionドメインのリクエストを禁止します。"
 
 rules:
   web -> web:

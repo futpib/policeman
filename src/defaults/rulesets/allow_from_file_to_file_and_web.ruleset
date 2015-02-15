@@ -20,6 +20,9 @@ l10n:
   fr-FR:
     name: "Autoriser fichier -> fichier ou web"
     description: "Autoriser les requêtes depuis les fichiers locaux vers des fichiers locaux ou vers le web"
+  ja-JP:
+    name: "Allow file -> file or web"
+    description: "ローカルファイルから他のローカルファイルやウェブへのリクエストを全て許可します"
 
 rules:
   file -> (file|web): ACCEPT

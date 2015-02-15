@@ -20,6 +20,9 @@ l10n:
   fr-FR:
     name: "Même domaine de deuxième niveau"
     description: "Autoriser les requêtes vers le même domaine de deuxième niveau"
+  ja-JP:
+    name: "Same base domain"
+    description: "同じセカンドレベルドメインのコンテンツを全て許可する"
 
 rules:
   web -> web:

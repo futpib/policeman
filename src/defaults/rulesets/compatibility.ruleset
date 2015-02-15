@@ -20,6 +20,9 @@ l10n:
   fr-FR:
     name: "Règle de compatibilité"
     description: "Corrige quelques problèmes de compatibilité connus avec des add-on et des sites"
+  ja-JP:
+    name: "Compatibility and Workarounds"
+    description: "いくつかの既知のアドオンとサイトの互換性による問題の修正"
 
 rules:
   inline -> *:

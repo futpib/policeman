@@ -20,6 +20,9 @@ l10n:
   fr-FR:
     name: "HTTPS sandbox"
     description: "Refuser les requêtes non-HTTPS depuis les sites en HTTPS"
+  ja-JP:
+    name: "HTTPS sandbox"
+    description: "HTTPSページから非HTTPSのリクエストを禁止します"
 
 rules:
   web -> web:
