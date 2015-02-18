@@ -85,7 +85,7 @@ exports.redirectNotifications = redirectNotifications = new class
     window.PopupNotifications.show \
         redirect.browser,
         'policeman-redirect-notification-popup',
-        l10n('redirect_notification_popup_message',
+        l10n('redirect_notification_popup_message_from_to',
               redirect.origin.host, redirect.destination.host),
         @_anchorId,
         actions[0],
