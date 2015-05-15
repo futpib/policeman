@@ -1,5 +1,5 @@
 # Policeman
-Firefox extention for cross-site request control
+Firefox extension for cross-site request control.
 
 ## Help
 If the [wiki](https://github.com/futpib/policeman/wiki) does not cover your question, you can get help by commenting on [this issue](https://github.com/futpib/policeman/issues/18).
