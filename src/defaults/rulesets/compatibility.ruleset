@@ -30,12 +30,12 @@ rules:
     # with an iframe for toolbar popups, let's not break that
     [scheme] data -> *:
       # Only allow that for chrome xul data documents
-      # Firefox won't load xul in content, so this check makes sence
+      # Firefox won't load xul in content, so this check makes sense
       [path] "application/vnd.mozilla.xul+xml;"* -> *:
         [contentType] DOCUMENT: ACCEPT
 
   internal -> web:
-    # Fixes KeeFox and probably other addons that comunicate with local services
+    # Fixes KeeFox and probably other addons that communicate with local services
     # via websockets
     [scheme] * -> ws:
       [host] * -> (localhost|"127.0.0.1"):
