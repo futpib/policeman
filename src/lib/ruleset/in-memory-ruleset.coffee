@@ -2,6 +2,7 @@
 { superdomains, remove } = require 'utils'
 { prefs } = require 'prefs'
 
+{ ContextInfo } = require 'request-info'
 { RuleSet } = require 'ruleset/base'
 
 { setTimeout, clearTimeout } = Cu.import "resource://gre/modules/Timer.jsm"
@@ -205,28 +206,7 @@ exports.DeepLookupRS = class DeepLookupRS extends LookupRS
   toTable: -> toTableRec @_lookup
 
 exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
-  WILDCARD_TYPE = '_ANY_'
-  WILDCARD_TYPE: WILDCARD_TYPE
-
-  USER_AVAILABLE_CONTENT_TYPES: [
-    WILDCARD_TYPE,
-    'IMAGE',
-    'MEDIA',
-    'STYLESHEET',
-    'FONT',
-    'SCRIPT',
-    'OBJECT',
-    # 'OBJECT_SUBREQUEST', # This is treated as OBJECT by `check`
-    'SUBDOCUMENT',
-    'DOCUMENT',
-    'XMLHTTPREQUEST',
-    'WEBSOCKET',
-    'DTD',
-    # 'XBL', # This is mozilla-specific, web doesn't use XBL
-    'PING',
-    # 'REFRESH', # docs on nsIContentPolicy say shouldLoad() will never get this
-    'OTHER', # What exactly falls into this category?
-  ]
+  WILDCARD_TYPE: ContextInfo::WILDCARD_TYPE
 
   constructor: ->
     super @_sortagePref
@@ -261,13 +241,8 @@ exports.DomainDomainTypeRS = class DomainDomainTypeRS extends DeepLookupRS
     return @superdomainsCheckOrder oh, dh, (o, d) =>
       @wildLookup o, d, t
 
-  theContentTypeMap =
-    'OBJECT_SUBREQUEST': 'OBJECT'
-  _contentTypeMap: (t) -> theContentTypeMap[t] or t
-
   check: (o, d, c) ->
     originIsWeb = o.schemeType == 'web'
     destinationIsWeb = d.schemeType == 'web'
     return null if @_restrictToWeb and not (originIsWeb and destinationIsWeb)
-    contentType = @_contentTypeMap c.contentType
-    return @checkWithSuperdomains o.host, d.host, contentType
+    return @checkWithSuperdomains o.host, d.host, c.simpleContentType

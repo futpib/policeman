@@ -163,10 +163,39 @@ exports.ContextInfoBase = class ContextInfoBase
 
 
 exports.ContextInfo = class ContextInfo extends ContextInfoBase
+  WILDCARD_TYPE = '_ANY_'
+  WILDCARD_TYPE: WILDCARD_TYPE
+
+  USER_AVAILABLE_CONTENT_TYPES: [
+    WILDCARD_TYPE,
+    'IMAGE',
+    'MEDIA',
+    'STYLESHEET',
+    'FONT',
+    'SCRIPT',
+    'OBJECT',
+    # 'OBJECT_SUBREQUEST', # This is treated as OBJECT by `check`
+    'SUBDOCUMENT',
+    'DOCUMENT',
+    'XMLHTTPREQUEST',
+    'WEBSOCKET',
+    'DTD',
+    # 'XBL', # This is mozilla-specific, web doesn't use XBL
+    'PING',
+    # 'REFRESH', # docs on nsIContentPolicy say shouldLoad() will never get this
+    'OTHER', # What exactly falls into this category?
+  ]
+
+  # Replace some (overly specific) content types with a simpler ones
+  theContentTypeMap =
+    'OBJECT_SUBREQUEST': 'OBJECT'
+    'IMAGESET': 'IMAGE'
+
   constructor: (originUri, destUri, context, contentType, mime, principal) ->
     super
 
     @contentType = intToTypeMap[contentType] or ''
+    @simpleContentType = theContentTypeMap[@contentType] or @contentType
     @mime = mime or ''
 
     @_context = context

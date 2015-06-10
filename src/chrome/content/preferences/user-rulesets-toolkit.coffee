@@ -1,6 +1,8 @@
 
 { l10n } = require 'l10n'
 
+{ ContextInfo } = require 'request-info'
+
 { manager } = require 'ruleset/manager'
 { DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
 
@@ -15,7 +17,7 @@ idnService = Cc["@mozilla.org/network/idn-service;1"]
 {
   USER_AVAILABLE_CONTENT_TYPES
   WILDCARD_TYPE
-} = DomainDomainTypeRS::
+} = ContextInfo::
 
 
 class AddRuleWidget

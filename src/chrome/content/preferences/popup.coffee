@@ -3,12 +3,12 @@
 { manager } = require 'ruleset/manager'
 { popup } = require 'ui/popup'
 
-{ DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
+{ ContextInfo } = require 'request-info'
 
 { l10n } = require 'l10n'
 
 
-USER_AVAILABLE_CONTENT_TYPES = DomainDomainTypeRS::USER_AVAILABLE_CONTENT_TYPES
+USER_AVAILABLE_CONTENT_TYPES = ContextInfo::USER_AVAILABLE_CONTENT_TYPES
 
 checkbox = (selector, initialState, oncommand) ->
   cb = $ selector
@@ -34,7 +34,7 @@ onLoad = ->
     groupbox.appendChild cb = createElement 'checkbox',
       id: id
       label: l10n "content_type.title.plural.#{type}"
-    if type == DomainDomainTypeRS::WILDCARD_TYPE
+    if type == ContextInfo::WILDCARD_TYPE
       cb.disabled = true
 
     checkbox "##{id}", popup.contentTypes.enabled(type), do (type) -> ->

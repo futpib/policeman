@@ -15,7 +15,7 @@
 { tabs } = require 'tabs'
 { memo } = require 'request-memo'
 { manager } = require 'ruleset/manager'
-{ DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
+{ ContextInfo } = require 'request-info'
 
 {
   wrapsSuperWidget
@@ -38,8 +38,8 @@
 { l10n } = require 'l10n'
 
 
-WILDCARD_TYPE = DomainDomainTypeRS::WILDCARD_TYPE
-USER_AVAILABLE_CONTENT_TYPES = DomainDomainTypeRS::USER_AVAILABLE_CONTENT_TYPES
+WILDCARD_TYPE = ContextInfo::WILDCARD_TYPE
+USER_AVAILABLE_CONTENT_TYPES = ContextInfo::USER_AVAILABLE_CONTENT_TYPES
 
 
 POSITIVE_COLOR_PREF = 'ui.popup.positiveBackgroundColor'
@@ -427,8 +427,8 @@ CONTENT_TYPE_FILTER_ALL   = WILDCARD_TYPE
 CONTENT_TYPE_FILTER_NONE  = '_popup_NONE_'
 
 categorizeRequest = (o, d, c) ->
-  if popup.contentTypes.enabled c.contentType
-    return c.contentType
+  if popup.contentTypes.enabled c.simpleContentType
+    return c.simpleContentType
   return CONTENT_TYPE_FILTER_OTHER
 
 localizeContentTypeFilter = (type) ->
@@ -608,7 +608,7 @@ class RequestList extends ContainerPopulation
   RequestWidget: new class extends Widget.constructor
     contextPropertyToTitle =
       nodeName: 'request_context_node'
-      contentType: 'request_context_content_type'
+      simpleContentType: 'request_context_content_type'
       mime: 'request_context_mime_type'
       id: 'request_context_id'
       className: 'request_context_class_name'
@@ -621,7 +621,7 @@ class RequestList extends ContainerPopulation
         contextSummary += "#{ l10n 'request_context_hints_redirect' }\n"
       for property, title of contextPropertyToTitle
         if value = context[property]
-          if  property == 'contentType' \
+          if  property == 'simpleContentType' \
           and value in USER_AVAILABLE_CONTENT_TYPES
             value = l10n "content_type.title.singular.#{value}"
           contextSummary += "#{ title } #{ value }\n"
