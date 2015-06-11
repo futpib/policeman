@@ -276,7 +276,7 @@ class RulesTree
     @update()
 
   localizeTypeLookup = {}
-  for t in DomainDomainTypeRS::USER_AVAILABLE_CONTENT_TYPES
+  for t in USER_AVAILABLE_CONTENT_TYPES
     localizeTypeLookup[t] = l10n 'content_type.title.plural.' + t
 
   localizeDomainLookup = {}
