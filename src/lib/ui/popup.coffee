@@ -8,14 +8,14 @@
   createElement
   superdomains
   isSuperdomain
-} = require 'utils'
-{ loadOverlay } = require 'ui/load-overlay'
+} = require 'lib/utils'
+{ loadOverlay } = require 'lib/ui/load-overlay'
 
-{ windows } = require 'windows'
-{ tabs } = require 'tabs'
-{ memo } = require 'request-memo'
-{ manager } = require 'ruleset/manager'
-{ ContextInfo } = require 'request-info'
+{ windows } = require 'lib/windows'
+{ tabs } = require 'lib/tabs'
+{ memo } = require 'lib/request-memo'
+{ manager } = require 'lib/ruleset/manager'
+{ ContextInfo } = require 'lib/request-info'
 
 {
   wrapsSuperWidget
@@ -28,14 +28,14 @@
   ContainerPopulation
   RadioGroup
   elementMethod: em
-} = require 'ui/popup-tk2'
+} = require 'lib/ui/popup-tk2'
 
-{ aboutPages } = require 'ui/about-policeman'
+{ aboutPages } = require 'lib/ui/about-policeman'
 
-{ Color } = require 'color'
-{ prefs } = require 'prefs'
+{ Color } = require 'lib/color'
+{ prefs } = require 'lib/prefs'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 
 WILDCARD_TYPE = ContextInfo::WILDCARD_TYPE

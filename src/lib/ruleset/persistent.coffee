@@ -1,9 +1,9 @@
 
-{ DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
+{ DomainDomainTypeRS } = require 'lib/ruleset/in-memory-ruleset'
 
-{ prefs } = require 'prefs'
-{ updating } = require 'updating'
-{ l10n } = require 'l10n'
+{ prefs } = require 'lib/prefs'
+{ updating } = require 'lib/updating'
+{ l10n } = require 'lib/l10n'
 
 
 # Holds persistent permissions added by UI (panelview popup).

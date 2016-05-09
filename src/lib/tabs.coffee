@@ -1,7 +1,7 @@
 
 
-{ windows } = require 'windows'
-{ Handlers } = require 'utils'
+{ windows } = require 'lib/windows'
+{ Handlers } = require 'lib/utils'
 
 exports.tabs = tabs =
   onOpen: new Handlers

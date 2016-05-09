@@ -6,23 +6,23 @@
   removeSheet
   Handlers
   reverseLookup
-} = require 'utils'
+} = require 'lib/utils'
 
-{ manager } = require 'ruleset/manager'
-{ memo } = require 'request-memo'
-{ policy } = require 'content-policy'
+{ manager } = require 'lib/ruleset/manager'
+{ memo } = require 'lib/request-memo'
+{ policy } = require 'lib/content-policy'
 
-{ windows } = require 'windows'
-{ tabs } = require 'tabs'
+{ windows } = require 'lib/windows'
+{ tabs } = require 'lib/tabs'
 
 { CustomizableUI } = Cu.import "resource:///modules/CustomizableUI.jsm"
-{ panelview } = require 'ui/panelview'
-{ popup } = require 'ui/popup'
-{ aboutPages } = require 'ui/about-policeman'
+{ panelview } = require 'lib/ui/panelview'
+{ popup } = require 'lib/ui/popup'
+{ aboutPages } = require 'lib/ui/about-policeman'
 
-{ prefs } = require 'prefs'
+{ prefs } = require 'lib/prefs'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 exports.toolbarbutton = toolbarbutton = new class
   id: 'policeman-toolbarbutton'

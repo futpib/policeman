@@ -1,5 +1,5 @@
 
-{ path, file } = require 'file'
+{ path, file } = require 'lib/file'
 
 
 exports.registry =
@@ -32,6 +32,6 @@ exports.registry =
 
 # require all the formats, so they register themselves
 
-require 'ruleset/hosts-ruleset'
-require 'ruleset/domains-blacklist-ruleset'
-require 'ruleset/tree-ruleset'
+require 'lib/ruleset/hosts-ruleset'
+require 'lib/ruleset/domains-blacklist-ruleset'
+require 'lib/ruleset/tree-ruleset'

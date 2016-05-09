@@ -1,11 +1,11 @@
 
 
-{ manager } = require 'ruleset/manager'
-{ popup } = require 'ui/popup'
+{ manager } = require 'lib/ruleset/manager'
+{ popup } = require 'lib/ui/popup'
 
-{ ContextInfo } = require 'request-info'
+{ ContextInfo } = require 'lib/request-info'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 
 USER_AVAILABLE_CONTENT_TYPES = ContextInfo::USER_AVAILABLE_CONTENT_TYPES

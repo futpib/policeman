@@ -1,13 +1,13 @@
 
 
-{ tabs } = require 'tabs'
+{ tabs } = require 'lib/tabs'
 
 {
   WeakSet
   Handlers
   createElement
   removeChildren
-} = require 'utils'
+} = require 'lib/utils'
 
 
 exports.Description = class Description

@@ -1,11 +1,11 @@
 
 
-{ manager } = require 'ruleset/manager'
-{ panelview } = require 'ui/panelview'
-{ toolbarbutton } = require 'ui/toolbarbutton'
-{ blockedElements } = require 'blocked-elements'
+{ manager } = require 'lib/ruleset/manager'
+{ panelview } = require 'lib/ui/panelview'
+{ toolbarbutton } = require 'lib/ui/toolbarbutton'
+{ blockedElements } = require 'lib/blocked-elements'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 
 checkbox = (selector, initialState, oncommand) ->

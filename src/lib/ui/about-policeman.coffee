@@ -3,7 +3,7 @@ registrar = Cm.QueryInterface Ci.nsIComponentRegistrar
 
 {
   runAsync
-} = require 'utils'
+} = require 'lib/utils'
 
 
 exports.aboutPages =

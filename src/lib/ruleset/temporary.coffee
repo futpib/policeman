@@ -3,11 +3,11 @@
   DomainDomainTypeRS
   ClosuresRS
   LookupRS
-} = require 'ruleset/in-memory-ruleset'
+} = require 'lib/ruleset/in-memory-ruleset'
 
-{ tabs } = require 'tabs'
+{ tabs } = require 'lib/tabs'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 
 # Holds temporary permissions added by UI (panelview popup).

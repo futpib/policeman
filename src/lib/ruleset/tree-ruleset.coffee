@@ -1,12 +1,12 @@
 
-{ MutableOrderedMap } = require 'mutable-ordered-map'
+{ MutableOrderedMap } = require 'lib/mutable-ordered-map'
 
-{ prefered_locales } = require 'l10n'
+{ prefered_locales } = require 'lib/l10n'
 
-{ RuleSet } = require 'ruleset/base'
-{ parser } = require 'ruleset/tree-parser'
-{ L10nLookup } = require 'ruleset/tree-nodes'
-{ registry } = require 'ruleset/format-registry'
+{ RuleSet } = require 'lib/ruleset/base'
+{ parser } = require 'lib/ruleset/tree-parser'
+{ L10nLookup } = require 'lib/ruleset/tree-nodes'
+{ registry } = require 'lib/ruleset/format-registry'
 
 
 L10n = (raw) ->

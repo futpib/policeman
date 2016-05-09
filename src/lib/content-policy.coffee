@@ -1,18 +1,18 @@
 
 catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
 
-{ manager } = require 'ruleset/manager'
+{ manager } = require 'lib/ruleset/manager'
 {
   getShouldLoadRequestInfo
   getChannelRequestInfo
-} = require 'request-info'
-{ memo } = require 'request-memo'
-{ blockedElements } = require 'blocked-elements'
-{ blockedRedirects } = require 'blocked-redirects'
+} = require 'lib/request-info'
+{ memo } = require 'lib/request-memo'
+{ blockedElements } = require 'lib/blocked-elements'
+{ blockedRedirects } = require 'lib/blocked-redirects'
 {
   Handlers
   runAsync
-} = require 'utils'
+} = require 'lib/utils'
 
 registrar = Cm.QueryInterface Ci.nsIComponentRegistrar
 observerService = Cc["@mozilla.org/observer-service;1"]

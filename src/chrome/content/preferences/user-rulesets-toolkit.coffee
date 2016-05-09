@@ -1,17 +1,17 @@
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
-{ ContextInfo } = require 'request-info'
+{ ContextInfo } = require 'lib/request-info'
 
-{ manager } = require 'ruleset/manager'
-{ DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
+{ manager } = require 'lib/ruleset/manager'
+{ DomainDomainTypeRS } = require 'lib/ruleset/in-memory-ruleset'
 
 idnService = Cc["@mozilla.org/network/idn-service;1"]
               .getService Ci.nsIIDNService
 
 {
   mutateAttribute
-} = require 'utils'
+} = require 'lib/utils'
 
 
 {

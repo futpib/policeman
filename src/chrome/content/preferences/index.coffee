@@ -1,8 +1,8 @@
 
 
-{ tabs } = require 'tabs'
+{ tabs } = require 'lib/tabs'
 
-{ manager } = require 'ruleset/manager'
+{ manager } = require 'lib/ruleset/manager'
 
 
 class SubpageLink

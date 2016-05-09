@@ -1,9 +1,9 @@
 
 
-{ tabs } = require 'tabs'
-{ RequestInfo } = require 'request-info'
+{ tabs } = require 'lib/tabs'
+{ RequestInfo } = require 'lib/request-info'
 
-{ redirectNotifications } = require 'ui/redirect-notifications'
+{ redirectNotifications } = require 'lib/ui/redirect-notifications'
 
 
 class BlockedRedirectInfo extends RequestInfo

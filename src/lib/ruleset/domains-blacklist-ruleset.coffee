@@ -1,12 +1,12 @@
 
-{ WebDestHostRS } = require 'ruleset/in-memory-ruleset'
-{ registry } = require 'ruleset/format-registry'
+{ WebDestHostRS } = require 'lib/ruleset/in-memory-ruleset'
+{ registry } = require 'lib/ruleset/format-registry'
 
 {
   md5
-} = require 'utils'
+} = require 'lib/utils'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 
 exports.DomainsBlacklistRS = class DomainsBlacklistRS extends WebDestHostRS

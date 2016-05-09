@@ -1,4 +1,4 @@
 
-require 'ui/about-policeman'
-{ toolbarbutton } = require 'ui/toolbarbutton'
-{ contentContextMenu } = require 'ui/content-context-menu'
+require 'lib/ui/about-policeman'
+{ toolbarbutton } = require 'lib/ui/toolbarbutton'
+{ contentContextMenu } = require 'lib/ui/content-context-menu'

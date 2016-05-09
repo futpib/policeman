@@ -13,12 +13,12 @@ filepicker.appendFilter 'JSON', '*.json'
 filepicker.appendFilter 'Any file', '*'
 
 
-{ manager } = require 'ruleset/manager'
+{ manager } = require 'lib/ruleset/manager'
 
 
 {
   zip
-} = require 'utils'
+} = require 'lib/utils'
 
 
 loadedRules = new RulesTree \

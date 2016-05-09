@@ -1,16 +1,16 @@
 
 
-{ windows } = require 'windows'
-{ manager } = require 'ruleset/manager'
+{ windows } = require 'lib/windows'
+{ manager } = require 'lib/ruleset/manager'
 
 {
   loadSheet
   removeSheet
   createElement
   removeNode
-} = require 'utils'
+} = require 'lib/utils'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 
 exports.redirectNotifications = redirectNotifications = new class

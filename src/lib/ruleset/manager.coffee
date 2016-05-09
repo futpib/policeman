@@ -1,21 +1,21 @@
 
 { TextEncoder, OS } = Cu.import 'resource://gre/modules/osfile.jsm'
 
-{ path: file_path } = require 'file'
+{ path: file_path } = require 'lib/file'
 {
   remove
   move
   zip
   cache
   XMLHttpRequest
-} = require 'utils'
+} = require 'lib/utils'
 
-{ registry: formatRegistry } = require 'ruleset/format-registry'
-{ temporaryRuleSet } = require 'ruleset/temporary'
-{ persistentRuleSet } = require 'ruleset/persistent'
+{ registry: formatRegistry } = require 'lib/ruleset/format-registry'
+{ temporaryRuleSet } = require 'lib/ruleset/temporary'
+{ persistentRuleSet } = require 'lib/ruleset/persistent'
 
-{ updating } = require 'updating'
-{ prefs } = require 'prefs'
+{ updating } = require 'lib/updating'
+{ prefs } = require 'lib/prefs'
 
 codeBasedRuleSets = [
   'user_persistent',

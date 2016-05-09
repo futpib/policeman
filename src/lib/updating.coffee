@@ -2,8 +2,8 @@
 {
   Handlers
   versionComparator
-} = require 'utils'
-{ prefs } = require 'prefs'
+} = require 'lib/utils'
+{ prefs } = require 'lib/prefs'
 
 
 exports.updating = updating = new class

@@ -1,7 +1,7 @@
 
 {
   foreign: foreignPrefs
-} = require 'prefs'
+} = require 'lib/prefs'
 
 
 # Mirrors addon-sdk/l10n/locale#getPreferedLocales

@@ -1,15 +1,15 @@
 
-{ prefs } = require 'prefs'
-{ manager } = require 'ruleset/manager'
-{ tabs } = require 'tabs'
+{ prefs } = require 'lib/prefs'
+{ manager } = require 'lib/ruleset/manager'
+{ tabs } = require 'lib/tabs'
 {
   createElement
   removeChildren
   removeNode
-} = require 'utils'
-{ path } = require 'file'
+} = require 'lib/utils'
+{ path } = require 'lib/file'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 
 prompt = Cc["@mozilla.org/embedcomp/prompt-service;1"]

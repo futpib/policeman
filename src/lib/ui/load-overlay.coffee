@@ -2,7 +2,7 @@
 {
   removeNode
   XMLHttpRequest
-} = require 'utils'
+} = require 'lib/utils'
 
 
 ###

@@ -1,9 +1,9 @@
 
-{ superdomains, remove } = require 'utils'
-{ prefs } = require 'prefs'
+{ superdomains, remove } = require 'lib/utils'
+{ prefs } = require 'lib/prefs'
 
-{ ContextInfo } = require 'request-info'
-{ RuleSet } = require 'ruleset/base'
+{ ContextInfo } = require 'lib/request-info'
+{ RuleSet } = require 'lib/ruleset/base'
 
 { setTimeout, clearTimeout } = Cu.import "resource://gre/modules/Timer.jsm"
 

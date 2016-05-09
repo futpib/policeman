@@ -5,14 +5,14 @@
   removeNode
   removeChildren
   superdomains
-} = require 'utils'
-{ windows } = require 'windows'
-{ tabs } = require 'tabs'
+} = require 'lib/utils'
+{ windows } = require 'lib/windows'
+{ tabs } = require 'lib/tabs'
 
-{ manager } = require 'ruleset/manager'
-{ blockedElements } = require 'blocked-elements'
+{ manager } = require 'lib/ruleset/manager'
+{ blockedElements } = require 'lib/blocked-elements'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 
 exports.contentContextMenu = contentContextMenu =

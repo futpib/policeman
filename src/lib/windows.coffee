@@ -1,5 +1,5 @@
 
-{ Handlers } = require 'utils'
+{ Handlers } = require 'lib/utils'
 
 exports.windows = windows = # keeps track of browser windows
   onOpen: new Handlers # actually executed on window's content loaded

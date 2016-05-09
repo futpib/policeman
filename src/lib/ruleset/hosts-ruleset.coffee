@@ -1,12 +1,12 @@
 
-{ DomainsBlacklistRS } = require 'ruleset/domains-blacklist-ruleset'
-{ registry } = require 'ruleset/format-registry'
+{ DomainsBlacklistRS } = require 'lib/ruleset/domains-blacklist-ruleset'
+{ registry } = require 'lib/ruleset/format-registry'
 
 {
   md5
-} = require 'utils'
+} = require 'lib/utils'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 
 exports.HostsRS = class HostsRS extends DomainsBlacklistRS

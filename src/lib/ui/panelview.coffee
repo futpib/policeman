@@ -1,9 +1,9 @@
 
 
-{ windows } = require 'windows'
-{ tabs } = require 'tabs'
-{ memo } = require 'request-memo'
-{ manager } = require 'ruleset/manager'
+{ windows } = require 'lib/windows'
+{ tabs } = require 'lib/tabs'
+{ memo } = require 'lib/request-memo'
+{ manager } = require 'lib/ruleset/manager'
 {
   Handlers
   Observer
@@ -12,15 +12,15 @@
   removeChildren
   loadSheet
   removeSheet
-} = require 'utils'
-{ loadOverlay } = require 'ui/load-overlay'
+} = require 'lib/utils'
+{ loadOverlay } = require 'lib/ui/load-overlay'
 
-{ aboutPages } = require 'ui/about-policeman'
+{ aboutPages } = require 'lib/ui/about-policeman'
 
-{ Color } = require 'color'
-{ prefs } = require 'prefs'
+{ Color } = require 'lib/color'
+{ prefs } = require 'lib/prefs'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 
 POSITIVE_BG_PREF = 'ui.panelview.positiveBgColor'

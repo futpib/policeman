@@ -28,16 +28,16 @@ startup = (data, reason) ->
   requireScope.setAddonData data
   # require needs resourceURI too for the same purpose
 
-  { ReverseHandlers } = requireScope.require 'utils'
+  { ReverseHandlers } = requireScope.require 'lib/utils'
   onShutdown = new ReverseHandlers
   # require makes handlers available in scripts it loads
   requireScope.setShutdownHandlers onShutdown
 
-  requireScope.require 'content-policy'
-  requireScope.require 'ui/ui'
+  requireScope.require 'lib/content-policy'
+  requireScope.require 'lib/ui/ui'
 
   AddonManager.getAddonByID data.id, (addon) ->
-    { updating } = requireScope.require 'updating'
+    { updating } = requireScope.require 'lib/updating'
     updating.finalize addon.version
 
 

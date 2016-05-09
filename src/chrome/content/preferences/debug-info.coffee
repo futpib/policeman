@@ -1,5 +1,5 @@
 
-{ prefs } = require 'prefs'
+{ prefs } = require 'lib/prefs'
 
 onLoad = ->
   $('#info-box').value = JSON.stringify (

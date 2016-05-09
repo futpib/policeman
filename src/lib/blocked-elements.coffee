@@ -10,12 +10,12 @@ Cu.import "resource://gre/modules/NetUtil.jsm"
   superdomains
   isSuperdomain
   mutateAttribute
-} = require 'utils'
-{ tabs } = require 'tabs'
+} = require 'lib/utils'
+{ tabs } = require 'lib/tabs'
 
-{ prefs } = require 'prefs'
+{ prefs } = require 'lib/prefs'
 
-{ l10n } = require 'l10n'
+{ l10n } = require 'lib/l10n'
 
 
 # 1px transparent gif

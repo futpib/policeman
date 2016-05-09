@@ -1,10 +1,10 @@
 
-{ path } = require 'file'
-{ tabs } = require 'tabs'
+{ path } = require 'lib/file'
+{ tabs } = require 'lib/tabs'
 
 {
   defineLazyProperty: deflp
-} = require 'utils'
+} = require 'lib/utils'
 
 
 ioService = Cc["@mozilla.org/network/io-service;1"]

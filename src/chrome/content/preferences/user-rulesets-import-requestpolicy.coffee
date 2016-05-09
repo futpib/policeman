@@ -3,13 +3,13 @@
 Cu.import 'resource://gre/modules/osfile.jsm'
 
 
-{ foreign } = require 'prefs'
-{ manager } = require 'ruleset/manager'
-{ DomainDomainTypeRS } = require 'ruleset/in-memory-ruleset'
+{ foreign } = require 'lib/prefs'
+{ manager } = require 'lib/ruleset/manager'
+{ DomainDomainTypeRS } = require 'lib/ruleset/in-memory-ruleset'
 
 {
   zip
-} = require 'utils'
+} = require 'lib/utils'
 
 
 WILDCARD_TYPE = DomainDomainTypeRS::WILDCARD_TYPE

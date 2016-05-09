@@ -24,7 +24,7 @@ $$ = (s) -> document.querySelectorAll s
 {
   addonData
   createElement: _createElement
-} = require 'utils'
+} = require 'lib/utils'
 createElement = ->
   return _createElement document, arguments...
 

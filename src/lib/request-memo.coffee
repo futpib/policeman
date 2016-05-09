@@ -1,9 +1,9 @@
 
 
-{ windows } = require 'windows'
-{ tabs } = require 'tabs'
+{ windows } = require 'lib/windows'
+{ tabs } = require 'lib/tabs'
 
-{ prefs } = require 'prefs'
+{ prefs } = require 'lib/prefs'
 
 
 prefs.define REQUEST_PER_TAB_LIMIT_PREF = 'requestMemo.requestPerTabLimit',

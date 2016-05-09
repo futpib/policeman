@@ -1,5 +1,5 @@
 
-{ zip } = require 'utils'
+{ zip } = require 'lib/utils'
 
 
 exports.Color = class Color

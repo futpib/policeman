@@ -12,7 +12,7 @@ savefilepicker.appendFilter 'Policeman rules dump', '*.policeman.json'
 savefilepicker.defaultString = 'persistent_rules.policeman.json'
 
 
-{ manager } = require 'ruleset/manager'
+{ manager } = require 'lib/ruleset/manager'
 
 
 persistentRules = new RulesTree \
