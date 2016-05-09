@@ -21,8 +21,7 @@ const knownOptions = {
     string: [ 'post-url' ],
     default: {
         'post-url': [
-            'http://localhost:8899/',
-            'http://192.168.1.100:8888/'
+            'http://localhost:8888/'
         ]
     }
 };
