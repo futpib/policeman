@@ -1,4 +1,7 @@
 
+{
+    Cu
+} = require 'chrome'
 
 Cu.import "resource://gre/modules/NetUtil.jsm"
 { setTimeout, clearTimeout } = Cu.import "resource://gre/modules/Timer.jsm"

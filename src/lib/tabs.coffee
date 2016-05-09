@@ -1,4 +1,5 @@
 
+unload = require 'sdk/system/unload'
 
 { windows } = require 'lib/windows'
 { Handlers } = require 'lib/utils'
@@ -24,7 +25,7 @@ exports.tabs = tabs =
 
     addListeners(win.gBrowser.tabContainer) for win in windows.list
     @list.push t for t in win.gBrowser.tabs for win in windows.list
-    onShutdown.add ->
+    unload.when ->
       removeListeners(win.gBrowser.tabContainer) for win in windows.list
 
     windows.onOpen.add (w) =>

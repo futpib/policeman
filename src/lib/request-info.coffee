@@ -1,4 +1,9 @@
 
+{
+    Cc,
+    Ci
+} = require 'chrome'
+
 { path } = require 'lib/file'
 { tabs } = require 'lib/tabs'
 
@@ -431,7 +436,7 @@ infoMangling = new class Pipeline
       try
         mangled = f request
       catch e
-        log.error 'Mangling function', f, 'threw', e
+        console.error 'Mangling function', f, 'threw', e
       if mangled
         request = mangled
     return request

@@ -9,6 +9,8 @@
   removeChildren
 } = require 'lib/utils'
 
+log = require 'lib/log'
+
 
 exports.Description = class Description
   LIST_PREFIX: 'list_'

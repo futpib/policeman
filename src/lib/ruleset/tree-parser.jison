@@ -1,11 +1,11 @@
 
 %{
-var nodes = require('ruleset/tree-nodes');
+var nodes = require('lib/ruleset/tree-nodes');
 for (var name in nodes) {
   this[name] = nodes[name];
 }
-var requestInfo = require('request-info');
-var errors = require('ruleset/errors');
+var requestInfo = require('lib/request-info');
+var errors = require('lib/ruleset/errors');
 
 var config = {
   'default': {

@@ -1,6 +1,8 @@
 
 { path, file } = require 'lib/file'
 
+log = require 'lib/log'
+
 
 exports.registry =
   _records: []

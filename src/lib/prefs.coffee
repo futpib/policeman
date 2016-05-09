@@ -1,4 +1,10 @@
 
+{
+    Cc,
+    Ci
+} = require 'chrome'
+
+unload = require 'sdk/system/unload'
 
 prefService = Cc["@mozilla.org/preferences-service;1"].getService Ci.nsIPrefService
 policemanBranch = "extensions.policeman"
@@ -110,7 +116,7 @@ class Preferences
       if type of @_jsonTypes
         value = JSON.parse value
     catch e
-      log.info "Error getting preference '#{name}':", e,
+      console.info "Error getting preference '#{name}':", e,
                "Using default value"
       value = @_default name
     return value
@@ -157,7 +163,7 @@ class ObservablePreferences extends Preferences
 
     observer = observe: => @_observeChange arguments...
     @_branch.addObserver '', observer, false
-    onShutdown.add => @_branch.removeObserver '', observer
+    unload.when => @_branch.removeObserver '', observer
 
   define: (name, description={}) ->
     {
@@ -174,7 +180,7 @@ class ObservablePreferences extends Preferences
         try
           h(value)
         catch e
-          log.error 'Error executing onChange handler for preference',
+          console.error 'Error executing onChange handler for preference',
                     name, ':', e
 
   onChange: (name, handler) ->

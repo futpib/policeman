@@ -1,4 +1,10 @@
 
+{
+    Cu
+} = require 'chrome'
+
+unload = require 'sdk/system/unload'
+
 { TextEncoder, OS } = Cu.import 'resource://gre/modules/osfile.jsm'
 
 { path: file_path } = require 'lib/file'
@@ -16,6 +22,8 @@
 
 { updating } = require 'lib/updating'
 { prefs } = require 'lib/prefs'
+
+log = require 'lib/log'
 
 codeBasedRuleSets = [
   'user_persistent',
@@ -430,7 +438,7 @@ class SavableSnapshotableManager extends SuspendableManager
     prefs.onChange INSTALLED_PATH_BY_ID_PREF, @_onInstalledPrefChange.bind @
     prefs.onChange ENABLED_IDS_PREF, @_onEnabledPrefChange.bind @
 
-    onShutdown.add @save.bind @
+    unload.when @save.bind @
 
   _loadInstalledIds: (newInstalledUrlById) ->
     for id, url of newInstalledUrlById

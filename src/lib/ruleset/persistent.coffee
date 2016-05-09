@@ -1,4 +1,6 @@
 
+unload = require 'sdk/system/unload'
+
 { DomainDomainTypeRS } = require 'lib/ruleset/in-memory-ruleset'
 
 { prefs } = require 'lib/prefs'
@@ -19,7 +21,7 @@ exports.persistentRuleSet = persistentRuleSet = new (class extends DomainDomainT
   _restrictToWebPref: 'ruleset.persistent.restrictToWeb'
 )
 
-onShutdown.add persistentRuleSet.save.bind persistentRuleSet
+unload.when persistentRuleSet.save.bind persistentRuleSet
 
 
 updating.from '0.12', ->

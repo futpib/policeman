@@ -1,4 +1,10 @@
 
+{
+    Cc,
+    Ci,
+} = require 'chrome'
+
+self = require 'sdk/self'
 
 ioService = Cc["@mozilla.org/network/io-service;1"]
     .getService Ci.nsIIOService
@@ -65,7 +71,7 @@ exports.path = path = new class
     throw new Error "path.toString: Can't get url string from #{base} (type: #{typeof base})"
 
   # 'defaults' folder of extension
-  defaults: ioService.newURI(addonData.resourceURI.spec + 'defaults/', null, null)
+  defaults: ioService.newURI(self.data.url('defaults/'), null, null)
 
   NEW_DIR_PERMISSIONS = 0b111100100
                         # rwxr--r-- permissions

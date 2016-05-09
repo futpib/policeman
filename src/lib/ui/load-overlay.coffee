@@ -4,6 +4,8 @@
   XMLHttpRequest
 } = require 'lib/utils'
 
+log = require 'lib/log'
+
 
 ###
 Something similar to document.loadOverlay but less buggy

@@ -1,4 +1,12 @@
 
+{
+    Ci
+} = require 'chrome'
+
+{ Services } = require 'resource://gre/modules/Services.jsm'
+
+unload = require 'sdk/system/unload'
+
 { Handlers } = require 'lib/utils'
 
 exports.windows = windows = # keeps track of browser windows
@@ -28,7 +36,7 @@ exports.windows = windows = # keeps track of browser windows
           @onClose.execute domWin
 
     Services.wm.addListener wmListener
-    onShutdown.add -> Services.wm.removeListener wmListener
+    unload.when -> Services.wm.removeListener wmListener
 
     enumerator = Services.wm.getEnumerator "navigator:browser"
     @list.push(enumerator.getNext()) while enumerator.hasMoreElements()

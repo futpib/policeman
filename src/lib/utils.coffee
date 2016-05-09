@@ -1,4 +1,13 @@
 
+{
+    Cc,
+    Ci,
+    components
+} = require 'chrome'
+
+{ Services } = require 'resource://gre/modules/Services.jsm'
+
+
 exports.Handlers = class Handlers
   constructor: (@errorHandler=@defaultErrorHandler) ->
     @handlers = []
@@ -74,7 +83,7 @@ exports.defineLazyProperty = defineLazyProperty = (cls, name, getter) ->
       try
         value = getter.call this
       catch e
-        log.error 'Getter for property', name, 'of', this, 'threw', e
+        console.error 'Getter for property', name, 'of', this, 'threw', e
         value = Object.getPrototypeOf(proto)?[name]
       Object.defineProperty this, name,
         enumerable: yes
@@ -140,8 +149,7 @@ exports.newURI = newURI = (spec, originCharset=null, baseURI=null) ->
   return Services.io.newURI spec, originCharset, baseURI
 
 
-exports.XMLHttpRequest = XMLHttpRequest = Components.Constructor \
-        "@mozilla.org/xmlextras/xmlhttprequest;1", "nsIXMLHttpRequest"
+exports.XMLHttpRequest = XMLHttpRequest = require 'sdk/net/xhr'
 
 
 exports.zip = zip = (arrs...) ->
@@ -253,9 +261,6 @@ exports.ValueWeakMap = class ValueWeakMap
     return v
   has: (k) -> !! @get k
   delete: (k) -> @_map.delete k
-
-
-exports.addonData = addonData
 
 
 criptoHash = Cc["@mozilla.org/security/hash;1"]

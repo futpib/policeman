@@ -5,7 +5,9 @@
 { ContextInfo } = require 'lib/request-info'
 { RuleSet } = require 'lib/ruleset/base'
 
-{ setTimeout, clearTimeout } = Cu.import "resource://gre/modules/Timer.jsm"
+{ setTimeout, clearTimeout } = require 'sdk/timers'
+
+{ Cu } = require 'chrome'
 
 
 # Rulesets for easy modification by ui.

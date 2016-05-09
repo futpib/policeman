@@ -1,4 +1,12 @@
 
+{
+    Cc,
+    Cm,
+    Cr,
+    Ci,
+    components
+} = require 'chrome'
+
 catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
 
 { manager } = require 'lib/ruleset/manager'
@@ -14,13 +22,15 @@ catMan = Cc["@mozilla.org/categorymanager;1"].getService Ci.nsICategoryManager
   runAsync
 } = require 'lib/utils'
 
+log = require 'lib/log'
+
 registrar = Cm.QueryInterface Ci.nsIComponentRegistrar
 observerService = Cc["@mozilla.org/observer-service;1"]
                   .getService Ci.nsIObserverService
 
 exports.policy = policy =
   classDescription: "Policeman Content Policy Component"
-  classID: Components.ID "{9208dac0-38ad-4bce-a0b5-f7c6ba9b0f7a}"
+  classID: components.ID "{9208dac0-38ad-4bce-a0b5-f7c6ba9b0f7a}"
   contractID: "@futpib.addons.mozilla.org/policeman-content-policy;1"
   categories: ["content-policy"]
   topics: ["http-on-modify-request"]
