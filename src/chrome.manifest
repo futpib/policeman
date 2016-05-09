@@ -1,4 +1,0 @@
-content   policeman chrome/content/
-skin      policeman classic/1.0 chrome/skin/
-
-locale    policeman ${locale} chrome/locale/${locale}/

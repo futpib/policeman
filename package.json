@@ -1,0 +1,56 @@
+{
+  "title": "Policeman",
+  "name": "policeman",
+  "version": "0.18.1",
+  "description": "Firefox extention for cross-site requests control (kind of RequestPolicy clone)",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/futpib/policeman.git"
+  },
+  "author": {
+    "name": "futpib",
+    "email": "futpib@gmail.com",
+    "url": "http://github.com/futpib"
+  },
+  "contributors": [],
+  "license": "GPL-3.0+",
+  "bugs": {
+    "url": "https://github.com/futpib/policeman/issues"
+  },
+  "homepage": "https://github.com/futpib/policeman#readme",
+  "engines": {
+    "firefox": ">=38.0a1"
+  },
+  "keywords": [
+    "jetpack"
+  ],
+  "permissions": {
+    "private-browsing": true,
+    "multiprocess": true
+  },
+  "preferences": [
+    {
+      "type": "control",
+      "name": "openPreferencesPage",
+      "label": "Open preferences page",
+      "title": "Open preferences page"
+    }
+  ],
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-coffee": "^2.3.2",
+    "gulp-jison": "^1.2.0",
+    "gulp-raster": "^0.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-util": "^3.0.7",
+    "jpm": "^1.0.7",
+    "lodash": "^4.12.0",
+    "minimist": "^1.2.0",
+    "process-promises": "^1.0.0",
+    "q": "^1.4.1",
+    "split": "^1.0.0",
+    "which-promise": "^1.0.0"
+  },
+  "dependencies": {}
+}
