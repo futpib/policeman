@@ -1,4 +1,4 @@
-# Policeman
+# Policeman - ABANDONED
 Firefox extension for cross-site request control.
 
 ## Help
