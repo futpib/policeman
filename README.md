@@ -1,5 +1,8 @@
-# Policeman - ABANDONED
+# Policeman
 Firefox extension for cross-site request control.
+
+## ABANDONED - Last AMO release Jan 19, 2015
+I'm considering whether to continue support for this add-on, please [participate in a survey](https://goo.gl/forms/g6ldXl18sUz3eIwW2) if you care.
 
 ## Help
 If the [wiki](https://github.com/futpib/policeman/wiki) does not cover your question, you can get help by commenting on [this issue](https://github.com/futpib/policeman/issues/18).
